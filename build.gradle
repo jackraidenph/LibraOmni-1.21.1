@@ -151,9 +151,9 @@ tasks.withType(JavaCompile).configureEach {
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = 'dev.jackraidenph'
-            artifactId = 'libraomni'
-            version = '1.0.0'
+            groupId = project.mod_group
+            artifactId = project.mod_id
+            version = project.mod_version
 
             from components.java
         }
