@@ -86,7 +86,7 @@ public class CentralProcessor extends AbstractProcessor {
         for (Class<? extends Annotation> annotation : this.getSupportedAnnotationClasses()) {
             qualifiers.add(annotation.getName());
         }
-        return Set.of(Register.class.getName());
+        return qualifiers;
     }
 
     @Override
