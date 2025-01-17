@@ -21,21 +21,12 @@ public class CentralProcessor extends AbstractProcessor {
 
     List<CompileTimeProcessor> processors = new ArrayList<>();
 
-    private final ReflectionCachingHelper localClassloaderReflectionCachingHelper;
-    private final SerializationHelper localClassloaderSerializationHelper;
-
-    public CentralProcessor(
-    ) {
-        //Yes, this violates dependency inversion principle
-        //Yet, we specifically need to create our own dependencies, because those dependencies are directly dependent on this instance's classloader
-        this.localClassloaderReflectionCachingHelper = new ReflectionCachingHelper();
-        this.localClassloaderSerializationHelper = new SerializationHelper(this.localClassloaderReflectionCachingHelper);
-    }
-
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
 
+        ReflectionCachingHelper cachingHelper = new ReflectionCachingHelper();
+        SerializationHelper serializationHelper = new SerializationHelper(cachingHelper);
         ScanRootProcessor scanRootProcessor = new ScanRootProcessor(processingEnv);
 
         this.addProcessors(
@@ -43,7 +34,7 @@ public class CentralProcessor extends AbstractProcessor {
                 new RegisterPredicateProcessor(processingEnv),
                 new ReferenceMapCreationProcessor(
                         processingEnv,
-                        this.localClassloaderSerializationHelper,
+                        serializationHelper,
                         scanRootProcessor
                 )
         );
