@@ -21,8 +21,9 @@ import java.util.*;
 
 public class ReferenceMapCreationProcessor extends AbstractCompileTimeProcessor {
 
+    private static final String REGISTRY_LOCATION = LibraOmni.MODID + ".marked.registry";
+
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final String DEFAULT_LOCATION = LibraOmni.MODID + ".marked.json";
 
     private final SerializationHelper serializationHelper;
     private final ScanRootProcessor scanRootProcessor;
@@ -104,9 +105,19 @@ public class ReferenceMapCreationProcessor extends AbstractCompileTimeProcessor 
 
     @Override
     public boolean onFinish(RoundEnvironment roundEnvironment) {
+        StringJoiner stringJoiner = new StringJoiner("\n");
+        Filer filer = this.getProcessingEnvironment().getFiler();
+
         for (String modId : this.targetsMap.keySet()) {
-            this.write(modId + ".marked.json", this.getProcessingEnvironment().getFiler(), this.GSON.toJson(this.targetsMap.get(modId)));
+            String toWrite = this.GSON.toJson(this.targetsMap.get(modId));
+            String location = modId + ".marked.json";
+
+            this.write(location, filer, toWrite);
+
+            stringJoiner.add(location);
         }
+        this.write(REGISTRY_LOCATION, filer, stringJoiner.toString());
+
         return true;
     }
 
