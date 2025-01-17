@@ -25,8 +25,7 @@ public class CentralProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
 
-        ReflectionCachingHelper cachingHelper = new ReflectionCachingHelper();
-        SerializationHelper serializationHelper = new SerializationHelper(cachingHelper);
+        SerializationHelper serializationHelper = new SerializationHelper(ReflectionCachingHelper.INSTANCE);
         ScanRootProcessor scanRootProcessor = new ScanRootProcessor(processingEnv);
 
         this.addProcessors(

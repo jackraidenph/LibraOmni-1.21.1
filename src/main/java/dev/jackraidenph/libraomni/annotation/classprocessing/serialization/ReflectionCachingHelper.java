@@ -8,6 +8,8 @@ import java.util.Map;
 
 public class ReflectionCachingHelper {
 
+    public static final ReflectionCachingHelper INSTANCE = new ReflectionCachingHelper();
+
     private final Map<String, Class<?>> classes = new HashMap<>();
     private final Map<Class<?>, Map<String, Field>> fields = new HashMap<>();
     private final Map<Class<?>, Map<String, Method>> methods = new HashMap<>();
