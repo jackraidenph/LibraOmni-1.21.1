@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.runprocessing.proceesor.stereotype;
+package dev.jackraidenph.libraomni.annotation.runprocessing.processor.stereotype;
 
 public interface RuntimeAnnotationProcessor<T> {
 

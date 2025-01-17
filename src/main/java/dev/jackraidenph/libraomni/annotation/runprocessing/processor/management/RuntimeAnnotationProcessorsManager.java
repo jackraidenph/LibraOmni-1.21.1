@@ -1,6 +1,6 @@
-package dev.jackraidenph.libraomni.annotation.runprocessing.proceesor.management;
+package dev.jackraidenph.libraomni.annotation.runprocessing.processor.management;
 
-import dev.jackraidenph.libraomni.annotation.runprocessing.proceesor.stereotype.RuntimeAnnotationProcessor;
+import dev.jackraidenph.libraomni.annotation.runprocessing.processor.stereotype.RuntimeAnnotationProcessor;
 
 import java.util.*;
 

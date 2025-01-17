@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.runprocessing.proceesor.management;
+package dev.jackraidenph.libraomni.annotation.runprocessing.processor.management;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
