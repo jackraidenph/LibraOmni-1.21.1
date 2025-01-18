@@ -21,7 +21,7 @@ import java.util.*;
 
 public class ReferenceMapCreationProcessor extends AbstractCompileTimeProcessor {
 
-    private static final String REGISTRY_LOCATION = LibraOmni.MODID + ".marked.registry";
+    public static final String REGISTRY_LOCATION = LibraOmni.MODID + ".marked.registry";
 
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
