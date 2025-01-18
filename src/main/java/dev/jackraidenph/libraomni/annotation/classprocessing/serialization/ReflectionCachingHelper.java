@@ -33,7 +33,7 @@ public class ReflectionCachingHelper {
         }
 
         try {
-            return Class.forName(name, false, null);
+            return Class.forName(name, false, this.getClass().getClassLoader());
         } catch (ClassNotFoundException classNotFoundException) {
             throw new IllegalArgumentException(classNotFoundException);
         }
