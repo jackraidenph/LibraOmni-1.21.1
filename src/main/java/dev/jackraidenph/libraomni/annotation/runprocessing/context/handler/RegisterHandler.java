@@ -32,6 +32,7 @@ public class RegisterHandler extends AbstractModContextHandler {
         return this.blocksRegister;
     }
 
+    @SuppressWarnings("unchecked")
     public <T> DeferredRegister<T> getDeferredRegister(ResourceKey<T> resourceKey) {
         return (DeferredRegister<T>) registersMap.get(resourceKey);
     }
