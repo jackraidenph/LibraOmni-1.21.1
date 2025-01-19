@@ -1,13 +1,13 @@
-package dev.jackraidenph.libraomni.annotation.classprocessing.processor;
+package dev.jackraidenph.libraomni.annotation.compile.processor.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.classprocessing.processor.base.AbstractCompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.classprocessing.processor.base.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.classprocessing.serialization.SerializationHelper;
-import dev.jackraidenph.libraomni.annotation.instance.Register;
-import dev.jackraidenph.libraomni.annotation.instance.ScanRoot;
+import dev.jackraidenph.libraomni.annotation.compile.processor.base.AbstractCompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.processor.base.CompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
+import dev.jackraidenph.libraomni.annotation.impl.Register;
+import dev.jackraidenph.libraomni.annotation.impl.ScanRoot;
 
 import javax.annotation.processing.*;
 import javax.lang.model.element.*;
@@ -43,9 +43,7 @@ public class ReferenceMapCreationProcessor extends AbstractCompileTimeProcessor 
     @Override
     public boolean onRound(RoundEnvironment roundEnvironment) {
         for (Class<? extends Annotation> annotation : this.getSupportedAnnotationClasses()) {
-
             for (Element element : roundEnvironment.getElementsAnnotatedWith(annotation)) {
-
                 String pkg = CompileTimeProcessor.packageOf(this.getProcessingEnvironment(), element)
                         .getQualifiedName()
                         .toString();

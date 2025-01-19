@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.runprocessing.context.handler.base;
+package dev.jackraidenph.libraomni.context.handler.base;
 
 public interface ModContextHandler {
 

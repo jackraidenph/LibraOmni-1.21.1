@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.classprocessing.serialization;
+package dev.jackraidenph.libraomni.annotation.compile.util;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;

@@ -1,8 +1,8 @@
-package dev.jackraidenph.libraomni.annotation.classprocessing.processor;
+package dev.jackraidenph.libraomni.annotation.compile.processor.impl;
 
-import dev.jackraidenph.libraomni.annotation.classprocessing.processor.base.AbstractCompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.classprocessing.processor.base.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.instance.ScanRoot;
+import dev.jackraidenph.libraomni.annotation.compile.processor.base.AbstractCompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.processor.base.CompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.impl.ScanRoot;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;

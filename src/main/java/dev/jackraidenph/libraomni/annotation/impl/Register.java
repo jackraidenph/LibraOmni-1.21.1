@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.instance;
+package dev.jackraidenph.libraomni.annotation.impl;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

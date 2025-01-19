@@ -1,9 +1,12 @@
-package dev.jackraidenph.libraomni.annotation.classprocessing.processor;
+package dev.jackraidenph.libraomni.annotation.compile.processor;
 
-import dev.jackraidenph.libraomni.annotation.classprocessing.processor.base.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.classprocessing.serialization.ReflectionCachingHelper;
-import dev.jackraidenph.libraomni.annotation.classprocessing.serialization.SerializationHelper;
-import dev.jackraidenph.libraomni.annotation.instance.Register;
+import dev.jackraidenph.libraomni.annotation.compile.processor.base.CompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.processor.impl.ReferenceMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.processor.impl.RegisterPredicateProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.processor.impl.ScanRootProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.util.ReflectionCachingHelper;
+import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
+import dev.jackraidenph.libraomni.annotation.impl.Register;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -17,7 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class CentralProcessor extends AbstractProcessor {
+public class CompileProcessorManager extends AbstractProcessor {
 
     List<CompileTimeProcessor> processors = new ArrayList<>();
 

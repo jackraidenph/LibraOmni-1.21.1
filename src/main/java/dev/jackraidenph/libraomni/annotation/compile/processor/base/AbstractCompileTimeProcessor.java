@@ -1,8 +1,7 @@
-package dev.jackraidenph.libraomni.annotation.classprocessing.processor.base;
+package dev.jackraidenph.libraomni.annotation.compile.processor.base;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.TypeElement;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 

@@ -1,7 +1,7 @@
-package dev.jackraidenph.libraomni.annotation.runprocessing.context.handler;
+package dev.jackraidenph.libraomni.context.handler.impl;
 
-import dev.jackraidenph.libraomni.annotation.runprocessing.context.ModContext;
-import dev.jackraidenph.libraomni.annotation.runprocessing.context.handler.base.AbstractModContextHandler;
+import dev.jackraidenph.libraomni.context.ModContext;
+import dev.jackraidenph.libraomni.context.handler.base.AbstractModContextHandler;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;

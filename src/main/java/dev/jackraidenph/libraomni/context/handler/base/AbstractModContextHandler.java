@@ -1,6 +1,6 @@
-package dev.jackraidenph.libraomni.annotation.runprocessing.context.handler.base;
+package dev.jackraidenph.libraomni.context.handler.base;
 
-import dev.jackraidenph.libraomni.annotation.runprocessing.context.ModContext;
+import dev.jackraidenph.libraomni.context.ModContext;
 
 public abstract class AbstractModContextHandler implements ModContextHandler {
 

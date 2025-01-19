@@ -1,8 +1,8 @@
-package dev.jackraidenph.libraomni.annotation.runprocessing.context;
+package dev.jackraidenph.libraomni.context;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.runprocessing.context.handler.base.ModContextHandler;
-import dev.jackraidenph.libraomni.annotation.runprocessing.context.handler.RegisterHandler;
+import dev.jackraidenph.libraomni.context.handler.base.ModContextHandler;
+import dev.jackraidenph.libraomni.context.handler.impl.RegisterHandler;
 import net.neoforged.fml.ModContainer;
 
 import java.util.HashSet;

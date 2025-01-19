@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.classprocessing.serialization;
+package dev.jackraidenph.libraomni.annotation.compile.util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
