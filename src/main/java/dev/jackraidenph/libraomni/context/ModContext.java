@@ -43,28 +43,28 @@ public class ModContext implements AutoCloseable {
 
     public void invokeConstruct() {
         for (ModContextHandler handler : this.handlers) {
-            LibraOmni.LOGGER.info("Performing construct setup of {} for {}", handler.getClass().getSimpleName(), this.modContainer.getModId());
+            LibraOmni.LOGGER.info("Performing construct setup of {} for {}...", handler.getClass().getSimpleName(), this.modContainer.getModId());
             handler.onModConstruct();
         }
     }
 
     public void invokeCommon() {
         for (ModContextHandler handler : this.handlers) {
-            LibraOmni.LOGGER.info("Performing common setup of {} for {}", handler.getClass().getSimpleName(), this.modContainer.getModId());
+            LibraOmni.LOGGER.info("Performing common setup of {} for {}...", handler.getClass().getSimpleName(), this.modContainer.getModId());
             handler.onCommonSetup();
         }
     }
 
     public void invokeClient() {
         for (ModContextHandler handler : this.handlers) {
-            LibraOmni.LOGGER.info("Performing client setup of {} for {}", handler.getClass().getSimpleName(), this.modContainer.getModId());
+            LibraOmni.LOGGER.info("Performing client setup of {} for {}...", handler.getClass().getSimpleName(), this.modContainer.getModId());
             handler.onClientSetup();
         }
     }
 
     private void onClose() {
         for (ModContextHandler handler : this.handlers) {
-            LibraOmni.LOGGER.info("Closing {} for {}", handler.getClass().getSimpleName(), this.modContainer.getModId());
+            LibraOmni.LOGGER.info("Closing {} for {}...", handler.getClass().getSimpleName(), this.modContainer.getModId());
             handler.onClose();
         }
     }
