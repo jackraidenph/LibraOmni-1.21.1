@@ -4,14 +4,13 @@ import dev.jackraidenph.libraomni.annotation.compile.processor.base.AbstractComp
 import dev.jackraidenph.libraomni.annotation.compile.processor.base.CompileTimeProcessor;
 import dev.jackraidenph.libraomni.annotation.impl.ScanRoot;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
+import javax.lang.model.element.*;
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class ScanRootProcessor extends AbstractCompileTimeProcessor {
 
@@ -24,10 +23,61 @@ public class ScanRootProcessor extends AbstractCompileTimeProcessor {
 
     @Override
     public boolean onRound(RoundEnvironment roundEnvironment) {
-        for (Element typeElement : roundEnvironment.getElementsAnnotatedWith(ScanRoot.class)) {
+        Set<Element> roots = new HashSet<>(
+                roundEnvironment.getElementsAnnotatedWith(ScanRoot.class)
+        );
+
+        if (roots.isEmpty()) {
+            Messager messager = this.getProcessingEnvironment().getMessager();
+            for (Element element : roundEnvironment.getRootElements()) {
+                if (element.getKind().equals(ElementKind.CLASS)) {
+                    TypeElement typeElement = (TypeElement) element;
+                    List<? extends AnnotationMirror> mirrors = typeElement.getAnnotationMirrors();
+                    if (!mirrors.isEmpty()) {
+                        for (AnnotationMirror mirror : mirrors) {
+                            try {
+                                if (mirror.getAnnotationType().toString().equals("net.neoforged.fml.common.Mod")) {
+                                    String pkg = CompileTimeProcessor.packageOf(
+                                                    this.getProcessingEnvironment(),
+                                                    typeElement
+                                            )
+                                            .getQualifiedName()
+                                            .toString();
+
+                                    String modId = null;
+                                    for (ExecutableElement executableElement : mirror.getElementValues().keySet()) {
+                                        messager.printNote(executableElement.getSimpleName().toString());
+                                        if (executableElement.getSimpleName().toString().equals("value")) {
+                                            modId = mirror.getElementValues().get(executableElement).getValue().toString();
+                                        }
+                                    }
+
+                                    if (modId == null) {
+                                        throw new IllegalStateException();
+                                    }
+
+                                    this.packageToModId.put(pkg, modId);
+
+                                    messager.printNote("Failed to find ScanRoot for " + modId + ", using @Mod annotation as a reference");
+
+                                    return true;
+                                }
+                            } catch (IllegalStateException | NoSuchElementException noSuchElementException) {
+                                throw new IllegalStateException("Found @Mod annotation, but somehow the value was not there?");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Element typeElement : roots) {
             ScanRoot annotation = typeElement.getAnnotation(ScanRoot.class);
 
-            String pkg = CompileTimeProcessor.packageOf(this.getProcessingEnvironment(), typeElement)
+            String pkg = CompileTimeProcessor.packageOf(
+                            this.getProcessingEnvironment(),
+                            typeElement
+                    )
                     .getQualifiedName()
                     .toString();
 
