@@ -48,19 +48,19 @@ public class CompileProcessorManager extends AbstractProcessor {
 
         for (CompileTimeProcessor compileTimeProcessor : this.processors) {
             if (roundEnvironment.processingOver()) {
-                messager.printNote("Finishing " + compileTimeProcessor);
+                messager.printNote("Finishing " + compileTimeProcessor + "...");
                 boolean successfulFinish = compileTimeProcessor.onFinish(roundEnvironment);
                 if (!successfulFinish) {
-                    messager.printError("There was an error finishing either of compile-time processors");
+                    messager.printError("There was an error finishing either of compile processors");
                     return false;
                 }
                 continue;
             }
 
-            messager.printNote("Invoking " + compileTimeProcessor);
+            messager.printNote("Invoking " + compileTimeProcessor + "...");
             boolean successfulRound = compileTimeProcessor.onRound(roundEnvironment);
             if (!successfulRound) {
-                messager.printError("There was an error during a round of either of compile-time processors");
+                messager.printError("There was an error during a round of either of compile processors");
                 return false;
             }
         }
