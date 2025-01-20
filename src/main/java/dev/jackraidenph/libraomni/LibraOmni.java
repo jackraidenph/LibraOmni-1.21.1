@@ -15,10 +15,13 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Mod(LibraOmni.MODID)
 public class LibraOmni {
@@ -100,13 +103,24 @@ public class LibraOmni {
             return LibraOmni.class.getClassLoader().getResourceAsStream(resourceLocation);
         }
 
+        public static Stream<URL> getResources(String resourceLocation) {
+            return LibraOmni.class.getClassLoader().resources(resourceLocation);
+        }
+
         private static Set<String> gatherReferenceMaps() {
-            try (InputStream inputStream = openResourceStream(LibraOmni.MODID + "/" + ReferenceMapCreationProcessor.REGISTRY_LOCATION)) {
-                String contents = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                return Set.of(contents.split("\n"));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            final String registryLocation = LibraOmni.MODID + "/" + ReferenceMapCreationProcessor.REGISTRY_LOCATION;
+            final Set<String> maps = new HashSet<>();
+
+            getResources(registryLocation).forEach(url -> {
+                try (InputStream inputStream = url.openStream()) {
+                    String contents = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                    maps.addAll(Set.of(contents.split("\n")));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            return maps;
         }
 
         private static String extractModIdFromRefmapName(String name) {
