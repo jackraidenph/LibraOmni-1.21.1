@@ -46,7 +46,6 @@ public class ScanRootProcessor extends AbstractCompileTimeProcessor {
 
                                     String modId = null;
                                     for (ExecutableElement executableElement : mirror.getElementValues().keySet()) {
-                                        messager.printNote(executableElement.getSimpleName().toString());
                                         if (executableElement.getSimpleName().toString().equals("value")) {
                                             modId = mirror.getElementValues().get(executableElement).getValue().toString();
                                         }
