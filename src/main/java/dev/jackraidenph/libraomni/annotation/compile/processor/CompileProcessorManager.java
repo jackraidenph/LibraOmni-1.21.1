@@ -6,7 +6,6 @@ import dev.jackraidenph.libraomni.annotation.compile.processor.impl.RegisterPred
 import dev.jackraidenph.libraomni.annotation.compile.processor.impl.ScanRootProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.util.ReflectionCachingHelper;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
-import dev.jackraidenph.libraomni.annotation.impl.Register;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CompileProcessorManager extends AbstractProcessor {
 
@@ -78,9 +78,10 @@ public class CompileProcessorManager extends AbstractProcessor {
     }
 
     private Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
-        return Set.of(
-                Register.class
-        );
+        return this.processors.stream()
+                .map(CompileTimeProcessor::getSupportedAnnotationClasses)
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
     }
 
     @Override
