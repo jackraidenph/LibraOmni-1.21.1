@@ -86,9 +86,9 @@ public class ModContext implements AutoCloseable {
 
         String joinerString = joiner.toString();
         LibraOmni.LOGGER.info(
-                "Mod context for {} was successfully closed after closing all handlers {}",
+                "Mod context for {} was successfully closed {}",
                 this.modContainer.getModId(),
-                joinerString.isBlank() ? "" : ": " + joinerString
+                joinerString.isBlank() ? "" : "after closing all handlers: " + joinerString
         );
     }
 }
