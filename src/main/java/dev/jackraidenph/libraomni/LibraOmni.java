@@ -94,17 +94,21 @@ public class LibraOmni {
         });
     }
 
+    public static ClassLoader classLoader() {
+        return LibraOmni.class.getClassLoader();
+    }
+
     public static class Utility {
         public static String markedLocationForMod(String modId) {
             return LibraOmni.MODID + "/" + modId + ".marked.json";
         }
 
         public static InputStream openResourceStream(String resourceLocation) {
-            return LibraOmni.class.getClassLoader().getResourceAsStream(resourceLocation);
+            return LibraOmni.classLoader().getResourceAsStream(resourceLocation);
         }
 
         public static Stream<URL> getResources(String resourceLocation) {
-            return LibraOmni.class.getClassLoader().resources(resourceLocation);
+            return LibraOmni.classLoader().resources(resourceLocation);
         }
 
         private static Set<String> gatherReferenceMaps() {

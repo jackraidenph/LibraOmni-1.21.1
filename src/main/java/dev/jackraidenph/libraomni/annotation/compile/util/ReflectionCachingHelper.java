@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.compile.util;
 
+import dev.jackraidenph.libraomni.LibraOmni;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -33,7 +35,7 @@ public class ReflectionCachingHelper {
         }
 
         try {
-            return Class.forName(name, false, this.getClass().getClassLoader());
+            return Class.forName(name, false, LibraOmni.classLoader());
         } catch (ClassNotFoundException classNotFoundException) {
             throw new IllegalArgumentException(classNotFoundException);
         }
