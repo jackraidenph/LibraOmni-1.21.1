@@ -14,14 +14,23 @@ tasks.named('wrapper', Wrapper).configure {
     distributionType = Wrapper.DistributionType.BIN
 }
 
-version = mod_version
-
 repositories {
     mavenLocal()
 }
 
+static def date() {
+    def date = new Date()
+    return date.format('yyyy-MM-dd') + 'T' + date.format('HH-mm-ss')
+}
+
 base {
     archivesName = mod_id
+    version = mod_version
+}
+
+jar {
+    destinationDirectory = file("$rootDir/artifacts")
+    archiveClassifier = '[' + date() + ']'
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
