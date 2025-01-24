@@ -1,6 +1,5 @@
-package dev.jackraidenph.libraomni.annotation.compile.processor.impl;
+package dev.jackraidenph.libraomni.annotation.compile.impl;
 
-import dev.jackraidenph.libraomni.annotation.compile.processor.base.AbstractPredicateProcessor;
 import dev.jackraidenph.libraomni.annotation.impl.Register;
 
 import javax.annotation.processing.ProcessingEnvironment;
