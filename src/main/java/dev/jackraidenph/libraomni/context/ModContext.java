@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.context;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.annotation.run.impl.RegisterAnnotationProcessor;
 import dev.jackraidenph.libraomni.context.handler.base.ModContextHandler;
 import dev.jackraidenph.libraomni.context.handler.impl.RegistersCreationHandler;
 import net.neoforged.fml.ModContainer;
@@ -36,7 +37,7 @@ public class ModContext implements AutoCloseable {
     }
 
     private void initRunProcessors(RuntimeProcessorsManager runtimeProcessorsManager) {
-
+        runtimeProcessorsManager.registerProcessor(new RegisterAnnotationProcessor());
     }
 
     public RegistersCreationHandler getRegisterHandler() {
