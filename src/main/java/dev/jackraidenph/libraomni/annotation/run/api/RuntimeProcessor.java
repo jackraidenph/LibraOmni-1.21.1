@@ -10,7 +10,6 @@ public interface RuntimeProcessor {
 
     void process(
             ModContext modContext,
-            Scope scope,
             Class<? extends Annotation> annotation,
             AnnotatedElement<?> annotatedElement
     );
@@ -20,6 +19,8 @@ public interface RuntimeProcessor {
     }
 
     Set<Class<? extends Annotation>> getSupportedAnnotations();
+
+    Scope getScope();
 
     enum Scope {
         CONSTRUCT,

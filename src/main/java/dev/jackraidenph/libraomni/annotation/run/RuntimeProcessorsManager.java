@@ -40,20 +40,31 @@ public class RuntimeProcessorsManager {
 
     public void onProcess(Scope scope) {
         for (RuntimeProcessor runtimeProcessor : this.runTimeProcessors) {
-            for (Class<? extends Annotation> annotation : this.elementStorage.getAnnotations()) {
-                if (runtimeProcessor.getSupportedAnnotations().contains(annotation)) {
-                    for (AnnotatedElement<?> annotatedElement : this.elementStorage.getElements(annotation)) {
-                        LibraOmni.LOGGER.info(
-                                "Processing [{}] element with {} for {} annotation with scope {}",
-                                annotatedElement.element().toString(),
-                                runtimeProcessor.getClass().getSimpleName(),
-                                annotation.getSimpleName(),
-                                scope.name()
-                        );
-                        runtimeProcessor.process(this.modContext, scope, annotation, annotatedElement);
-                    }
-                }
+            if (runtimeProcessor.getScope().equals(scope)) {
+                this.processForScope(runtimeProcessor);
             }
+        }
+    }
+
+    private void processForScope(RuntimeProcessor runtimeProcessor) {
+        for (Class<? extends Annotation> annotation : this.elementStorage.getAnnotations()) {
+            if (runtimeProcessor.getSupportedAnnotations().contains(annotation)) {
+                this.processAnnotation(runtimeProcessor, annotation);
+            }
+        }
+    }
+
+    private void processAnnotation(RuntimeProcessor runtimeProcessor, Class<? extends Annotation> annotation) {
+        for (AnnotatedElement<?> annotatedElement : this.elementStorage.getElements(annotation)) {
+            LibraOmni.LOGGER.info(
+                    "Processing [{}] with {} for {} annotation with scope {}",
+                    annotatedElement.element().toString(),
+                    runtimeProcessor.getClass().getSimpleName(),
+                    annotation.getSimpleName(),
+                    runtimeProcessor.getScope().name()
+            );
+
+            runtimeProcessor.process(this.modContext, annotation, annotatedElement);
         }
     }
 
