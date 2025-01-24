@@ -8,13 +8,13 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.*;
 
-public class RegisterHandler extends AbstractModContextHandler {
+public class RegistersCreationHandler extends AbstractModContextHandler {
 
     private final Map<ResourceKey<?>, DeferredRegister<?>> registersMap = new HashMap<>();
     private final DeferredRegister.Blocks blocksRegister;
     private final DeferredRegister.Items itemsRegister;
 
-    public RegisterHandler(ModContext modContext) {
+    public RegistersCreationHandler(ModContext modContext) {
         super(modContext);
 
         this.blocksRegister = DeferredRegister.createBlocks(modContext.modContainer().getModId());

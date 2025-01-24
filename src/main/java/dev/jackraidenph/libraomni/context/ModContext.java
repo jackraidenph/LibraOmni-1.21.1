@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.run.RunProcessorManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.context.handler.base.ModContextHandler;
-import dev.jackraidenph.libraomni.context.handler.impl.RegisterHandler;
+import dev.jackraidenph.libraomni.context.handler.impl.RegistersCreationHandler;
 import net.neoforged.fml.ModContainer;
 
 import java.util.HashSet;
@@ -17,30 +17,30 @@ public class ModContext implements AutoCloseable {
 
     private final Set<ModContextHandler> handlers = new HashSet<>();
 
-    private final RegisterHandler registerHandler;
+    private final RegistersCreationHandler registersCreationHandler;
 
     private final RunProcessorManager runProcessorManager;
 
     public ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
 
-        this.registerHandler = new RegisterHandler(this);
-        this.initHandlers(this.registerHandler);
+        this.registersCreationHandler = new RegistersCreationHandler(this);
+        this.initHandlers(this.registersCreationHandler);
 
         this.runProcessorManager = new RunProcessorManager(this);
         this.initRunProcessors(this.runProcessorManager);
     }
 
-    private void initHandlers(RegisterHandler registerHandler) {
-        this.addHandler(registerHandler);
+    private void initHandlers(RegistersCreationHandler registersCreationHandler) {
+        this.addHandler(registersCreationHandler);
     }
 
     private void initRunProcessors(RunProcessorManager runProcessorManager) {
 
     }
 
-    public RegisterHandler getRegisterHandler() {
-        return registerHandler;
+    public RegistersCreationHandler getRegisterHandler() {
+        return registersCreationHandler;
     }
 
     private void addHandler(ModContextHandler handler) {
