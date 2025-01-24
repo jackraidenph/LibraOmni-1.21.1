@@ -43,9 +43,7 @@ public class RegisterAnnotationProcessor implements RuntimeProcessor {
     }
 
     @Override
-    public Set<Class<? extends Annotation>> getSupportedAnnotations() {
-        return Set.of(
-                Register.class
-        );
+    public Class<? extends Annotation> getSupportedAnnotation() {
+        return Register.class;
     }
 }

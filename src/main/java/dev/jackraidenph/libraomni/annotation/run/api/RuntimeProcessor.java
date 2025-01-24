@@ -18,7 +18,7 @@ public interface RuntimeProcessor {
 
     }
 
-    Set<Class<? extends Annotation>> getSupportedAnnotations();
+    Class<? extends Annotation> getSupportedAnnotation();
 
     Scope getScope();
 

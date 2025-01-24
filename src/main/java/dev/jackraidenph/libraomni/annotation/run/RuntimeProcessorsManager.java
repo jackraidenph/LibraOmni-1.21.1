@@ -48,7 +48,7 @@ public class RuntimeProcessorsManager {
 
     private void processForScope(RuntimeProcessor runtimeProcessor) {
         for (Class<? extends Annotation> annotation : this.elementStorage.getAnnotations()) {
-            if (runtimeProcessor.getSupportedAnnotations().contains(annotation)) {
+            if (runtimeProcessor.getSupportedAnnotation().isAssignableFrom(annotation)) {
                 this.processAnnotation(runtimeProcessor, annotation);
             }
         }
