@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 
 public class ScanRootProcessor extends AbstractCompileTimeProcessor {
 
+    private static final String MOD_DECLARING_ANNOTATION = "net.neoforged.fml.common.Mod";
+
     private final Map<String, String> packageToModId;
 
     public ScanRootProcessor(ProcessingEnvironment processingEnvironment) {
@@ -35,7 +37,7 @@ public class ScanRootProcessor extends AbstractCompileTimeProcessor {
                     if (!mirrors.isEmpty()) {
                         for (AnnotationMirror mirror : mirrors) {
                             try {
-                                if (mirror.getAnnotationType().toString().equals("net.neoforged.fml.common.Mod")) {
+                                if (mirror.getAnnotationType().toString().equals(MOD_DECLARING_ANNOTATION)) {
                                     String pkg = CompileTimeProcessor.packageOf(
                                                     this.getProcessingEnvironment(),
                                                     typeElement
