@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CompileProcessorManager extends AbstractProcessor {
+public class CompileTimeProcessorsManager extends AbstractProcessor {
 
     List<CompileTimeProcessor> processors = new ArrayList<>();
 
