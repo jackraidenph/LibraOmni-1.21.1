@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.context;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.run.RunProcessorManager;
+import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.context.handler.base.ModContextHandler;
 import dev.jackraidenph.libraomni.context.handler.impl.RegistersCreationHandler;
@@ -19,7 +19,7 @@ public class ModContext implements AutoCloseable {
 
     private final RegistersCreationHandler registersCreationHandler;
 
-    private final RunProcessorManager runProcessorManager;
+    private final RuntimeProcessorsManager runtimeProcessorsManager;
 
     public ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
@@ -27,15 +27,15 @@ public class ModContext implements AutoCloseable {
         this.registersCreationHandler = new RegistersCreationHandler(this);
         this.initHandlers(this.registersCreationHandler);
 
-        this.runProcessorManager = new RunProcessorManager(this);
-        this.initRunProcessors(this.runProcessorManager);
+        this.runtimeProcessorsManager = new RuntimeProcessorsManager(this);
+        this.initRunProcessors(this.runtimeProcessorsManager);
     }
 
     private void initHandlers(RegistersCreationHandler registersCreationHandler) {
         this.addHandler(registersCreationHandler);
     }
 
-    private void initRunProcessors(RunProcessorManager runProcessorManager) {
+    private void initRunProcessors(RuntimeProcessorsManager runtimeProcessorsManager) {
 
     }
 
@@ -63,7 +63,7 @@ public class ModContext implements AutoCloseable {
             );
             handler.onModConstruct();
         }
-        this.runProcessorManager.onProcess(Scope.CONSTRUCT);
+        this.runtimeProcessorsManager.onProcess(Scope.CONSTRUCT);
     }
 
     public void invokeCommon() {
@@ -74,7 +74,7 @@ public class ModContext implements AutoCloseable {
             );
             handler.onCommonSetup();
         }
-        this.runProcessorManager.onProcess(Scope.COMMON);
+        this.runtimeProcessorsManager.onProcess(Scope.COMMON);
     }
 
     public void invokeClient() {
@@ -85,7 +85,7 @@ public class ModContext implements AutoCloseable {
             );
             handler.onClientSetup();
         }
-        this.runProcessorManager.onProcess(Scope.CLIENT);
+        this.runtimeProcessorsManager.onProcess(Scope.CLIENT);
     }
 
     private void onClose() {
@@ -96,7 +96,7 @@ public class ModContext implements AutoCloseable {
             );
             handler.onClose();
         }
-        this.runProcessorManager.onFinish();
+        this.runtimeProcessorsManager.onFinish();
     }
 
     @Override

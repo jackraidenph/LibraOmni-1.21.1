@@ -12,14 +12,14 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RunProcessorManager {
+public class RuntimeProcessorsManager {
 
     private final ModContext modContext;
     private final List<RuntimeProcessor> runTimeProcessors = new ArrayList<>();
 
     private final ElementStorage elementStorage;
 
-    public RunProcessorManager(ModContext modContext) {
+    public RuntimeProcessorsManager(ModContext modContext) {
         this.modContext = modContext;
         String modId = modContext.modContainer().getModId();
 
