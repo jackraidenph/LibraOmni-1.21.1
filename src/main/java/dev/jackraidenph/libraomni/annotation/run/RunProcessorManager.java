@@ -45,7 +45,7 @@ public class RunProcessorManager {
                     for (AnnotatedElement<?> annotatedElement : this.elementStorage.getElements(annotation)) {
                         LibraOmni.LOGGER.info(
                                 "Processing [{}] element with {} for {} annotation with scope {}",
-                                annotatedElement.object().toString(),
+                                annotatedElement.element().toString(),
                                 runtimeProcessor.getClass().getSimpleName(),
                                 annotation.getSimpleName(),
                                 scope.name()

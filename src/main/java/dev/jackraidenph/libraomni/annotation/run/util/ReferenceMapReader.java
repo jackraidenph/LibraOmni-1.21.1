@@ -104,15 +104,15 @@ public class ReferenceMapReader {
             return this.annotatedElementsMap.toString();
         }
 
-        public record AnnotatedElement<T>(ElementKind elementKind, T object) {
+        public record AnnotatedElement<T>(ElementKind elementKind, T element) {
             public boolean isSubclassOf(Class<?> clazz) {
-                return this.elementKind.isClass() && clazz.isAssignableFrom((Class<?>) object);
+                return this.elementKind.isClass() && clazz.isAssignableFrom((Class<?>) element);
             }
 
             public Class<?> getEnclosingClass() {
-                if (this.object() instanceof Class<?> clazz) {
+                if (this.element() instanceof Class<?> clazz) {
                     return clazz.getEnclosingClass();
-                } else if (this.object() instanceof Member member) {
+                } else if (this.element() instanceof Member member) {
                     return member.getDeclaringClass();
                 }
 
