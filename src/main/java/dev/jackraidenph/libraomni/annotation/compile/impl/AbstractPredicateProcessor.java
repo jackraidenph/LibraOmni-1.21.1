@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
-import dev.jackraidenph.libraomni.annotation.compile.util.PredicateWithDescription;
+import dev.jackraidenph.libraomni.annotation.compile.util.CompilationPredicate;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -18,7 +18,7 @@ public abstract class AbstractPredicateProcessor extends AbstractCompileTimeProc
     public boolean onRound(RoundEnvironment roundEnvironment) {
         for (Class<? extends Annotation> annotation : this.getSupportedAnnotationClasses()) {
             for (Element e : roundEnvironment.getElementsAnnotatedWith(annotation)) {
-                for (PredicateWithDescription<Element> predicate : this.getPredicatesAndDescriptions()) {
+                for (CompilationPredicate<Element> predicate : this.getPredicatesAndDescriptions()) {
                     if (!predicate.predicate().test(e)) {
                         this.getProcessingEnvironment().getMessager().printError("""
                                 Annotation conditions are not satisfied
@@ -33,7 +33,7 @@ public abstract class AbstractPredicateProcessor extends AbstractCompileTimeProc
         return true;
     }
 
-    public List<PredicateWithDescription<Element>> getPredicatesAndDescriptions() {
+    public List<CompilationPredicate<Element>> getPredicatesAndDescriptions() {
         return List.of();
     }
 
