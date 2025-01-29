@@ -1,9 +1,11 @@
-package dev.jackraidenph.libraomni.annotation.compile.impl;
+package dev.jackraidenph.libraomni.annotation.compile.impl.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.ScanRootProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
 import dev.jackraidenph.libraomni.annotation.impl.Register;
 import dev.jackraidenph.libraomni.annotation.impl.ScanRoot;

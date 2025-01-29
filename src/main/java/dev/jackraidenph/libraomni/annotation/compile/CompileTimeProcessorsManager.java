@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.annotation.compile;
 
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.ReferenceMapCreationProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.RegisterPredicateProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.util.ReferenceMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.predicate.RegisterPredicateProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.ScanRootProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.util.ReflectionCachingHelper;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;

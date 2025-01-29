@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.annotation.compile.impl.ReferenceMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.util.ReferenceMapCreationProcessor;
 import dev.jackraidenph.libraomni.context.ModContext;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
