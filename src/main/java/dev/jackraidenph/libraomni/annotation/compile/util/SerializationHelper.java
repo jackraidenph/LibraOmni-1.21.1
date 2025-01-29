@@ -63,13 +63,18 @@ public class SerializationHelper {
         String[] nameParams = parts[1].split("\\(");
         String name = nameParams[0];
         String paramsString = nameParams[1].substring(0, nameParams[1].length() - 1);
-        String[] paramTypesStrings = paramsString.split(",");
-        Class<?>[] paramTypes = new Class<?>[paramTypesStrings.length];
-        for (int i = 0; i < paramTypesStrings.length; i++) {
-            paramTypes[i] = this.toClass(paramTypesStrings[i]);
-        }
 
-        return new MethodData(clazz, name, paramTypes);
+        if (!paramsString.isBlank()) {
+            String[] paramTypesStrings = paramsString.split(",");
+            Class<?>[] paramTypes = new Class<?>[paramTypesStrings.length];
+            for (int i = 0; i < paramTypesStrings.length; i++) {
+                paramTypes[i] = this.toClass(paramTypesStrings[i]);
+            }
+
+            return new MethodData(clazz, name, paramTypes);
+        } else {
+            return new MethodData(clazz, name, new Class[]{});
+        }
     }
 
     public Method toMethod(String string) {
@@ -109,7 +114,7 @@ public class SerializationHelper {
         String[] parts = string.split("#");
         String clazzString = parts[0];
         Class<?> clazz = this.toClass(clazzString);
-        String name = parts[0];
+        String name = parts[1];
 
         return this.reflectionCachingHelper.getDeclaredField(clazz, name);
     }

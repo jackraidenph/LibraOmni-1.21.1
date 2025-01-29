@@ -47,31 +47,48 @@ public class ReflectionCachingHelper {
 
     public Field getDeclaredField(Class<?> clazz, String name) {
         try {
-            return this.fields
-                    .computeIfAbsent(clazz, k -> new HashMap<>())
-                    .put(name, clazz.getDeclaredField(name));
+            if (!this.fields.computeIfAbsent(clazz, k -> new HashMap<>()).containsKey(name)) {
+                Field field = clazz.getDeclaredField(name);
+                this.fields.get(clazz).put(name, field);
+                return field;
+            } else {
+                return this.fields.get(clazz).get(name);
+            }
         } catch (NoSuchFieldException noSuchFieldException) {
             throw new IllegalArgumentException(noSuchFieldException);
         }
     }
 
     public Method getDeclaredMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
+        String qualifier = name + SerializationHelper.classesToString(parameterTypes);
         try {
-            return this.methods
-                    .computeIfAbsent(clazz, k -> new HashMap<>())
-                    .put(name, clazz.getDeclaredMethod(name, parameterTypes));
+            if (!this.methods.computeIfAbsent(clazz, k -> new HashMap<>()).containsKey(qualifier)) {
+                Method method = clazz.getDeclaredMethod(name, parameterTypes);
+                this.methods.get(clazz).put(qualifier, method);
+                return method;
+            } else {
+                return this.methods.get(clazz).get(qualifier);
+            }
         } catch (NoSuchMethodException noSuchMethodException) {
             throw new IllegalArgumentException(noSuchMethodException);
         }
     }
 
-    public Constructor<?> getDeclaredConstructor(Class<?> clazz, Class<?>... parameterTypes) {
+    public <T> Constructor<T> getDeclaredConstructor(Class<T> clazz, Class<?>... parameterTypes) {
+        String qualifier = SerializationHelper.classesToString(parameterTypes);
         try {
-            return this.constructors
-                    .computeIfAbsent(clazz, k -> new HashMap<>())
-                    .put(SerializationHelper.classesToString(parameterTypes), clazz.getDeclaredConstructor(parameterTypes));
+            if (!this.constructors.computeIfAbsent(clazz, k -> new HashMap<>()).containsKey(qualifier)) {
+                Constructor<T> constructor = clazz.getDeclaredConstructor(parameterTypes);
+                this.constructors.get(clazz).put(qualifier, constructor);
+                return constructor;
+            } else {
+                return (Constructor<T>) this.constructors.get(clazz).get(qualifier);
+            }
         } catch (NoSuchMethodException noSuchMethodException) {
             throw new IllegalArgumentException(noSuchMethodException);
+        } catch (ClassCastException classCastException) {
+            this.constructors.get(clazz).remove(qualifier);
+            return this.getDeclaredConstructor(clazz, parameterTypes);
         }
     }
 }
