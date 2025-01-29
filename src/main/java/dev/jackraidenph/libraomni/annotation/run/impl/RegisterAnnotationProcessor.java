@@ -24,6 +24,8 @@ public class RegisterAnnotationProcessor implements RuntimeProcessor {
             AnnotatedElement<?> annotatedElement
     ) {
         if (annotatedElement.isSubclassOf(Block.class)) {
+            //Suppress, because we actually check the case
+            //noinspection unchecked
             Class<Block> blockClass = (Class<Block>) annotatedElement.element();
 
             Register register = (Register) blockClass.getAnnotation(annotation);

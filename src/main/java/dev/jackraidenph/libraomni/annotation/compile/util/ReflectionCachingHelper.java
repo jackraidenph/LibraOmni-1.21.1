@@ -74,6 +74,7 @@ public class ReflectionCachingHelper {
         }
     }
 
+
     public <T> Constructor<T> getDeclaredConstructor(Class<T> clazz, Class<?>... parameterTypes) {
         String qualifier = SerializationHelper.classesToString(parameterTypes);
         try {
@@ -82,6 +83,8 @@ public class ReflectionCachingHelper {
                 this.constructors.get(clazz).put(qualifier, constructor);
                 return constructor;
             } else {
+                //Suppress, because we safely recover from this
+                //noinspection unchecked
                 return (Constructor<T>) this.constructors.get(clazz).get(qualifier);
             }
         } catch (NoSuchMethodException noSuchMethodException) {
