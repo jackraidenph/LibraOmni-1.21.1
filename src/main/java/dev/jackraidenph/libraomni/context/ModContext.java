@@ -16,9 +16,9 @@ public class ModContext implements AutoCloseable {
     private final ModContainer modContainer;
     private boolean closed = false;
 
-    private final Set<ModContextExtension> handlers = new HashSet<>();
+    private final Set<ModContextExtension> extensions = new HashSet<>();
 
-    private final RegistrationContextExtension registersCreationHandler;
+    private final RegistrationContextExtension registrationContextExtension;
 
     private final RuntimeProcessorsManager runtimeProcessorsManager;
 
@@ -41,11 +41,11 @@ public class ModContext implements AutoCloseable {
     }
 
     public RegistrationContextExtension getRegisterHandler() {
-        return registersCreationHandler;
+        return registrationContextExtension;
     }
 
-    private void addHandler(ModContextExtension handler) {
-        this.handlers.add(handler);
+    private void addExtension(ModContextExtension handler) {
+        this.extensions.add(handler);
     }
 
     public ModContainer modContainer() {
@@ -57,45 +57,45 @@ public class ModContext implements AutoCloseable {
     }
 
     public void invokeConstruct() {
-        for (ModContextExtension handler : this.handlers) {
+        for (ModContextExtension extension : this.extensions) {
             LibraOmni.LOGGER.info("Performing construct setup of {} for {}...",
-                    handler.getClass().getSimpleName(),
+                    extension.getClass().getSimpleName(),
                     this.modContainer.getModId()
             );
-            handler.onModConstruct();
+            extension.onModConstruct();
         }
         this.runtimeProcessorsManager.onProcess(Scope.CONSTRUCT);
     }
 
     public void invokeCommon() {
-        for (ModContextExtension handler : this.handlers) {
+        for (ModContextExtension extension : this.extensions) {
             LibraOmni.LOGGER.info("Performing common setup of {} for {}...",
-                    handler.getClass().getSimpleName(),
+                    extension.getClass().getSimpleName(),
                     this.modContainer.getModId()
             );
-            handler.onCommonSetup();
+            extension.onCommonSetup();
         }
         this.runtimeProcessorsManager.onProcess(Scope.COMMON);
     }
 
     public void invokeClient() {
-        for (ModContextExtension handler : this.handlers) {
+        for (ModContextExtension extension : this.extensions) {
             LibraOmni.LOGGER.info("Performing client setup of {} for {}...",
-                    handler.getClass().getSimpleName(),
+                    extension.getClass().getSimpleName(),
                     this.modContainer.getModId()
             );
-            handler.onClientSetup();
+            extension.onClientSetup();
         }
         this.runtimeProcessorsManager.onProcess(Scope.CLIENT);
     }
 
     private void onClose() {
-        for (ModContextExtension handler : this.handlers) {
+        for (ModContextExtension extension : this.extensions) {
             LibraOmni.LOGGER.info("Closing {} for {}...",
-                    handler.getClass().getSimpleName(),
+                    extension.getClass().getSimpleName(),
                     this.modContainer.getModId()
             );
-            handler.onClose();
+            extension.onClose();
         }
         this.runtimeProcessorsManager.onFinish();
     }
