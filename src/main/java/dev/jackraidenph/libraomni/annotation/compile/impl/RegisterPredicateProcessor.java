@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
+import dev.jackraidenph.libraomni.annotation.compile.util.PredicateWithDescription;
 import dev.jackraidenph.libraomni.annotation.impl.Register;
 
 import javax.annotation.processing.ProcessingEnvironment;
