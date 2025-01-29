@@ -11,6 +11,12 @@ import java.util.Locale;
 
 public class RegisterAnnotationProcessor implements RuntimeProcessor {
 
+    public static RegisterAnnotationProcessor INSTANCE = new RegisterAnnotationProcessor();
+
+    private RegisterAnnotationProcessor() {
+
+    }
+
     @Override
     public void process(
             ModContext modContext,

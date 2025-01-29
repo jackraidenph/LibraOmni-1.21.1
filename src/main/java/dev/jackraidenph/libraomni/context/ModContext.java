@@ -25,19 +25,19 @@ public class ModContext implements AutoCloseable {
     public ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
 
-        this.registersCreationHandler = new RegistrationContextExtension(this);
-        this.initHandlers(this.registersCreationHandler);
+        this.registrationContextExtension = new RegistrationContextExtension(this);
+        this.initExtensions();
 
         this.runtimeProcessorsManager = new RuntimeProcessorsManager(this);
-        this.initRunProcessors(this.runtimeProcessorsManager);
+        this.initRunProcessors();
     }
 
-    private void initHandlers(RegistrationContextExtension registersCreationHandler) {
-        this.addHandler(registersCreationHandler);
+    private void initExtensions() {
+        this.addExtension(this.registrationContextExtension);
     }
 
-    private void initRunProcessors(RuntimeProcessorsManager runtimeProcessorsManager) {
-        runtimeProcessorsManager.registerProcessor(new RegisterAnnotationProcessor());
+    private void initRunProcessors() {
+        this.runtimeProcessorsManager.registerProcessor(RegisterAnnotationProcessor.INSTANCE);
     }
 
     public RegistrationContextExtension getRegisterHandler() {
