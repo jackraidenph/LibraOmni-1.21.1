@@ -1,6 +1,6 @@
-package dev.jackraidenph.libraomni.context.handler.base;
+package dev.jackraidenph.libraomni.context.extension.base;
 
-public interface ModContextHandler {
+public interface ModContextExtension {
 
     void onCommonSetup();
 

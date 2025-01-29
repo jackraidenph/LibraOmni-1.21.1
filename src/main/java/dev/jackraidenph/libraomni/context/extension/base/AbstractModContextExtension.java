@@ -1,12 +1,12 @@
-package dev.jackraidenph.libraomni.context.handler.base;
+package dev.jackraidenph.libraomni.context.extension.base;
 
 import dev.jackraidenph.libraomni.context.ModContext;
 
-public abstract class AbstractModContextHandler implements ModContextHandler {
+public abstract class AbstractModContextExtension implements ModContextExtension {
 
     private final ModContext modContext;
 
-    public AbstractModContextHandler(ModContext modContext) {
+    public AbstractModContextExtension(ModContext modContext) {
         this.modContext = modContext;
     }
 

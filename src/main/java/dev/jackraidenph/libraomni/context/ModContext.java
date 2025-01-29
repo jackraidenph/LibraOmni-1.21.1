@@ -4,8 +4,8 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.impl.RegisterAnnotationProcessor;
-import dev.jackraidenph.libraomni.context.handler.base.ModContextHandler;
-import dev.jackraidenph.libraomni.context.handler.impl.RegistersCreationHandler;
+import dev.jackraidenph.libraomni.context.extension.base.ModContextExtension;
+import dev.jackraidenph.libraomni.context.extension.impl.RegistrationContextExtension;
 import net.neoforged.fml.ModContainer;
 
 import java.util.HashSet;
@@ -16,23 +16,23 @@ public class ModContext implements AutoCloseable {
     private final ModContainer modContainer;
     private boolean closed = false;
 
-    private final Set<ModContextHandler> handlers = new HashSet<>();
+    private final Set<ModContextExtension> handlers = new HashSet<>();
 
-    private final RegistersCreationHandler registersCreationHandler;
+    private final RegistrationContextExtension registersCreationHandler;
 
     private final RuntimeProcessorsManager runtimeProcessorsManager;
 
     public ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
 
-        this.registersCreationHandler = new RegistersCreationHandler(this);
+        this.registersCreationHandler = new RegistrationContextExtension(this);
         this.initHandlers(this.registersCreationHandler);
 
         this.runtimeProcessorsManager = new RuntimeProcessorsManager(this);
         this.initRunProcessors(this.runtimeProcessorsManager);
     }
 
-    private void initHandlers(RegistersCreationHandler registersCreationHandler) {
+    private void initHandlers(RegistrationContextExtension registersCreationHandler) {
         this.addHandler(registersCreationHandler);
     }
 
@@ -40,11 +40,11 @@ public class ModContext implements AutoCloseable {
         runtimeProcessorsManager.registerProcessor(new RegisterAnnotationProcessor());
     }
 
-    public RegistersCreationHandler getRegisterHandler() {
+    public RegistrationContextExtension getRegisterHandler() {
         return registersCreationHandler;
     }
 
-    private void addHandler(ModContextHandler handler) {
+    private void addHandler(ModContextExtension handler) {
         this.handlers.add(handler);
     }
 
@@ -57,7 +57,7 @@ public class ModContext implements AutoCloseable {
     }
 
     public void invokeConstruct() {
-        for (ModContextHandler handler : this.handlers) {
+        for (ModContextExtension handler : this.handlers) {
             LibraOmni.LOGGER.info("Performing construct setup of {} for {}...",
                     handler.getClass().getSimpleName(),
                     this.modContainer.getModId()
@@ -68,7 +68,7 @@ public class ModContext implements AutoCloseable {
     }
 
     public void invokeCommon() {
-        for (ModContextHandler handler : this.handlers) {
+        for (ModContextExtension handler : this.handlers) {
             LibraOmni.LOGGER.info("Performing common setup of {} for {}...",
                     handler.getClass().getSimpleName(),
                     this.modContainer.getModId()
@@ -79,7 +79,7 @@ public class ModContext implements AutoCloseable {
     }
 
     public void invokeClient() {
-        for (ModContextHandler handler : this.handlers) {
+        for (ModContextExtension handler : this.handlers) {
             LibraOmni.LOGGER.info("Performing client setup of {} for {}...",
                     handler.getClass().getSimpleName(),
                     this.modContainer.getModId()
@@ -90,7 +90,7 @@ public class ModContext implements AutoCloseable {
     }
 
     private void onClose() {
-        for (ModContextHandler handler : this.handlers) {
+        for (ModContextExtension handler : this.handlers) {
             LibraOmni.LOGGER.info("Closing {} for {}...",
                     handler.getClass().getSimpleName(),
                     this.modContainer.getModId()

@@ -1,20 +1,20 @@
-package dev.jackraidenph.libraomni.context.handler.impl;
+package dev.jackraidenph.libraomni.context.extension.impl;
 
 import dev.jackraidenph.libraomni.context.ModContext;
-import dev.jackraidenph.libraomni.context.handler.base.AbstractModContextHandler;
+import dev.jackraidenph.libraomni.context.extension.base.AbstractModContextExtension;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.*;
 
-public class RegistersCreationHandler extends AbstractModContextHandler {
+public class RegistrationContextExtension extends AbstractModContextExtension {
 
     private final Map<ResourceKey<?>, DeferredRegister<?>> registersMap = new HashMap<>();
     private final DeferredRegister.Blocks blocksRegister;
     private final DeferredRegister.Items itemsRegister;
 
-    public RegistersCreationHandler(ModContext modContext) {
+    public RegistrationContextExtension(ModContext modContext) {
         super(modContext);
 
         this.blocksRegister = DeferredRegister.createBlocks(modContext.modContainer().getModId());
