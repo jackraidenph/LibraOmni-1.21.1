@@ -1,6 +1,7 @@
-package dev.jackraidenph.libraomni.context.extension.base;
+package dev.jackraidenph.libraomni.context.extension.impl;
 
 import dev.jackraidenph.libraomni.context.ModContext;
+import dev.jackraidenph.libraomni.context.extension.api.ModContextExtension;
 
 public abstract class AbstractModContextExtension implements ModContextExtension {
 

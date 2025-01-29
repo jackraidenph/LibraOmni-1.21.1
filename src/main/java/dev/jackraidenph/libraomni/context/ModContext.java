@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.impl.RegisterAnnotationProcessor;
-import dev.jackraidenph.libraomni.context.extension.base.ModContextExtension;
+import dev.jackraidenph.libraomni.context.extension.api.ModContextExtension;
 import dev.jackraidenph.libraomni.context.extension.impl.RegistrationContextExtension;
 import net.neoforged.fml.ModContainer;
 

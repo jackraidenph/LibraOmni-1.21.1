@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.context.extension.base;
+package dev.jackraidenph.libraomni.context.extension.api;
 
 public interface ModContextExtension {
 

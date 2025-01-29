@@ -1,7 +1,6 @@
 package dev.jackraidenph.libraomni.context.extension.impl;
 
 import dev.jackraidenph.libraomni.context.ModContext;
-import dev.jackraidenph.libraomni.context.extension.base.AbstractModContextExtension;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
