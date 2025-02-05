@@ -11,10 +11,6 @@ public abstract class AbstractModContextExtension implements ModContextExtension
         this.modContext = modContext;
     }
 
-    public ModContext getModContext() {
-        return modContext;
-    }
-
     @Override
     public void onClose() {
     }
@@ -29,5 +25,10 @@ public abstract class AbstractModContextExtension implements ModContextExtension
 
     @Override
     public void onModConstruct() {
+    }
+
+    @Override
+    public ModContext parentContext() {
+        return this.modContext;
     }
 }

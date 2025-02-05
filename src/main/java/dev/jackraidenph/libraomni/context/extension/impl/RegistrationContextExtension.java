@@ -47,7 +47,7 @@ public class RegistrationContextExtension extends AbstractModContextExtension {
     @Override
     public void onModConstruct() {
         for (DeferredRegister<?> deferredRegister : this.allRegisters()) {
-            IEventBus eventBus = this.getModContext().modContainer().getEventBus();
+            IEventBus eventBus = this.parentContext().modContainer().getEventBus();
             if (eventBus != null) {
                 deferredRegister.register(eventBus);
             }

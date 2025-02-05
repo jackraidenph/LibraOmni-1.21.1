@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.context.extension.api;
 
+import dev.jackraidenph.libraomni.context.ModContext;
+
 public interface ModContextExtension {
 
     void onCommonSetup();
@@ -9,4 +11,6 @@ public interface ModContextExtension {
     void onModConstruct();
 
     void onClose();
+
+    ModContext parentContext();
 }
