@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compile.impl.predicate;
+package dev.jackraidenph.libraomni.annotation.compile.impl;
 
 import dev.jackraidenph.libraomni.annotation.compile.util.CompilationPredicate;
 import dev.jackraidenph.libraomni.annotation.impl.Register;
