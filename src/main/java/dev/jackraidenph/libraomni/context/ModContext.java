@@ -1,6 +1,5 @@
 package dev.jackraidenph.libraomni.context;
 
-import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
@@ -12,10 +11,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.*;
 
-public class ModContext implements AutoCloseable {
+public class ModContext {
 
     private final ModContainer modContainer;
-    private boolean closed = false;
+    private boolean constructFinished, clientFinished, commonFinished;
 
     private final RuntimeProcessorsManager runtimeProcessorsManager;
 
@@ -76,8 +75,8 @@ public class ModContext implements AutoCloseable {
         return modContainer;
     }
 
-    public boolean isClosed() {
-        return closed;
+    public boolean isFinished() {
+        return constructFinished && clientFinished && commonFinished;
     }
 
     public void invokeConstruct() {
@@ -89,33 +88,17 @@ public class ModContext implements AutoCloseable {
         }
 
         this.runtimeProcessorsManager.onProcess(Scope.CONSTRUCT);
+
+        this.constructFinished = true;
     }
 
     public void invokeCommon() {
         this.runtimeProcessorsManager.onProcess(Scope.COMMON);
+        this.commonFinished = true;
     }
 
     public void invokeClient() {
         this.runtimeProcessorsManager.onProcess(Scope.CLIENT);
-    }
-
-    private void onClose() {
-        this.runtimeProcessorsManager.onFinish();
-    }
-
-    @Override
-    public void close() {
-        LibraOmni.LOGGER.info("Closing mod context for {}...", this.modContainer.getModId());
-        try {
-            this.onClose();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to close " + this.modContainer.getModId(), e);
-        }
-
-        this.closed = true;
-
-        LibraOmni.LOGGER.info(
-                "Mod context for {} was successfully closed", this.modContainer.getModId()
-        );
+        this.clientFinished = true;
     }
 }

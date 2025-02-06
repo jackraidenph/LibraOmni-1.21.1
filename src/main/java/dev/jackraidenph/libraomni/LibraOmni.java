@@ -79,17 +79,12 @@ public class LibraOmni {
                 String modId = Utility.extractModIdFromRefmapName(refmap);
 
                 if (!MOD_CONTEXT_MAP.containsKey(modId)) {
-                    ModList.get().getModContainerById(modId).ifPresent(modContainer ->
-                            openContext(modContainer).close()
-                    );
+                    ModList.get().getModContainerById(modId).ifPresent(LibraOmni::openContext);
                 }
             }
 
             for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
                 modContext.invokeConstruct();
-                if (!modContext.isClosed()) {
-                    modContext.close();
-                }
             }
         });
     }

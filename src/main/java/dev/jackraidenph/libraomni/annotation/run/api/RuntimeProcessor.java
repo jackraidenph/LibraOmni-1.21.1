@@ -14,10 +14,6 @@ public interface RuntimeProcessor {
             AnnotatedElement<?> annotatedElement
     );
 
-    default void onFinish(ModContext modContext) {
-
-    }
-
     Class<? extends Annotation> getSupportedAnnotation();
 
     Scope getScope();

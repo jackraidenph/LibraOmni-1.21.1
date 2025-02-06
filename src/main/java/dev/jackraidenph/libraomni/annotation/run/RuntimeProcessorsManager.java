@@ -39,9 +39,11 @@ public class RuntimeProcessorsManager {
     }
 
     public void onProcess(Scope scope) {
-        for (RuntimeProcessor runtimeProcessor : this.runTimeProcessors) {
+        List<RuntimeProcessor> pending = new ArrayList<>(this.runTimeProcessors);
+        for (RuntimeProcessor runtimeProcessor : pending) {
             if (runtimeProcessor.getScope().equals(scope)) {
                 this.processForScope(runtimeProcessor);
+                pending.remove(runtimeProcessor);
             }
         }
     }
@@ -65,16 +67,6 @@ public class RuntimeProcessorsManager {
             );
 
             runtimeProcessor.process(this.modContext, annotation, annotatedElement);
-        }
-    }
-
-    public void onFinish() {
-        for (RuntimeProcessor runtimeProcessor : this.runTimeProcessors) {
-            LibraOmni.LOGGER.info(
-                    "Finishing {}",
-                    runtimeProcessor.getClass().getSimpleName()
-            );
-            runtimeProcessor.onFinish(this.modContext);
         }
     }
 }
