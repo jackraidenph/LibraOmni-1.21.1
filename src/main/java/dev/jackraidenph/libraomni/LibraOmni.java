@@ -37,7 +37,7 @@ public class LibraOmni {
         modEventBus.addListener(this::enqueueConstructModContextJobs);
     }
 
-    public static ModContext openContext(ModContainer modContainer) {
+    public static ModContext createContext(ModContainer modContainer) {
         if (MOD_CONTEXT_MAP.containsKey(modContainer.getModId())) {
             throw new IllegalStateException("Context for " + modContainer + " was already opened");
         }
@@ -79,7 +79,7 @@ public class LibraOmni {
                 String modId = Utility.extractModIdFromRefmapName(refmap);
 
                 if (!MOD_CONTEXT_MAP.containsKey(modId)) {
-                    ModList.get().getModContainerById(modId).ifPresent(LibraOmni::openContext);
+                    ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);
                 }
             }
 
