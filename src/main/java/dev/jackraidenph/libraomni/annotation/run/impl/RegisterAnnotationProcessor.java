@@ -36,7 +36,7 @@ public class RegisterAnnotationProcessor implements RuntimeProcessor {
                 id = blockClass.getSimpleName().toLowerCase(Locale.ROOT);
             }
 
-            modContext.REGISTRATION.blocksRegister().registerBlock(
+            modContext.blocksRegister().registerBlock(
                     id,
                     Block::new
             );
