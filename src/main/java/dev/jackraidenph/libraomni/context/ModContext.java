@@ -2,50 +2,49 @@ package dev.jackraidenph.libraomni.context;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
+import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.impl.RegisterAnnotationProcessor;
-import dev.jackraidenph.libraomni.context.extension.api.ModContextExtension;
-import dev.jackraidenph.libraomni.context.extension.impl.RegistrationContextExtension;
+import net.minecraft.resources.ResourceKey;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ModContext implements AutoCloseable {
 
     private final ModContainer modContainer;
     private boolean closed = false;
 
-    private final Set<ModContextExtension> extensions = new HashSet<>();
+    private final Set<AbstractModContextExtension> extensions = new HashSet<>();
 
-    private final RegistrationContextExtension registrationContextExtension;
+    public final Registration REGISTRATION;
 
     private final RuntimeProcessorsManager runtimeProcessorsManager;
 
     public ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
 
-        this.registrationContextExtension = new RegistrationContextExtension(this);
-        this.initExtensions();
+        this.addExtensions(
+                this.REGISTRATION = new Registration()
+        );
 
-        this.runtimeProcessorsManager = new RuntimeProcessorsManager(this);
-        this.initRunProcessors();
+        this.initRunProcessors(
+                this.runtimeProcessorsManager = new RuntimeProcessorsManager(this),
+
+                RegisterAnnotationProcessor.INSTANCE
+        );
     }
 
-    private void initExtensions() {
-        this.addExtension(this.registrationContextExtension);
+    private void initRunProcessors(RuntimeProcessorsManager runtimeProcessorsManager, RuntimeProcessor... processors) {
+        for (RuntimeProcessor runtimeProcessor : processors) {
+            runtimeProcessorsManager.registerProcessor(runtimeProcessor);
+        }
     }
 
-    private void initRunProcessors() {
-        this.runtimeProcessorsManager.registerProcessor(RegisterAnnotationProcessor.INSTANCE);
-    }
-
-    public RegistrationContextExtension getRegisterHandler() {
-        return registrationContextExtension;
-    }
-
-    private void addExtension(ModContextExtension handler) {
-        this.extensions.add(handler);
+    private void addExtensions(AbstractModContextExtension... handler) {
+        this.extensions.addAll(List.of(handler));
     }
 
     public ModContainer modContainer() {
@@ -57,7 +56,7 @@ public class ModContext implements AutoCloseable {
     }
 
     public void invokeConstruct() {
-        for (ModContextExtension extension : this.extensions) {
+        for (AbstractModContextExtension extension : this.extensions) {
             LibraOmni.LOGGER.info("Performing construct setup of {} for {}...",
                     extension.getClass().getSimpleName(),
                     this.modContainer.getModId()
@@ -68,7 +67,7 @@ public class ModContext implements AutoCloseable {
     }
 
     public void invokeCommon() {
-        for (ModContextExtension extension : this.extensions) {
+        for (AbstractModContextExtension extension : this.extensions) {
             LibraOmni.LOGGER.info("Performing common setup of {} for {}...",
                     extension.getClass().getSimpleName(),
                     this.modContainer.getModId()
@@ -79,7 +78,7 @@ public class ModContext implements AutoCloseable {
     }
 
     public void invokeClient() {
-        for (ModContextExtension extension : this.extensions) {
+        for (AbstractModContextExtension extension : this.extensions) {
             LibraOmni.LOGGER.info("Performing client setup of {} for {}...",
                     extension.getClass().getSimpleName(),
                     this.modContainer.getModId()
@@ -90,7 +89,7 @@ public class ModContext implements AutoCloseable {
     }
 
     private void onClose() {
-        for (ModContextExtension extension : this.extensions) {
+        for (AbstractModContextExtension extension : this.extensions) {
             LibraOmni.LOGGER.info("Closing {} for {}...",
                     extension.getClass().getSimpleName(),
                     this.modContainer.getModId()
@@ -115,4 +114,70 @@ public class ModContext implements AutoCloseable {
                 "Mod context for {} was successfully closed", this.modContainer.getModId()
         );
     }
+
+    public class Registration extends AbstractModContextExtension {
+
+        private final Map<ResourceKey<?>, DeferredRegister<?>> registersMap = new HashMap<>();
+        private final DeferredRegister.Blocks blocksRegister;
+        private final DeferredRegister.Items itemsRegister;
+
+        private Registration() {
+            this.blocksRegister = DeferredRegister.createBlocks(this.parentContext().modContainer().getModId());
+            this.itemsRegister = DeferredRegister.createItems(this.parentContext().modContainer().getModId());
+
+            this.registersMap.put(blocksRegister.getRegistryKey(), blocksRegister);
+            this.registersMap.put(itemsRegister.getRegistryKey(), itemsRegister);
+        }
+
+        public DeferredRegister.Items itemsRegister() {
+            return this.itemsRegister;
+        }
+
+        public DeferredRegister.Blocks blocksRegister() {
+            return this.blocksRegister;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T> DeferredRegister<T> getRegister(ResourceKey<T> resourceKey) {
+            return (DeferredRegister<T>) registersMap.get(resourceKey);
+        }
+
+        <T> void addRegister(ResourceKey<T> resourceKey, DeferredRegister<T> register) {
+            this.registersMap.put(resourceKey, register);
+        }
+
+        public Collection<DeferredRegister<?>> allRegisters() {
+            return this.registersMap.values();
+        }
+
+        @Override
+        void onModConstruct() {
+            for (DeferredRegister<?> deferredRegister : this.allRegisters()) {
+                IEventBus eventBus = this.parentContext().modContainer().getEventBus();
+                if (eventBus != null) {
+                    deferredRegister.register(eventBus);
+                }
+            }
+        }
+    }
+
+    private abstract class AbstractModContextExtension {
+
+        ModContext parentContext() {
+            return ModContext.this;
+        }
+
+        void onClose() {
+        }
+
+        void onCommonSetup() {
+        }
+
+        void onClientSetup() {
+        }
+
+        void onModConstruct() {
+        }
+    }
+
 }
