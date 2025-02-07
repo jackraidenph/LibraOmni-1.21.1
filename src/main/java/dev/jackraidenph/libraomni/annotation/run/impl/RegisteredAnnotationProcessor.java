@@ -9,11 +9,11 @@ import net.minecraft.world.level.block.Block;
 import java.lang.annotation.Annotation;
 import java.util.Locale;
 
-public class RegisterAnnotationProcessor implements RuntimeProcessor {
+public class RegisteredAnnotationProcessor implements RuntimeProcessor {
 
-    public static RegisterAnnotationProcessor INSTANCE = new RegisterAnnotationProcessor();
+    public static RegisteredAnnotationProcessor INSTANCE = new RegisteredAnnotationProcessor();
 
-    private RegisterAnnotationProcessor() {
+    private RegisteredAnnotationProcessor() {
 
     }
 

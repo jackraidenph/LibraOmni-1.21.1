@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.context;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.annotation.run.impl.RegisterAnnotationProcessor;
+import dev.jackraidenph.libraomni.annotation.run.impl.RegisteredAnnotationProcessor;
 import net.minecraft.resources.ResourceKey;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -30,7 +30,7 @@ public class ModContext {
         this.initRunProcessors(
                 this.runtimeProcessorsManager = new RuntimeProcessorsManager(this),
 
-                RegisterAnnotationProcessor.INSTANCE
+                RegisteredAnnotationProcessor.INSTANCE
         );
 
         this.initRegistries();
