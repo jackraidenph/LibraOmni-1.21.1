@@ -9,9 +9,9 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 
-public class RegisterPredicateProcessor extends AbstractPredicateProcessor {
+public class RegisteredPredicateProcessor extends AbstractPredicateProcessor {
 
-    public RegisterPredicateProcessor(ProcessingEnvironment processingEnvironment) {
+    public RegisteredPredicateProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
     }
 

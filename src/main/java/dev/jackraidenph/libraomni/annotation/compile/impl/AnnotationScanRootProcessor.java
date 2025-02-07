@@ -11,13 +11,13 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class ScanRootProcessor extends AbstractCompileTimeProcessor {
+public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
 
     private static final String MOD_DECLARING_ANNOTATION = "net.neoforged.fml.common.Mod";
 
     private final Map<String, String> packageToModId;
 
-    public ScanRootProcessor(ProcessingEnvironment processingEnvironment) {
+    public AnnotationScanRootProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
         this.packageToModId = new HashMap<>();
     }

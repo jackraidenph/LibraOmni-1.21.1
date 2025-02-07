@@ -25,18 +25,18 @@ public class ReferenceMapCreationProcessor extends AbstractCompileTimeProcessor 
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private final SerializationHelper serializationHelper;
-    private final ScanRootProcessor scanRootProcessor;
+    private final AnnotationScanRootProcessor annotationScanRootProcessor;
 
     private final Map<String, Map<String, Map<String, Set<String>>>> targetsMap = new HashMap<>();
 
     public ReferenceMapCreationProcessor(
             ProcessingEnvironment processingEnvironment,
             SerializationHelper serializationHelper,
-            ScanRootProcessor rootProcessor
+            AnnotationScanRootProcessor rootProcessor
     ) {
         super(processingEnvironment);
         this.serializationHelper = serializationHelper;
-        this.scanRootProcessor = rootProcessor;
+        this.annotationScanRootProcessor = rootProcessor;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class ReferenceMapCreationProcessor extends AbstractCompileTimeProcessor 
                     throw new IllegalStateException("Failed to capture element package");
                 }
 
-                String modId = this.scanRootProcessor.getModId(pkg);
+                String modId = this.annotationScanRootProcessor.getModId(pkg);
 
                 if (modId == null) {
                     throw new IllegalStateException("""
