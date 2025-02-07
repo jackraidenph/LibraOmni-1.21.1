@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.compile.util.ReflectionCachingHelper;
 import dev.jackraidenph.libraomni.annotation.run.util.ClassMapReader.ElementStorage.AnnotatedElement;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +25,6 @@ public class ClassMapReader {
     private final Gson GSON = new GsonBuilder().create();
 
     private final String modId, resourceLocation;
-    private final SerializationHelper serializationHelper = new SerializationHelper(ReflectionCachingHelper.INSTANCE);
 
     public ClassMapReader(String modId, String resourceLocation) {
         this.modId = modId;
@@ -41,7 +39,7 @@ public class ClassMapReader {
 
         for (String annotationClassString : annotationInfo.keySet()) {
             Class<? extends Annotation> annotation =
-                    (Class<? extends Annotation>) this.serializationHelper.toClass(annotationClassString);
+                    (Class<? extends Annotation>) SerializationHelper.INSTANCE.toClass(annotationClassString);
 
             Set<AnnotatedElement<?>> annotatedAnnotatedElements = new HashSet<>();
 
@@ -61,12 +59,12 @@ public class ClassMapReader {
     }
 
     private @Nullable AnnotatedElement<?> getElement(ElementKind elementKind, String objectString) {
-        final SerializationHelper sh = this.serializationHelper;
+        final SerializationHelper helper = SerializationHelper.INSTANCE;
         return switch (elementKind) {
-            case CLASS -> new AnnotatedElement<Class<?>>(elementKind, sh.toClass(objectString));
-            case FIELD -> new AnnotatedElement<Field>(elementKind, sh.toField(objectString));
-            case METHOD -> new AnnotatedElement<Method>(elementKind, sh.toMethod(objectString));
-            case CONSTRUCTOR -> new AnnotatedElement<Constructor<?>>(elementKind, sh.toConstructor(objectString));
+            case CLASS -> new AnnotatedElement<Class<?>>(elementKind, helper.toClass(objectString));
+            case FIELD -> new AnnotatedElement<Field>(elementKind, helper.toField(objectString));
+            case METHOD -> new AnnotatedElement<Method>(elementKind, helper.toMethod(objectString));
+            case CONSTRUCTOR -> new AnnotatedElement<Constructor<?>>(elementKind, helper.toConstructor(objectString));
             default -> null;
         };
     }

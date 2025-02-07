@@ -11,9 +11,11 @@ import java.util.StringJoiner;
 
 public class SerializationHelper {
 
+    public static final SerializationHelper INSTANCE = new SerializationHelper(ReflectionCachingHelper.INSTANCE);
+
     private final ReflectionCachingHelper reflectionCachingHelper;
 
-    public SerializationHelper(ReflectionCachingHelper reflectionCachingHelper) {
+    private SerializationHelper(ReflectionCachingHelper reflectionCachingHelper) {
         this.reflectionCachingHelper = reflectionCachingHelper;
     }
 

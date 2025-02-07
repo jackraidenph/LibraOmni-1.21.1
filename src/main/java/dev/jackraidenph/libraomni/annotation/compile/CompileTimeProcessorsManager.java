@@ -28,7 +28,6 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
 
-        SerializationHelper serializationHelper = new SerializationHelper(ReflectionCachingHelper.INSTANCE);
         AnnotationScanRootProcessor annotationScanRootProcessor = new AnnotationScanRootProcessor(processingEnv);
 
         this.addProcessors(
@@ -36,7 +35,7 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
                 new RegisteredPredicateProcessor(processingEnv),
                 new ClassMapCreationProcessor(
                         processingEnv,
-                        serializationHelper,
+                        SerializationHelper.INSTANCE,
                         annotationScanRootProcessor
                 )
         );
