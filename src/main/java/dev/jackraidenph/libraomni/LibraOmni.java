@@ -1,7 +1,6 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.annotation.compile.impl.ClassMapCreationProcessor;
 import dev.jackraidenph.libraomni.context.ModContext;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -94,8 +93,13 @@ public class LibraOmni {
     }
 
     public static class Utility {
+
+        public static final String CLASSMAP_FILE_SUFFIX = ".classmap.json";
+        public static final String CLASSMAP_REGISTRY_FILE_SUFFIX = ".classmap.registry";
+        public static final String CLASSMAP_REGISTRY_FILE = MODID + CLASSMAP_REGISTRY_FILE_SUFFIX;
+
         public static String classmapLocationForMod(String modId) {
-            return LibraOmni.MODID + "/" + modId + ".classmap.json";
+            return LibraOmni.MODID + "/" + modId + LibraOmni.Utility.CLASSMAP_FILE_SUFFIX;
         }
 
         public static InputStream openResourceStream(String resourceLocation) {
@@ -107,7 +111,7 @@ public class LibraOmni {
         }
 
         private static Set<String> gatherReferenceMaps() {
-            final String registryLocation = LibraOmni.MODID + "/" + ClassMapCreationProcessor.REGISTRY_LOCATION;
+            final String registryLocation = LibraOmni.MODID + "/" + CLASSMAP_REGISTRY_FILE;
             final Set<String> maps = new HashSet<>();
 
             getResources(registryLocation).forEach(url -> {

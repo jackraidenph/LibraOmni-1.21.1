@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.annotation.compile.impl;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.LibraOmni.Utility;
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
@@ -19,8 +20,6 @@ import java.lang.annotation.Target;
 import java.util.*;
 
 public class ClassMapCreationProcessor extends AbstractCompileTimeProcessor {
-
-    public static final String REGISTRY_LOCATION = LibraOmni.MODID + ".classmap.registry";
 
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
@@ -107,13 +106,13 @@ public class ClassMapCreationProcessor extends AbstractCompileTimeProcessor {
 
         for (String modId : this.targetsMap.keySet()) {
             String toWrite = this.GSON.toJson(this.targetsMap.get(modId));
-            String location = modId + ".classmap.json";
+            String location = modId + LibraOmni.Utility.CLASSMAP_FILE_SUFFIX;
 
             this.write(location, filer, toWrite);
 
             stringJoiner.add(location);
         }
-        this.write(REGISTRY_LOCATION, filer, stringJoiner.toString());
+        this.write(LibraOmni.Utility.CLASSMAP_REGISTRY_FILE, filer, stringJoiner.toString());
 
         return true;
     }
