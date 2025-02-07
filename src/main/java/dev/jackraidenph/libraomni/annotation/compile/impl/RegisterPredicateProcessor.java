@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
-import dev.jackraidenph.libraomni.annotation.compile.util.CompilationPredicate;
+import dev.jackraidenph.libraomni.annotation.compile.util.CompilationPredicates;
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -18,8 +18,8 @@ public class RegisterPredicateProcessor extends AbstractPredicateProcessor {
     @Override
     public List<CompilationPredicate<Element>> getPredicatesAndDescriptions() {
         return List.of(
-                CompilationPredicate.MUST_BE_ON_CLASS,
-                CompilationPredicate.mustExtend(
+                CompilationPredicates.MUST_BE_ON_CLASS,
+                CompilationPredicates.mustExtend(
                         "net.minecraft.world.level.block.Block"
                 )
         );

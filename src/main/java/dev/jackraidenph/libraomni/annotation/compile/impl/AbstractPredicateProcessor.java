@@ -1,12 +1,11 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
-import dev.jackraidenph.libraomni.annotation.compile.util.CompilationPredicate;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.function.Predicate;
 
 public abstract class AbstractPredicateProcessor extends AbstractCompileTimeProcessor {
 
@@ -37,4 +36,6 @@ public abstract class AbstractPredicateProcessor extends AbstractCompileTimeProc
         return List.of();
     }
 
+    public record CompilationPredicate<T>(Predicate<T> predicate, String description) {
+    }
 }
