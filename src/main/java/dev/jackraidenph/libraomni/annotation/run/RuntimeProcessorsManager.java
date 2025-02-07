@@ -3,10 +3,10 @@ package dev.jackraidenph.libraomni.annotation.run;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.annotation.run.util.ReferenceMapReader.ElementStorage.AnnotatedElement;
+import dev.jackraidenph.libraomni.annotation.run.util.ClassMapReader.ElementStorage.AnnotatedElement;
 import dev.jackraidenph.libraomni.context.ModContext;
-import dev.jackraidenph.libraomni.annotation.run.util.ReferenceMapReader;
-import dev.jackraidenph.libraomni.annotation.run.util.ReferenceMapReader.ElementStorage;
+import dev.jackraidenph.libraomni.annotation.run.util.ClassMapReader;
+import dev.jackraidenph.libraomni.annotation.run.util.ClassMapReader.ElementStorage;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -23,12 +23,12 @@ public class RuntimeProcessorsManager {
         this.modContext = modContext;
         String modId = modContext.modContainer().getModId();
 
-        ReferenceMapReader referenceMapReader = new ReferenceMapReader(
+        ClassMapReader classMapReader = new ClassMapReader(
                 modId,
                 LibraOmni.Utility.markedLocationForMod(modId)
         );
 
-        this.elementStorage = referenceMapReader.readElements();
+        this.elementStorage = classMapReader.readElements();
     }
 
     public void registerProcessor(RuntimeProcessor runTimeProcessor) {

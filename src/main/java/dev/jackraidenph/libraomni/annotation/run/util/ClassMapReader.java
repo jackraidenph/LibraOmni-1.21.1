@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.compile.util.ReflectionCachingHelper;
-import dev.jackraidenph.libraomni.annotation.run.util.ReferenceMapReader.ElementStorage.AnnotatedElement;
+import dev.jackraidenph.libraomni.annotation.run.util.ClassMapReader.ElementStorage.AnnotatedElement;
 import org.jetbrains.annotations.Nullable;
 
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
@@ -18,9 +18,9 @@ import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class ReferenceMapReader {
+public class ClassMapReader {
 
-    private static final Type REFERENCE_MAP_TYPE = new TypeToken<Map<String, Map<String, List<String>>>>() {
+    private static final Type CLASS_MAP_TYPE = new TypeToken<Map<String, Map<String, List<String>>>>() {
     }.getType();
 
     private final Gson GSON = new GsonBuilder().create();
@@ -28,7 +28,7 @@ public class ReferenceMapReader {
     private final String modId, resourceLocation;
     private final SerializationHelper serializationHelper = new SerializationHelper(ReflectionCachingHelper.INSTANCE);
 
-    public ReferenceMapReader(String modId, String resourceLocation) {
+    public ClassMapReader(String modId, String resourceLocation) {
         this.modId = modId;
         this.resourceLocation = resourceLocation;
     }
@@ -78,9 +78,9 @@ public class ReferenceMapReader {
             }
             String contents = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-            return this.GSON.fromJson(contents, REFERENCE_MAP_TYPE);
+            return this.GSON.fromJson(contents, CLASS_MAP_TYPE);
         } catch (IOException ioException) {
-            throw new RuntimeException("Failed to read reference map for " + this.modId, ioException);
+            throw new RuntimeException("Failed to read class map for " + this.modId, ioException);
         }
     }
 

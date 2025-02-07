@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.annotation.compile.impl.ReferenceMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.ClassMapCreationProcessor;
 import dev.jackraidenph.libraomni.context.ModContext;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -75,8 +75,8 @@ public class LibraOmni {
     @SubscribeEvent
     public void enqueueConstructModContextJobs(FMLConstructModEvent constructModEvent) {
         constructModEvent.enqueueWork(() -> {
-            for (String refmap : Utility.gatherReferenceMaps()) {
-                String modId = Utility.extractModIdFromRefmapName(refmap);
+            for (String classMap : Utility.gatherReferenceMaps()) {
+                String modId = Utility.extractModIdFromClassMapName(classMap);
 
                 if (!MOD_CONTEXT_MAP.containsKey(modId)) {
                     ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);
@@ -107,7 +107,7 @@ public class LibraOmni {
         }
 
         private static Set<String> gatherReferenceMaps() {
-            final String registryLocation = LibraOmni.MODID + "/" + ReferenceMapCreationProcessor.REGISTRY_LOCATION;
+            final String registryLocation = LibraOmni.MODID + "/" + ClassMapCreationProcessor.REGISTRY_LOCATION;
             final Set<String> maps = new HashSet<>();
 
             getResources(registryLocation).forEach(url -> {
@@ -122,7 +122,7 @@ public class LibraOmni {
             return maps;
         }
 
-        private static String extractModIdFromRefmapName(String name) {
+        private static String extractModIdFromClassMapName(String name) {
             return name.split("\\.marked")[0];
         }
     }
