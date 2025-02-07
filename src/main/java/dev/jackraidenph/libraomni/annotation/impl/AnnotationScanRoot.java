@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface ScanRoot {
+public @interface AnnotationScanRoot {
     /**
      * @return Mod ID of the underlying scan targets.
      */

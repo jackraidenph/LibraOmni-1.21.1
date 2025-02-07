@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.run.impl;
 
-import dev.jackraidenph.libraomni.annotation.impl.Register;
+import dev.jackraidenph.libraomni.annotation.impl.Registered;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.util.ReferenceMapReader.ElementStorage.AnnotatedElement;
 import dev.jackraidenph.libraomni.context.ModContext;
@@ -28,7 +28,7 @@ public class RegisterAnnotationProcessor implements RuntimeProcessor {
             //noinspection unchecked
             Class<Block> blockClass = (Class<Block>) annotatedElement.element();
 
-            Register register = (Register) blockClass.getAnnotation(annotation);
+            Registered register = (Registered) blockClass.getAnnotation(annotation);
 
             String id = register.value();
 
@@ -50,6 +50,6 @@ public class RegisterAnnotationProcessor implements RuntimeProcessor {
 
     @Override
     public Class<? extends Annotation> getSupportedAnnotation() {
-        return Register.class;
+        return Registered.class;
     }
 }

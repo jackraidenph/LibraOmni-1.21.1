@@ -5,8 +5,8 @@ import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
-import dev.jackraidenph.libraomni.annotation.impl.Register;
-import dev.jackraidenph.libraomni.annotation.impl.ScanRoot;
+import dev.jackraidenph.libraomni.annotation.impl.Registered;
+import dev.jackraidenph.libraomni.annotation.impl.AnnotationScanRoot;
 
 import javax.annotation.processing.*;
 import javax.lang.model.element.*;
@@ -57,7 +57,7 @@ public class ReferenceMapCreationProcessor extends AbstractCompileTimeProcessor 
                     throw new IllegalStateException("""
                             Failed to compute mod id for package [%s].
                             Please, refer to [%s] JavaDoc.
-                            """.formatted(pkg, ScanRoot.class));
+                            """.formatted(pkg, AnnotationScanRoot.class));
                 }
 
                 Map<String, Set<String>> targets = this.targetsMap
@@ -121,7 +121,7 @@ public class ReferenceMapCreationProcessor extends AbstractCompileTimeProcessor 
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
         return Set.of(
-                Register.class
+                Registered.class
         );
     }
 

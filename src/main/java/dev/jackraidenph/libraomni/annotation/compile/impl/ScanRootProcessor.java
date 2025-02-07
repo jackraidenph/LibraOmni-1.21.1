@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.impl.ScanRoot;
+import dev.jackraidenph.libraomni.annotation.impl.AnnotationScanRoot;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -25,7 +25,7 @@ public class ScanRootProcessor extends AbstractCompileTimeProcessor {
     @Override
     public boolean onRound(RoundEnvironment roundEnvironment) {
         Set<Element> roots = new HashSet<>(
-                roundEnvironment.getElementsAnnotatedWith(ScanRoot.class)
+                roundEnvironment.getElementsAnnotatedWith(AnnotationScanRoot.class)
         );
 
         if (roots.isEmpty()) {
@@ -72,7 +72,7 @@ public class ScanRootProcessor extends AbstractCompileTimeProcessor {
         }
 
         for (Element typeElement : roots) {
-            ScanRoot annotation = typeElement.getAnnotation(ScanRoot.class);
+            AnnotationScanRoot annotation = typeElement.getAnnotation(AnnotationScanRoot.class);
 
             String pkg = CompileTimeProcessor.packageOf(
                             this.getProcessingEnvironment(),
@@ -123,7 +123,7 @@ public class ScanRootProcessor extends AbstractCompileTimeProcessor {
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
         return Set.of(
-                ScanRoot.class
+                AnnotationScanRoot.class
         );
     }
 }

@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
 import dev.jackraidenph.libraomni.annotation.compile.util.CompilationPredicate;
-import dev.jackraidenph.libraomni.annotation.impl.Register;
+import dev.jackraidenph.libraomni.annotation.impl.Registered;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -28,7 +28,7 @@ public class RegisterPredicateProcessor extends AbstractPredicateProcessor {
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
         return Set.of(
-                Register.class
+                Registered.class
         );
     }
 }
