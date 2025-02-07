@@ -94,8 +94,8 @@ public class LibraOmni {
     }
 
     public static class Utility {
-        public static String markedLocationForMod(String modId) {
-            return LibraOmni.MODID + "/" + modId + ".marked.json";
+        public static String classmapLocationForMod(String modId) {
+            return LibraOmni.MODID + "/" + modId + ".classmap.json";
         }
 
         public static InputStream openResourceStream(String resourceLocation) {
@@ -123,7 +123,7 @@ public class LibraOmni {
         }
 
         private static String extractModIdFromClassMapName(String name) {
-            return name.split("\\.marked")[0];
+            return name.split("\\.classmap")[0];
         }
     }
 }

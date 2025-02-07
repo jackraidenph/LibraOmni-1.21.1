@@ -25,7 +25,7 @@ public class RuntimeProcessorsManager {
 
         ClassMapReader classMapReader = new ClassMapReader(
                 modId,
-                LibraOmni.Utility.markedLocationForMod(modId)
+                LibraOmni.Utility.classmapLocationForMod(modId)
         );
 
         this.elementStorage = classMapReader.readElements();
