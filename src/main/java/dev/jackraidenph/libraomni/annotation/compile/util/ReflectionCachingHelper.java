@@ -12,10 +12,7 @@ public class ReflectionCachingHelper {
 
     public static final ReflectionCachingHelper INSTANCE = new ReflectionCachingHelper();
 
-    private final Map<String, Class<?>> classes = new HashMap<>();
-    private final Map<Class<?>, Map<String, Field>> fields = new HashMap<>();
-    private final Map<Class<?>, Map<String, Method>> methods = new HashMap<>();
-    private final Map<Class<?>, Map<String, Constructor<?>>> constructors = new HashMap<>();
+    private final Map<String, ClassData<?>> data = new HashMap<>();
 
     private static final Map<String, Class<?>> PRIMITIVE_TYPES_MAP = Map.of(
             "int", Integer.TYPE,
@@ -41,57 +38,116 @@ public class ReflectionCachingHelper {
         }
     }
 
-    public Class<?> getClassOrPrimitiveByName(String string) {
-        return classes.computeIfAbsent(string, this::classOrPrimitive);
+    private ClassData<?> getClassDataByName(String name) {
+        return this.getClassDataByClass(this.classOrPrimitive(name));
+    }
+
+    private <T> ClassData<T> getClassDataByClass(Class<T> clazz) {
+        //Suppress, because the type is preserved
+        //noinspection unchecked
+        return (ClassData<T>) this.data.computeIfAbsent(clazz.getName(), n -> new ClassData<>(clazz));
+    }
+
+    public Class<?> getClassOrPrimitiveByName(String name) {
+        return this.getClassDataByName(name).getClazz();
     }
 
     public Field getDeclaredField(Class<?> clazz, String name) {
-        try {
-            if (!this.fields.computeIfAbsent(clazz, k -> new HashMap<>()).containsKey(name)) {
-                Field field = clazz.getDeclaredField(name);
-                this.fields.get(clazz).put(name, field);
-                return field;
-            } else {
-                return this.fields.get(clazz).get(name);
+        ClassData<?> classData = this.getClassDataByClass(clazz);
+        if (classData.hasField(name)) {
+            return classData.getField(name);
+        } else {
+            try {
+                return classData.addField(name, clazz.getField(name));
+            } catch (NoSuchFieldException noSuchFieldException) {
+                throw new IllegalArgumentException(noSuchFieldException);
             }
-        } catch (NoSuchFieldException noSuchFieldException) {
-            throw new IllegalArgumentException(noSuchFieldException);
         }
     }
 
     public Method getDeclaredMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
         String qualifier = name + SerializationHelper.classesToString(parameterTypes);
-        try {
-            if (!this.methods.computeIfAbsent(clazz, k -> new HashMap<>()).containsKey(qualifier)) {
-                Method method = clazz.getDeclaredMethod(name, parameterTypes);
-                this.methods.get(clazz).put(qualifier, method);
-                return method;
-            } else {
-                return this.methods.get(clazz).get(qualifier);
+
+        ClassData<?> classData = this.getClassDataByClass(clazz);
+        if (classData.hasMethod(qualifier)) {
+            return classData.getMethod(qualifier);
+        } else {
+            try {
+                return classData.addMethod(qualifier, clazz.getMethod(name, parameterTypes));
+            } catch (NoSuchMethodException noSuchMethodException) {
+                throw new IllegalArgumentException(noSuchMethodException);
             }
-        } catch (NoSuchMethodException noSuchMethodException) {
-            throw new IllegalArgumentException(noSuchMethodException);
         }
     }
 
 
     public <T> Constructor<T> getDeclaredConstructor(Class<T> clazz, Class<?>... parameterTypes) {
         String qualifier = SerializationHelper.classesToString(parameterTypes);
-        try {
-            if (!this.constructors.computeIfAbsent(clazz, k -> new HashMap<>()).containsKey(qualifier)) {
-                Constructor<T> constructor = clazz.getDeclaredConstructor(parameterTypes);
-                this.constructors.get(clazz).put(qualifier, constructor);
-                return constructor;
-            } else {
-                //Suppress, because we safely recover from this
-                //noinspection unchecked
-                return (Constructor<T>) this.constructors.get(clazz).get(qualifier);
+
+        ClassData<T> classData = this.getClassDataByClass(clazz);
+        if (classData.hasConstructor(qualifier)) {
+            return classData.getConstructor(qualifier);
+        } else {
+            try {
+                return classData.addConstructor(qualifier, clazz.getConstructor(parameterTypes));
+            } catch (NoSuchMethodException noSuchMethodException) {
+                throw new IllegalArgumentException(noSuchMethodException);
             }
-        } catch (NoSuchMethodException noSuchMethodException) {
-            throw new IllegalArgumentException(noSuchMethodException);
-        } catch (ClassCastException classCastException) {
-            this.constructors.get(clazz).remove(qualifier);
-            return this.getDeclaredConstructor(clazz, parameterTypes);
+        }
+    }
+
+    private static class ClassData<T> {
+
+        private final Class<T> clazz;
+        Map<String, Field> fields = new HashMap<>();
+        Map<String, Method> methods = new HashMap<>();
+        Map<String, Constructor<T>> constructors = new HashMap<>();
+
+        public ClassData(Class<T> clazz) {
+            this.clazz = clazz;
+        }
+
+        public Class<T> getClazz() {
+            return this.clazz;
+        }
+
+        public boolean hasField(String name) {
+            return this.fields.containsKey(name);
+        }
+
+        public Field addField(String name, Field field) {
+            this.fields.put(name, field);
+            return field;
+        }
+
+        public Field getField(String name) {
+            return this.fields.get(name);
+        }
+
+        public boolean hasMethod(String method) {
+            return this.methods.containsKey(method);
+        }
+
+        public Method addMethod(String name, Method method) {
+            this.methods.put(name, method);
+            return method;
+        }
+
+        public Method getMethod(String name) {
+            return this.methods.get(name);
+        }
+
+        public boolean hasConstructor(String name) {
+            return this.fields.containsKey(name);
+        }
+
+        public Constructor<T> addConstructor(String name, Constructor<T> constructor) {
+            this.constructors.put(name, constructor);
+            return constructor;
+        }
+
+        public Constructor<T> getConstructor(String name) {
+            return this.constructors.get(name);
         }
     }
 }
