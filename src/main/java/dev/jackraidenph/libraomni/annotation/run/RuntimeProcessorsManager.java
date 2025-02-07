@@ -39,11 +39,9 @@ public class RuntimeProcessorsManager {
     }
 
     public void onProcess(Scope scope) {
-        List<RuntimeProcessor> pending = new ArrayList<>(this.runTimeProcessors);
-        for (RuntimeProcessor runtimeProcessor : pending) {
+        for (RuntimeProcessor runtimeProcessor : this.runTimeProcessors) {
             if (runtimeProcessor.getScope().equals(scope)) {
                 this.processForScope(runtimeProcessor);
-                pending.remove(runtimeProcessor);
             }
         }
     }
