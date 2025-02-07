@@ -22,18 +22,15 @@ public class ClassMapCreationProcessor extends AbstractCompileTimeProcessor {
 
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    private final SerializationHelper serializationHelper;
     private final AnnotationScanRootProcessor annotationScanRootProcessor;
 
     private final Map<String, Map<String, Map<String, Set<String>>>> targetsMap = new HashMap<>();
 
     public ClassMapCreationProcessor(
             ProcessingEnvironment processingEnvironment,
-            SerializationHelper serializationHelper,
             AnnotationScanRootProcessor rootProcessor
     ) {
         super(processingEnvironment);
-        this.serializationHelper = serializationHelper;
         this.annotationScanRootProcessor = rootProcessor;
     }
 
@@ -67,22 +64,22 @@ public class ClassMapCreationProcessor extends AbstractCompileTimeProcessor {
                     case CLASS -> targets.computeIfAbsent(
                             kind,
                             k -> new HashSet<>()
-                    ).add(this.serializationHelper.toClassString((TypeElement) element));
+                    ).add(SerializationHelper.INSTANCE.toClassString((TypeElement) element));
 
                     case FIELD -> targets.computeIfAbsent(
                             kind,
                             k -> new HashSet<>()
-                    ).add(this.serializationHelper.toFieldString((VariableElement) element));
+                    ).add(SerializationHelper.INSTANCE.toFieldString((VariableElement) element));
 
                     case CONSTRUCTOR -> targets.computeIfAbsent(
                             kind,
                             k -> new HashSet<>()
-                    ).add(this.serializationHelper.toConstructorString((ExecutableElement) element));
+                    ).add(SerializationHelper.INSTANCE.toConstructorString((ExecutableElement) element));
 
                     case METHOD -> targets.computeIfAbsent(
                             kind,
                             k -> new HashSet<>()
-                    ).add(this.serializationHelper.toMethodString((ExecutableElement) element));
+                    ).add(SerializationHelper.INSTANCE.toMethodString((ExecutableElement) element));
 
                     default -> throw new IllegalStateException();
                 }

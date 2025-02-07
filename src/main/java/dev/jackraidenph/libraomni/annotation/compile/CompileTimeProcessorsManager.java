@@ -34,7 +34,6 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
                 new RegisteredProcessor(processingEnv),
                 new ClassMapCreationProcessor(
                         processingEnv,
-                        SerializationHelper.INSTANCE,
                         annotationScanRootProcessor
                 )
         );
