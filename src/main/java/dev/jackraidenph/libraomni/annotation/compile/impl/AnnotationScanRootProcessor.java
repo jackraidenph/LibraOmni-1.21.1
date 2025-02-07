@@ -23,7 +23,7 @@ public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
     }
 
     @Override
-    public boolean onRound(RoundEnvironment roundEnvironment) {
+    public boolean processRound(RoundEnvironment roundEnvironment) {
         Set<Element> roots = new HashSet<>(
                 roundEnvironment.getElementsAnnotatedWith(AnnotationScanRoot.class)
         );

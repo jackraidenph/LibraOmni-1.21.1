@@ -40,7 +40,7 @@ public class ClassMapCreationProcessor extends AbstractCompileTimeProcessor {
     }
 
     @Override
-    public boolean onRound(RoundEnvironment roundEnvironment) {
+    public boolean processRound(RoundEnvironment roundEnvironment) {
         for (Class<? extends Annotation> annotation : this.getSupportedAnnotationClasses()) {
             for (Element element : roundEnvironment.getElementsAnnotatedWith(annotation)) {
                 String pkg = CompileTimeProcessor.packageOf(this.getProcessingEnvironment(), element)

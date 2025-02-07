@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.util;
 
-import dev.jackraidenph.libraomni.annotation.compile.impl.predicate.AbstractPredicateProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompileTimeProcessor.CompilationPredicate;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
@@ -13,13 +13,13 @@ import java.util.function.Predicate;
 
 public class CompilationPredicates {
 
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> MUST_BE_ON_CLASS = mustBeOn(ElementKind.CLASS);
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> MUST_BE_ON_FIELD = mustBeOn(ElementKind.FIELD);
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> MUST_BE_ON_METHOD = mustBeOn(ElementKind.METHOD);
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> MUST_BE_ON_CONSTRUCTOR = mustBeOn(ElementKind.CONSTRUCTOR);
+    public static CompilationPredicate<Element> MUST_BE_ON_CLASS = mustBeOn(ElementKind.CLASS);
+    public static CompilationPredicate<Element> MUST_BE_ON_FIELD = mustBeOn(ElementKind.FIELD);
+    public static CompilationPredicate<Element> MUST_BE_ON_METHOD = mustBeOn(ElementKind.METHOD);
+    public static CompilationPredicate<Element> MUST_BE_ON_CONSTRUCTOR = mustBeOn(ElementKind.CONSTRUCTOR);
 
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> mustBeOn(ElementKind... elementKinds) {
-        return new AbstractPredicateProcessor.CompilationPredicate<>(
+    public static CompilationPredicate<Element> mustBeOn(ElementKind... elementKinds) {
+        return new CompilationPredicate<>(
                 e -> {
                     for (ElementKind kind : elementKinds) {
                         if (e.getKind().equals(kind)) {
@@ -32,8 +32,8 @@ public class CompilationPredicates {
         );
     }
 
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> mustAlsoBeAnnotatedWith(String... annotations) {
-        return new AbstractPredicateProcessor.CompilationPredicate<>(
+    public static CompilationPredicate<Element> mustAlsoBeAnnotatedWith(String... annotations) {
+        return new CompilationPredicate<>(
                 e -> appliedAnnotations(e).containsAll(Set.of(annotations)),
                 "Annotation must be used alongside with " + Set.of(annotations)
         );
@@ -51,15 +51,15 @@ public class CompilationPredicates {
         return names;
     }
 
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> parentMustBeAnnotatedWith(String... annotations) {
-        return new AbstractPredicateProcessor.CompilationPredicate<>(
+    public static CompilationPredicate<Element> parentMustBeAnnotatedWith(String... annotations) {
+        return new CompilationPredicate<>(
                 e -> appliedAnnotations(e.getEnclosingElement()).containsAll(Set.of(annotations)),
                 "Parent element must be annotated with " + Set.of(annotations)
         );
     }
 
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> mustHaveMatchingConstructor(String... typeParameters) {
-        return new AbstractPredicateProcessor.CompilationPredicate<>(
+    public static CompilationPredicate<Element> mustHaveMatchingConstructor(String... typeParameters) {
+        return new CompilationPredicate<>(
                 e -> {
                     if (!e.getKind().equals(ElementKind.CLASS)) {
                         return false;
@@ -101,8 +101,8 @@ public class CompilationPredicates {
         );
     }
 
-    public static AbstractPredicateProcessor.CompilationPredicate<Element> mustExtend(String... classNames) {
-        return new AbstractPredicateProcessor.CompilationPredicate<>(
+    public static CompilationPredicate<Element> mustExtend(String... classNames) {
+        return new CompilationPredicate<>(
                 e -> {
                     if (!e.getKind().isDeclaredType()) {
                         return false;

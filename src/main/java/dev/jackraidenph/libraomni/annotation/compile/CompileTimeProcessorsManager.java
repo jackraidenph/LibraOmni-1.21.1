@@ -2,9 +2,8 @@ package dev.jackraidenph.libraomni.annotation.compile;
 
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.ClassMapCreationProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.predicate.RegisteredPredicateProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.RegisteredProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.AnnotationScanRootProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.util.ReflectionCachingHelper;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -32,7 +31,7 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
 
         this.addProcessors(
                 annotationScanRootProcessor,
-                new RegisteredPredicateProcessor(processingEnv),
+                new RegisteredProcessor(processingEnv),
                 new ClassMapCreationProcessor(
                         processingEnv,
                         SerializationHelper.INSTANCE,
