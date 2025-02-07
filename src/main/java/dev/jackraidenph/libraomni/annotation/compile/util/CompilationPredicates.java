@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.util;
 
-import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractPredicateProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.predicate.AbstractPredicateProcessor;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;

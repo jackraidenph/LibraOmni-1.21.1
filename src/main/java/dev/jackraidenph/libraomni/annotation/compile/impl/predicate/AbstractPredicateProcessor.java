@@ -1,4 +1,6 @@
-package dev.jackraidenph.libraomni.annotation.compile.impl;
+package dev.jackraidenph.libraomni.annotation.compile.impl.predicate;
+
+import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompileTimeProcessor;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
