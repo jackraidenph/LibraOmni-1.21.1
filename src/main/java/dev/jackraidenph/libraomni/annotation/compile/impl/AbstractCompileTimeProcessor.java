@@ -27,7 +27,7 @@ public abstract class AbstractCompileTimeProcessor implements CompileTimeProcess
 
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
-        return null;
+        return Set.of();
     }
 
     @Override
