@@ -74,8 +74,8 @@ public class LibraOmni {
     @SubscribeEvent
     public void enqueueConstructModContextJobs(FMLConstructModEvent constructModEvent) {
         constructModEvent.enqueueWork(() -> {
-            for (String classMap : Utility.gatherReferenceMaps()) {
-                String modId = Utility.extractModIdFromClassMapName(classMap);
+            for (String annotationMap : Utility.gatherReferenceMaps()) {
+                String modId = Utility.extractModIdFromAnnotationMapName(annotationMap);
 
                 if (!MOD_CONTEXT_MAP.containsKey(modId)) {
                     ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);
@@ -94,12 +94,12 @@ public class LibraOmni {
 
     public static class Utility {
 
-        public static final String CLASSMAP_FILE_SUFFIX = ".classmap.json";
-        public static final String CLASSMAP_REGISTRY_FILE_SUFFIX = ".classmap.registry";
-        public static final String CLASSMAP_REGISTRY_FILE = MODID + CLASSMAP_REGISTRY_FILE_SUFFIX;
+        public static final String ANNOTATION_MAP_FILE_SUFFIX = ".annotation_map.json";
+        public static final String ANNOTATION_MAP_REGISTRY_FILE_SUFFIX = ".annotation_map.registry";
+        public static final String ANNOTATION_MAP_REGISTRY_FILE = MODID + ANNOTATION_MAP_REGISTRY_FILE_SUFFIX;
 
-        public static String classmapLocationForMod(String modId) {
-            return LibraOmni.MODID + "/" + modId + LibraOmni.Utility.CLASSMAP_FILE_SUFFIX;
+        public static String annotationMapLocationForMod(String modId) {
+            return LibraOmni.MODID + "/" + modId + LibraOmni.Utility.ANNOTATION_MAP_FILE_SUFFIX;
         }
 
         public static InputStream openResourceStream(String resourceLocation) {
@@ -111,7 +111,7 @@ public class LibraOmni {
         }
 
         private static Set<String> gatherReferenceMaps() {
-            final String registryLocation = LibraOmni.MODID + "/" + CLASSMAP_REGISTRY_FILE;
+            final String registryLocation = LibraOmni.MODID + "/" + ANNOTATION_MAP_REGISTRY_FILE;
             final Set<String> maps = new HashSet<>();
 
             getResources(registryLocation).forEach(url -> {
@@ -126,8 +126,8 @@ public class LibraOmni {
             return maps;
         }
 
-        private static String extractModIdFromClassMapName(String name) {
-            return name.split("\\.classmap")[0];
+        private static String extractModIdFromAnnotationMapName(String name) {
+            return name.split("\\.annotationMap")[0];
         }
     }
 }

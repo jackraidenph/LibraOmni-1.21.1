@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.run.api;
 
-import dev.jackraidenph.libraomni.annotation.run.util.ClassMapReader.ElementStorage.AnnotatedElement;
+import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.ElementStorage.AnnotatedElement;
 import dev.jackraidenph.libraomni.context.ModContext;
 
 import java.lang.annotation.Annotation;

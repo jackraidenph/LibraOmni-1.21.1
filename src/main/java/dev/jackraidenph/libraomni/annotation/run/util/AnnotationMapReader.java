@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.run.util.ClassMapReader.ElementStorage.AnnotatedElement;
+import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.ElementStorage.AnnotatedElement;
 import org.jetbrains.annotations.Nullable;
 
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
@@ -17,7 +17,7 @@ import java.lang.reflect.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class ClassMapReader {
+public class AnnotationMapReader {
 
     private static final Type CLASS_MAP_TYPE = new TypeToken<Map<String, Map<String, List<String>>>>() {
     }.getType();
@@ -26,7 +26,7 @@ public class ClassMapReader {
 
     private final String modId, resourceLocation;
 
-    public ClassMapReader(String modId, String resourceLocation) {
+    public AnnotationMapReader(String modId, String resourceLocation) {
         this.modId = modId;
         this.resourceLocation = resourceLocation;
     }

@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.annotation.run.impl;
 
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
-import dev.jackraidenph.libraomni.annotation.run.util.ClassMapReader.ElementStorage.AnnotatedElement;
+import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.ElementStorage.AnnotatedElement;
 import dev.jackraidenph.libraomni.context.ModContext;
 import net.minecraft.world.level.block.Block;
 

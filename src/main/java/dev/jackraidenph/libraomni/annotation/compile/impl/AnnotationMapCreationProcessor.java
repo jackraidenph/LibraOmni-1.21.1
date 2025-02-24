@@ -18,7 +18,7 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Target;
 import java.util.*;
 
-public class ClassMapCreationProcessor extends AbstractCompileTimeProcessor {
+public class AnnotationMapCreationProcessor extends AbstractCompileTimeProcessor {
 
     private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
@@ -26,7 +26,7 @@ public class ClassMapCreationProcessor extends AbstractCompileTimeProcessor {
 
     private final Map<String, Map<String, Map<String, Set<String>>>> targetsMap = new HashMap<>();
 
-    public ClassMapCreationProcessor(
+    public AnnotationMapCreationProcessor(
             ProcessingEnvironment processingEnvironment,
             AnnotationScanRootProcessor rootProcessor
     ) {
@@ -102,13 +102,13 @@ public class ClassMapCreationProcessor extends AbstractCompileTimeProcessor {
 
         for (String modId : this.targetsMap.keySet()) {
             String toWrite = this.GSON.toJson(this.targetsMap.get(modId));
-            String location = modId + LibraOmni.Utility.CLASSMAP_FILE_SUFFIX;
+            String location = modId + LibraOmni.Utility.ANNOTATION_MAP_FILE_SUFFIX;
 
             this.write(location, filer, toWrite);
 
             stringJoiner.add(location);
         }
-        this.write(LibraOmni.Utility.CLASSMAP_REGISTRY_FILE, filer, stringJoiner.toString());
+        this.write(LibraOmni.Utility.ANNOTATION_MAP_REGISTRY_FILE, filer, stringJoiner.toString());
 
         return true;
     }

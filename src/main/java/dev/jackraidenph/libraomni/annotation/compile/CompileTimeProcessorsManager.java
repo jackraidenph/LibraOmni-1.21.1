@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.compile;
 
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.ClassMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.AnnotationMapCreationProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.RegisteredProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.AnnotationScanRootProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
@@ -32,7 +32,7 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
         this.addProcessors(
                 annotationScanRootProcessor,
                 new RegisteredProcessor(processingEnv),
-                new ClassMapCreationProcessor(
+                new AnnotationMapCreationProcessor(
                         processingEnv,
                         annotationScanRootProcessor
                 )
