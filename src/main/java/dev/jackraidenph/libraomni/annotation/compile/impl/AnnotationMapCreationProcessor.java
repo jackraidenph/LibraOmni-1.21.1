@@ -123,7 +123,7 @@ public class AnnotationMapCreationProcessor extends AbstractCompileTimeProcessor
     private void write(String location, Filer filer, String toWrite) {
         try {
             FileObject fileObject = filer.createResource(
-                    StandardLocation.CLASS_OUTPUT, LibraOmni.MODID, location
+                    StandardLocation.SOURCE_OUTPUT, LibraOmni.MODID, location
             );
             Writer writer = fileObject.openWriter();
             writer.write(toWrite);
