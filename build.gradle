@@ -20,7 +20,7 @@ repositories {
 
 static def date() {
     def date = new Date()
-    return date.format('yyyy-MM-dd') + 'T' + date.format('HH-mm-ss')
+    return date.format('yyyy-MM-dd') + 'T' + date.format('HH-mm-ss') + 'Z'
 }
 
 base {
