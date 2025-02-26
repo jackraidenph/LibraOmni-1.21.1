@@ -43,61 +43,73 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
         this.annotationScanRootProcessor = rootProcessor;
     }
 
+    private String getAndCheckModIdFromPackage(String pkg) {
+        String modId = this.annotationScanRootProcessor.getModId(pkg);
+
+        if (modId == null) {
+            throw new IllegalStateException("""
+                    Failed to compute mod id for package [%s].
+                    Please, refer to [%s] JavaDoc.
+                    """.formatted(pkg, AnnotationScanRoot.class));
+        }
+
+        return modId;
+    }
+
+    private String getAndCheckPackage(Element element) {
+        String pkg = CompileTimeProcessor.packageOf(this.getProcessingEnvironment(), element)
+                .getQualifiedName()
+                .toString();
+
+        if (pkg == null) {
+            throw new IllegalStateException("Failed to capture element package");
+        }
+
+        return pkg;
+    }
+
+    private static String getElementString(Element element) {
+        final SerializationHelper serializationHelper = SerializationHelper.INSTANCE;
+
+        return switch (element.getKind()) {
+            case CLASS -> serializationHelper.toClassString((TypeElement) element);
+            case FIELD -> serializationHelper.toFieldString((VariableElement) element);
+            case CONSTRUCTOR -> serializationHelper.toConstructorString((ExecutableElement) element);
+            case METHOD -> serializationHelper.toMethodString((ExecutableElement) element);
+            default -> throw new IllegalStateException();
+        };
+    }
+
+    private boolean processAnnotation(Class<? extends Annotation> annotation, RoundEnvironment roundEnvironment) {
+        for (Element element : roundEnvironment.getElementsAnnotatedWith(annotation)) {
+
+            String pkg = this.getAndCheckPackage(element);
+            String modId = this.getAndCheckModIdFromPackage(pkg);
+
+            Map<String, Map<ElementKind, Set<String>>> annotationMap = new HashMap<>();
+            this.targetsMap.put(modId, annotationMap);
+
+            Map<ElementKind, Set<String>> elementTypeMap = Map.of(
+                    ElementKind.CLASS, new HashSet<>(),
+                    ElementKind.FIELD, new HashSet<>(),
+                    ElementKind.CONSTRUCTOR, new HashSet<>(),
+                    ElementKind.METHOD, new HashSet<>()
+            );
+
+            annotationMap.put(annotation.getCanonicalName(), elementTypeMap);
+
+            elementTypeMap.get(element.getKind()).add(getElementString(element));
+        }
+
+        return true;
+    }
+
     @Override
     public boolean processRound(RoundEnvironment roundEnvironment) {
         for (Class<? extends Annotation> annotation : this.getSupportedAnnotationClasses()) {
-            for (Element element : roundEnvironment.getElementsAnnotatedWith(annotation)) {
-                String pkg = CompileTimeProcessor.packageOf(this.getProcessingEnvironment(), element)
-                        .getQualifiedName()
-                        .toString();
 
-                if (pkg == null) {
-                    throw new IllegalStateException("Failed to capture element package");
-                }
-
-                String modId = this.annotationScanRootProcessor.getModId(pkg);
-
-                if (modId == null) {
-                    throw new IllegalStateException("""
-                            Failed to compute mod id for package [%s].
-                            Please, refer to [%s] JavaDoc.
-                            """.formatted(pkg, AnnotationScanRoot.class));
-                }
-
-                Map<String, Map<ElementKind, Set<String>>> annotationMap = new HashMap<>();
-                this.targetsMap.put(modId, annotationMap);
-
-                Set<String> classes = new HashSet<>();
-                Set<String> fields = new HashSet<>();
-                Set<String> constructors = new HashSet<>();
-                Set<String> methods = new HashSet<>();
-
-                Map<ElementKind, Set<String>> elementTypeMap = Map.of(
-                        ElementKind.CLASS, classes,
-                        ElementKind.FIELD, fields,
-                        ElementKind.CONSTRUCTOR, constructors,
-                        ElementKind.METHOD, methods
-                );
-
-                annotationMap.put(annotation.getCanonicalName(), elementTypeMap);
-
-                final SerializationHelper serializationHelper = SerializationHelper.INSTANCE;
-
-                switch (element.getKind()) {
-                    case CLASS -> classes.add(
-                            serializationHelper.toClassString((TypeElement) element)
-                    );
-                    case FIELD -> fields.add(
-                            serializationHelper.toFieldString((VariableElement) element)
-                    );
-                    case CONSTRUCTOR -> constructors.add(
-                            serializationHelper.toConstructorString((ExecutableElement) element)
-                    );
-                    case METHOD -> methods.add(
-                            serializationHelper.toMethodString((ExecutableElement) element)
-                    );
-                    default -> throw new IllegalStateException();
-                }
+            if (!this.processAnnotation(annotation, roundEnvironment)) {
+                return false;
             }
 
             Target targetAnnotation = annotation.getAnnotation(Target.class);
@@ -120,21 +132,12 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
             Map<String, Map<ElementKind, Set<String>>> jsonFileContentsObject = this.targetsMap.get(modId);
             String fileName = modId + "." + ANNOTATION_MAP_FILE_SUFFIX;
 
-            createdFiles.add(
-                    TransientResource.json(
-                            fileName,
-                            jsonFileContentsObject
-                    )
-            );
+            createdFiles.add(TransientResource.json(fileName, jsonFileContentsObject));
 
             stringJoiner.add(fileName + "." + ANNOTATION_MAP_FILE_EXT);
         }
-        createdFiles.add(
-                TransientResource.fullName(
-                        ANNOTATION_REGISTRY_FILE,
-                        stringJoiner.toString()
-                )
-        );
+
+        createdFiles.add(TransientResource.fullName(ANNOTATION_REGISTRY_FILE, stringJoiner.toString()));
 
         return createdFiles;
     }
