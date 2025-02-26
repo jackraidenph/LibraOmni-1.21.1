@@ -1,36 +1,45 @@
-package dev.jackraidenph.libraomni.annotation.compile.impl;
+package dev.jackraidenph.libraomni.annotation.compile.impl.resource;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.AnnotationScanRootProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
 import dev.jackraidenph.libraomni.annotation.impl.AnnotationScanRoot;
+import dev.jackraidenph.libraomni.util.ResourceUtilities;
 
 import javax.annotation.processing.*;
 import javax.lang.model.element.*;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Target;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class AnnotationMapCreationProcessor extends AbstractCompileTimeProcessor {
+public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingProcessor {
 
-    private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    public static final String ROOT = "META-INF/" + LibraOmni.MODID + "/";
+
+    public static final String ANNOTATION_MAP_FILE_SUFFIX = "annotations";
+
+    public static final String ANNOTATION_REGISTRY_FILE_EXT = "list";
+    public static final String ANNOTATION_MAP_FILE_EXT = "json";
+
+    public static final String ANNOTATION_REGISTRY_FILE = LibraOmni.MODID + "." + ANNOTATION_MAP_FILE_SUFFIX + "." + ANNOTATION_REGISTRY_FILE_EXT;
 
     private final AnnotationScanRootProcessor annotationScanRootProcessor;
 
     private final Map<String, Map<String, Map<String, Set<String>>>> targetsMap = new HashMap<>();
 
+
     public AnnotationMapCreationProcessor(
             ProcessingEnvironment processingEnvironment,
             AnnotationScanRootProcessor rootProcessor
     ) {
-        super(processingEnvironment);
+        super(processingEnvironment, ROOT);
         this.annotationScanRootProcessor = rootProcessor;
     }
 
@@ -96,21 +105,32 @@ public class AnnotationMapCreationProcessor extends AbstractCompileTimeProcessor
     }
 
     @Override
-    public boolean onFinish(RoundEnvironment roundEnvironment) {
+    public Set<TransientResource> output(RoundEnvironment roundEnvironment) {
+        Set<TransientResource> createdFiles = new HashSet<>();
+
         StringJoiner stringJoiner = new StringJoiner("\n");
-        Filer filer = this.getProcessingEnvironment().getFiler();
 
         for (String modId : this.targetsMap.keySet()) {
-            String toWrite = this.GSON.toJson(this.targetsMap.get(modId));
-            String location = modId + LibraOmni.Utility.ANNOTATION_MAP_FILE_SUFFIX;
+            Map<String, Map<String, Set<String>>> jsonFileContentsObject = this.targetsMap.get(modId);
+            String fileName = modId + "." + ANNOTATION_MAP_FILE_SUFFIX;
 
-            this.write(location, filer, toWrite);
+            createdFiles.add(
+                    TransientResource.json(
+                            fileName,
+                            jsonFileContentsObject
+                    )
+            );
 
-            stringJoiner.add(location);
+            stringJoiner.add(fileName + "." + ANNOTATION_MAP_FILE_EXT);
         }
-        this.write(LibraOmni.Utility.ANNOTATION_MAP_REGISTRY_FILE, filer, stringJoiner.toString());
+        createdFiles.add(
+                TransientResource.fullName(
+                        ANNOTATION_REGISTRY_FILE,
+                        stringJoiner.toString()
+                )
+        );
 
-        return true;
+        return createdFiles;
     }
 
     @Override
@@ -120,16 +140,22 @@ public class AnnotationMapCreationProcessor extends AbstractCompileTimeProcessor
         );
     }
 
-    private void write(String location, Filer filer, String toWrite) {
-        try {
-            FileObject fileObject = filer.createResource(
-                    StandardLocation.SOURCE_OUTPUT, LibraOmni.MODID, location
-            );
-            Writer writer = fileObject.openWriter();
-            writer.write(toWrite);
-            writer.close();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+    public static String registryLocation() {
+        return ROOT + ANNOTATION_REGISTRY_FILE;
+    }
+
+    public static String annotationsForModId(String modId) {
+        return ROOT + modId + "." + ANNOTATION_MAP_FILE_SUFFIX + "." + ANNOTATION_MAP_FILE_EXT;
+    }
+
+    public static Set<String> allAnnotationMaps() {
+        return ResourceUtilities.getResources(registryLocation()).flatMap(url -> {
+            try (InputStream inputStream = url.openStream()) {
+                return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).lines();
+            } catch (IOException e) {
+                LibraOmni.LOGGER.info("Failed to gather maps for {}", url.getPath());
+                return Stream.empty();
+            }
+        }).collect(Collectors.toSet());
     }
 }

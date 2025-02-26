@@ -1,10 +1,9 @@
 package dev.jackraidenph.libraomni.annotation.compile;
 
 import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.AnnotationMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapCreationProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.RegisteredProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.AnnotationScanRootProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
