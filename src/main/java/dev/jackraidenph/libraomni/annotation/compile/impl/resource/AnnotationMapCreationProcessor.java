@@ -68,18 +68,6 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
         return pkg;
     }
 
-    private static String getElementString(Element element) {
-        final SerializationHelper serializationHelper = SerializationHelper.INSTANCE;
-
-        return switch (element.getKind()) {
-            case CLASS -> serializationHelper.toClassString((TypeElement) element);
-            case FIELD -> serializationHelper.toFieldString((VariableElement) element);
-            case CONSTRUCTOR -> serializationHelper.toConstructorString((ExecutableElement) element);
-            case METHOD -> serializationHelper.toMethodString((ExecutableElement) element);
-            default -> throw new IllegalStateException();
-        };
-    }
-
     private boolean processAnnotation(Class<? extends Annotation> annotation, RoundEnvironment roundEnvironment) {
         for (Element element : roundEnvironment.getElementsAnnotatedWith(annotation)) {
 
@@ -98,7 +86,7 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
 
             annotationMap.put(annotation.getCanonicalName(), elementTypeMap);
 
-            elementTypeMap.get(element.getKind()).add(getElementString(element));
+            elementTypeMap.get(element.getKind()).add(SerializationHelper.INSTANCE.getElementString(element));
         }
 
         return true;

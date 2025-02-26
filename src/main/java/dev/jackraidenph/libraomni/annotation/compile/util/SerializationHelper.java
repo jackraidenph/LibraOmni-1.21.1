@@ -1,9 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.util;
 
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -119,5 +116,16 @@ public class SerializationHelper {
         String name = parts[1];
 
         return this.reflectionCachingHelper.getDeclaredField(clazz, name);
+    }
+
+
+    public String getElementString(Element element) {
+        return switch (element.getKind()) {
+            case CLASS -> this.toClassString((TypeElement) element);
+            case FIELD -> this.toFieldString((VariableElement) element);
+            case CONSTRUCTOR -> this.toConstructorString((ExecutableElement) element);
+            case METHOD -> this.toMethodString((ExecutableElement) element);
+            default -> throw new IllegalStateException();
+        };
     }
 }
