@@ -158,4 +158,13 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
             }
         }).collect(Collectors.toSet());
     }
+
+    public static String extractModNameFromMapFile(String name) {
+        String endingString = "." + ANNOTATION_MAP_FILE_SUFFIX + "." + ANNOTATION_MAP_FILE_EXT;
+        if (!name.endsWith(endingString)) {
+            throw new IllegalArgumentException("The name is not a proper annotation map file");
+        }
+
+        return name.substring(0, name.indexOf(endingString));
+    }
 }

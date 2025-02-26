@@ -69,7 +69,7 @@ public class LibraOmni {
     public void enqueueConstructModContextJobs(FMLConstructModEvent constructModEvent) {
         constructModEvent.enqueueWork(() -> {
             for (String annotationMap : AnnotationMapCreationProcessor.allAnnotationMaps()) {
-                String modId = AnnotationMapCreationProcessor.annotationsForModId(annotationMap);
+                String modId = AnnotationMapCreationProcessor.extractModNameFromMapFile(annotationMap);
 
                 if (!MOD_CONTEXT_MAP.containsKey(modId)) {
                     ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);
