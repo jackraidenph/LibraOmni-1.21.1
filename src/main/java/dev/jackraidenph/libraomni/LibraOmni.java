@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.context.ModContext;
+import dev.jackraidenph.libraomni.util.ResourceUtilities;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -12,15 +13,8 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
 
 @Mod(LibraOmni.MODID)
 public class LibraOmni {
@@ -74,8 +68,8 @@ public class LibraOmni {
     @SubscribeEvent
     public void enqueueConstructModContextJobs(FMLConstructModEvent constructModEvent) {
         constructModEvent.enqueueWork(() -> {
-            for (String annotationMap : Utility.gatherReferenceMaps()) {
-                String modId = Utility.extractModIdFromAnnotationMapName(annotationMap);
+            for (String annotationMap : ResourceUtilities.gatherAnnotationMaps()) {
+                String modId = ResourceUtilities.extractModIdFromAnnotationMapName(annotationMap);
 
                 if (!MOD_CONTEXT_MAP.containsKey(modId)) {
                     ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);
@@ -92,42 +86,4 @@ public class LibraOmni {
         return LibraOmni.class.getClassLoader();
     }
 
-    public static class Utility {
-
-        public static final String ANNOTATION_MAP_FILE_SUFFIX = ".annotation_map.json";
-        public static final String ANNOTATION_MAP_REGISTRY_FILE_SUFFIX = ".annotation_map.registry";
-        public static final String ANNOTATION_MAP_REGISTRY_FILE = MODID + ANNOTATION_MAP_REGISTRY_FILE_SUFFIX;
-
-        public static String annotationMapLocationForMod(String modId) {
-            return LibraOmni.MODID + "/" + modId + LibraOmni.Utility.ANNOTATION_MAP_FILE_SUFFIX;
-        }
-
-        public static InputStream openResourceStream(String resourceLocation) {
-            return LibraOmni.classLoader().getResourceAsStream(resourceLocation);
-        }
-
-        public static Stream<URL> getResources(String resourceLocation) {
-            return LibraOmni.classLoader().resources(resourceLocation);
-        }
-
-        private static Set<String> gatherReferenceMaps() {
-            final String registryLocation = LibraOmni.MODID + "/" + ANNOTATION_MAP_REGISTRY_FILE;
-            final Set<String> maps = new HashSet<>();
-
-            getResources(registryLocation).forEach(url -> {
-                try (InputStream inputStream = url.openStream()) {
-                    String contents = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                    maps.addAll(Set.of(contents.split("\n")));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-
-            return maps;
-        }
-
-        private static String extractModIdFromAnnotationMapName(String name) {
-            return name.split("\\.annotationMap")[0];
-        }
-    }
 }

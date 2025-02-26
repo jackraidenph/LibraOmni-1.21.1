@@ -3,8 +3,8 @@ package dev.jackraidenph.libraomni.annotation.run.util;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
-import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.ElementStorage.AnnotatedElement;
+import dev.jackraidenph.libraomni.util.ResourceUtilities;
 import org.jetbrains.annotations.Nullable;
 
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
@@ -70,7 +70,7 @@ public class AnnotationMapReader {
     }
 
     private Map<String, Map<String, List<String>>> readFileToMap() {
-        try (InputStream inputStream = LibraOmni.Utility.openResourceStream(this.resourceLocation)) {
+        try (InputStream inputStream = ResourceUtilities.openResourceStream(this.resourceLocation)) {
             if (inputStream == null) {
                 throw new IOException("Failed to fetch resource " + this.resourceLocation);
             }
