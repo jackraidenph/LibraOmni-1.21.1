@@ -32,7 +32,7 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
 
     private final AnnotationScanRootProcessor annotationScanRootProcessor;
 
-    private final Map<String, Map<String, Map<String, Set<String>>>> targetsMap = new HashMap<>();
+    private final Map<String, Map<String, Map<ElementKind, Set<String>>>> targetsMap = new HashMap<>();
 
 
     public AnnotationMapCreationProcessor(
@@ -64,32 +64,38 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
                             """.formatted(pkg, AnnotationScanRoot.class));
                 }
 
-                Map<String, Set<String>> targets = this.targetsMap
-                        .computeIfAbsent(modId, k -> new HashMap<>())
-                        .computeIfAbsent(annotation.getCanonicalName(), k -> new HashMap<>());
+                Map<String, Map<ElementKind, Set<String>>> annotationMap = new HashMap<>();
+                this.targetsMap.put(modId, annotationMap);
 
-                String kind = element.getKind().toString();
+                Set<String> classes = new HashSet<>();
+                Set<String> fields = new HashSet<>();
+                Set<String> constructors = new HashSet<>();
+                Set<String> methods = new HashSet<>();
+
+                Map<ElementKind, Set<String>> elementTypeMap = Map.of(
+                        ElementKind.CLASS, classes,
+                        ElementKind.FIELD, fields,
+                        ElementKind.CONSTRUCTOR, constructors,
+                        ElementKind.METHOD, methods
+                );
+
+                annotationMap.put(annotation.getCanonicalName(), elementTypeMap);
+
+                final SerializationHelper serializationHelper = SerializationHelper.INSTANCE;
+
                 switch (element.getKind()) {
-                    case CLASS -> targets.computeIfAbsent(
-                            kind,
-                            k -> new HashSet<>()
-                    ).add(SerializationHelper.INSTANCE.toClassString((TypeElement) element));
-
-                    case FIELD -> targets.computeIfAbsent(
-                            kind,
-                            k -> new HashSet<>()
-                    ).add(SerializationHelper.INSTANCE.toFieldString((VariableElement) element));
-
-                    case CONSTRUCTOR -> targets.computeIfAbsent(
-                            kind,
-                            k -> new HashSet<>()
-                    ).add(SerializationHelper.INSTANCE.toConstructorString((ExecutableElement) element));
-
-                    case METHOD -> targets.computeIfAbsent(
-                            kind,
-                            k -> new HashSet<>()
-                    ).add(SerializationHelper.INSTANCE.toMethodString((ExecutableElement) element));
-
+                    case CLASS -> classes.add(
+                            serializationHelper.toClassString((TypeElement) element)
+                    );
+                    case FIELD -> fields.add(
+                            serializationHelper.toFieldString((VariableElement) element)
+                    );
+                    case CONSTRUCTOR -> constructors.add(
+                            serializationHelper.toConstructorString((ExecutableElement) element)
+                    );
+                    case METHOD -> methods.add(
+                            serializationHelper.toMethodString((ExecutableElement) element)
+                    );
                     default -> throw new IllegalStateException();
                 }
             }
@@ -111,7 +117,7 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
         StringJoiner stringJoiner = new StringJoiner("\n");
 
         for (String modId : this.targetsMap.keySet()) {
-            Map<String, Map<String, Set<String>>> jsonFileContentsObject = this.targetsMap.get(modId);
+            Map<String, Map<ElementKind, Set<String>>> jsonFileContentsObject = this.targetsMap.get(modId);
             String fileName = modId + "." + ANNOTATION_MAP_FILE_SUFFIX;
 
             createdFiles.add(
