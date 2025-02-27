@@ -22,6 +22,56 @@ public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
         this.packageToModId = new HashMap<>();
     }
 
+    //TODO FINISH CLEANUP
+    private void processAnnotationMirror(Element typeElement, AnnotationMirror mirror) {
+        Messager messager = this.getProcessingEnvironment().getMessager();
+
+        if (!mirror.getAnnotationType().toString().equals(MOD_DECLARING_ANNOTATION)) {
+            return;
+        }
+
+        String pkg = CompileTimeProcessor.packageOf(
+                        this.getProcessingEnvironment(),
+                        typeElement
+                )
+                .getQualifiedName()
+                .toString();
+
+        String modId = null;
+        for (ExecutableElement executableElement : mirror.getElementValues().keySet()) {
+            if (executableElement.getSimpleName().toString().equals("value")) {
+                modId = mirror.getElementValues().get(executableElement).getValue().toString();
+            }
+        }
+
+        if (modId == null) {
+            throw new IllegalStateException();
+        }
+
+        this.packageToModId.put(pkg, modId);
+
+        messager.printNote("Failed to find ScanRoot for " + modId + ", using @Mod annotation as a reference");
+    }
+
+    private void processElement(Element element) {
+        if (!element.getKind().equals(ElementKind.CLASS)) {
+            return;
+        }
+
+        List<? extends AnnotationMirror> mirrors = element.getAnnotationMirrors();
+        if (mirrors.isEmpty()) {
+            return;
+        }
+
+        for (AnnotationMirror mirror : mirrors) {
+            try {
+                processAnnotationMirror(element, mirror);
+            } catch (IllegalStateException | NoSuchElementException noSuchElementException) {
+                throw new IllegalStateException("Found @Mod annotation, but somehow the value was not there?");
+            }
+        }
+    }
+
     @Override
     public boolean processRound(RoundEnvironment roundEnvironment) {
         Set<Element> roots = new HashSet<>(
@@ -29,45 +79,8 @@ public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
         );
 
         if (roots.isEmpty()) {
-            Messager messager = this.getProcessingEnvironment().getMessager();
             for (Element element : roundEnvironment.getRootElements()) {
-                if (element.getKind().equals(ElementKind.CLASS)) {
-                    TypeElement typeElement = (TypeElement) element;
-                    List<? extends AnnotationMirror> mirrors = typeElement.getAnnotationMirrors();
-                    if (!mirrors.isEmpty()) {
-                        for (AnnotationMirror mirror : mirrors) {
-                            try {
-                                if (mirror.getAnnotationType().toString().equals(MOD_DECLARING_ANNOTATION)) {
-                                    String pkg = CompileTimeProcessor.packageOf(
-                                                    this.getProcessingEnvironment(),
-                                                    typeElement
-                                            )
-                                            .getQualifiedName()
-                                            .toString();
-
-                                    String modId = null;
-                                    for (ExecutableElement executableElement : mirror.getElementValues().keySet()) {
-                                        if (executableElement.getSimpleName().toString().equals("value")) {
-                                            modId = mirror.getElementValues().get(executableElement).getValue().toString();
-                                        }
-                                    }
-
-                                    if (modId == null) {
-                                        throw new IllegalStateException();
-                                    }
-
-                                    this.packageToModId.put(pkg, modId);
-
-                                    messager.printNote("Failed to find ScanRoot for " + modId + ", using @Mod annotation as a reference");
-
-                                    return true;
-                                }
-                            } catch (IllegalStateException | NoSuchElementException noSuchElementException) {
-                                throw new IllegalStateException("Found @Mod annotation, but somehow the value was not there?");
-                            }
-                        }
-                    }
-                }
+                this.processElement(element);
             }
         }
 
