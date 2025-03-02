@@ -146,14 +146,9 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
     }
 
     public static Set<String> allAnnotationMaps() {
-        return ResourceUtilities.getResources(registryLocation()).flatMap(url -> {
-            try (InputStream inputStream = url.openStream()) {
-                return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8).lines();
-            } catch (IOException e) {
-                LibraOmni.LOGGER.info("Failed to gather maps for {}", url.getPath());
-                return Stream.empty();
-            }
-        }).collect(Collectors.toSet());
+        return ResourceUtilities.getResourcesAsStrings(registryLocation())
+                .flatMap(String::lines)
+                .collect(Collectors.toSet());
     }
 
     public static String extractModNameFromMapFile(String name) {
