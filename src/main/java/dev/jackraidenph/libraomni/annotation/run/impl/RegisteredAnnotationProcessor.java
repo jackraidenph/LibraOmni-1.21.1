@@ -1,15 +1,20 @@
 package dev.jackraidenph.libraomni.annotation.run.impl;
 
+import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
+import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.ElementStorage.AnnotatedElement;
 import dev.jackraidenph.libraomni.context.ModContext;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
 
-public class RegisteredAnnotationProcessor implements RuntimeProcessor {
+public class RegisteredAnnotationProcessor implements RuntimeProcessor<Registered> {
 
     public static RegisteredAnnotationProcessor INSTANCE = new RegisteredAnnotationProcessor();
 
@@ -20,26 +25,47 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor {
     @Override
     public void process(
             ModContext modContext,
-            Class<? extends Annotation> annotation,
             AnnotatedElement<?> annotatedElement
     ) {
-        if (annotatedElement.isSubclassOf(Block.class)) {
-            //Suppress, because we actually check the case
-            //noinspection unchecked
-            Class<Block> blockClass = (Class<Block>) annotatedElement.element();
+        Registered registered = this.getElementAnnotation(annotatedElement);
 
-            Registered register = (Registered) blockClass.getAnnotation(annotation);
+        if (registered == null) {
+            return;
+        }
 
-            String id = register.value();
+        String id = registered.value();
 
-            if (id == null || id.isBlank()) {
-                id = blockClass.getSimpleName().toLowerCase(Locale.ROOT);
-            }
+        if (id == null || id.isBlank()) {
+            id = annotatedElement.asClass().getSimpleName().toLowerCase(Locale.ROOT);
+        }
 
-            modContext.blocksRegister().registerBlock(
+        try {
+            Constructor<?> emptyConstructor = annotatedElement.asClass().getConstructor();
+
+            modContext.blocksRegister().register(
                     id,
-                    Block::new
+                    () -> (Block) safeConstruct(emptyConstructor)
             );
+        } catch (NoSuchMethodException noSuchMethodException) {
+            LibraOmni.LOGGER.error("Failed to register [{}] as there's no proper empty constructor",
+                    annotatedElement.asClass().getSimpleName()
+            );
+        }
+    }
+
+    private static <E> E safeConstruct(Constructor<E> emptyConstructor) {
+        if (emptyConstructor.getParameterCount() > 0) {
+            throw new IllegalArgumentException("The constructor must be empty");
+        }
+
+        try {
+            return emptyConstructor.newInstance();
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException("There was an exception inside the empty constructor", e);
+        } catch (InstantiationException e) {
+            throw new RuntimeException("Failed to instantiate the class, InstantiationException was thrown. Check that your class is not abstract or interface");
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Failed to get access to the empty constructor");
         }
     }
 
@@ -49,7 +75,7 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor {
     }
 
     @Override
-    public Class<? extends Annotation> getSupportedAnnotation() {
+    public Class<Registered> getSupportedAnnotation() {
         return Registered.class;
     }
 }

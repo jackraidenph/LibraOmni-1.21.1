@@ -107,6 +107,75 @@ public class AnnotationMapReader {
                 return this.elementKind.isClass() && clazz.isAssignableFrom((Class<?>) element);
             }
 
+            public Class<?> asClass() {
+                if (elementKind.isClass()) {
+                    return (Class<?>) element;
+                } else {
+                    throw new ClassCastException("Trying to get a non-class element as a class");
+                }
+            }
+
+            /**
+             * MUST BE GUARDED WITH isSubclassOf CONDITION
+             *
+             * @return An instance of a Class<E> cast via a generic parameter
+             */
+            public <E> Class<E> castClass() {
+                try {
+                    return (Class<E>) asClass();
+                } catch (ClassCastException classCastException) {
+                    throw new ClassCastException("Trying to cast a class to a wrong type");
+                }
+            }
+
+            public Field asField() {
+                if (elementKind.isField()) {
+                    return (Field) element;
+                } else {
+                    throw new ClassCastException("Trying to get a non-field element as a field");
+                }
+            }
+
+            public Method asMethod() {
+                if (elementKind.equals(ElementKind.METHOD)) {
+                    return (Method) element;
+                } else {
+                    throw new ClassCastException("Trying to get a non-method element as a method");
+                }
+            }
+
+            public Constructor<?> asConstructor() {
+                if (elementKind.equals(ElementKind.CONSTRUCTOR)) {
+                    return (Constructor<?>) element;
+                } else {
+                    throw new ClassCastException("Trying to get a non-constructor element as a constructor");
+                }
+            }
+
+            /**
+             * MUST BE GUARDED WITH PARENT CLASS isSubclassOf CONDITION
+             *
+             * @return An instance of a Constructor<E> cast via a generic parameter
+             */
+            public <E> Constructor<E> castConstructor() {
+                try {
+                    return (Constructor<E>) asConstructor();
+                } catch (ClassCastException classCastException) {
+                    throw new ClassCastException("Trying to cast a constructor to a wrong type");
+                }
+            }
+
+            @Nullable
+            public <E extends Annotation> E getAnnotation(Class<E> annotationClass) {
+                return switch (this.elementKind) {
+                    case CLASS -> this.asClass().getAnnotation(annotationClass);
+                    case FIELD -> this.asField().getAnnotation(annotationClass);
+                    case METHOD -> this.asMethod().getAnnotation(annotationClass);
+                    case CONSTRUCTOR -> this.asConstructor().getAnnotation(annotationClass);
+                    default -> null;
+                };
+            }
+
             public Class<?> getEnclosingClass() {
                 if (this.element() instanceof Class<?> clazz) {
                     return clazz.getEnclosingClass();

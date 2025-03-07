@@ -16,7 +16,7 @@ import java.util.List;
 public class RuntimeProcessorsManager {
 
     private final ModContext modContext;
-    private final List<RuntimeProcessor> runTimeProcessors = new ArrayList<>();
+    private final List<RuntimeProcessor<?>> runTimeProcessors = new ArrayList<>();
 
     private final ElementStorage elementStorage;
 
@@ -32,7 +32,7 @@ public class RuntimeProcessorsManager {
         this.elementStorage = annotationMapReader.readElements();
     }
 
-    public void registerProcessor(RuntimeProcessor runTimeProcessor) {
+    public void registerProcessor(RuntimeProcessor<?> runTimeProcessor) {
         if (runTimeProcessors.contains(runTimeProcessor)) {
             throw new IllegalArgumentException("Runtime processor already registered");
         }
@@ -40,14 +40,14 @@ public class RuntimeProcessorsManager {
     }
 
     public void onProcess(Scope scope) {
-        for (RuntimeProcessor runtimeProcessor : this.runTimeProcessors) {
+        for (RuntimeProcessor<?> runtimeProcessor : this.runTimeProcessors) {
             if (runtimeProcessor.getScope().equals(scope)) {
                 this.processForScope(runtimeProcessor);
             }
         }
     }
 
-    private void processForScope(RuntimeProcessor runtimeProcessor) {
+    private void processForScope(RuntimeProcessor<?> runtimeProcessor) {
         for (Class<? extends Annotation> annotation : this.elementStorage.getAnnotations()) {
             if (runtimeProcessor.getSupportedAnnotation().isAssignableFrom(annotation)) {
                 this.processAnnotation(runtimeProcessor, annotation);
@@ -55,7 +55,7 @@ public class RuntimeProcessorsManager {
         }
     }
 
-    private void processAnnotation(RuntimeProcessor runtimeProcessor, Class<? extends Annotation> annotation) {
+    private void processAnnotation(RuntimeProcessor<?> runtimeProcessor, Class<? extends Annotation> annotation) {
         for (AnnotatedElement<?> annotatedElement : this.elementStorage.getElements(annotation)) {
             LibraOmni.LOGGER.info(
                     "Processing [{}] with {} for {} annotation with scope {}",
@@ -65,7 +65,7 @@ public class RuntimeProcessorsManager {
                     runtimeProcessor.getScope().name()
             );
 
-            runtimeProcessor.process(this.modContext, annotation, annotatedElement);
+            runtimeProcessor.process(this.modContext, annotatedElement);
         }
     }
 }
