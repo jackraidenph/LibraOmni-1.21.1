@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
-import dev.jackraidenph.libraomni.annotation.compile.api.CompilationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.util.ElementUtils;
 import dev.jackraidenph.libraomni.annotation.impl.AnnotationScanRoot;
 
 import javax.annotation.processing.Messager;
@@ -24,7 +24,7 @@ public class ScanRootProcessor extends AbstractCompilationProcessor {
     private void tryAddIdFromModAnnotation(Element typeElement, AnnotationMirror mirror) {
         Messager messager = this.getProcessingEnvironment().getMessager();
 
-        String pkg = CompilationProcessor.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
+        String pkg = ElementUtils.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
 
         String modId = null;
         for (ExecutableElement executableElement : mirror.getElementValues().keySet()) {
@@ -72,7 +72,7 @@ public class ScanRootProcessor extends AbstractCompilationProcessor {
         for (Element typeElement : scanRoots) {
             AnnotationScanRoot annotation = typeElement.getAnnotation(AnnotationScanRoot.class);
 
-            String pkg = CompilationProcessor.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
+            String pkg = ElementUtils.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
 
             String modId = this.modIdFromPackage(pkg);
 

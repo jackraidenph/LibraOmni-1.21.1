@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl.resource;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.compile.api.CompilationProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.ScanRootProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.util.ElementUtils;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
 import dev.jackraidenph.libraomni.annotation.impl.AnnotationScanRoot;
@@ -53,7 +53,7 @@ public class AnnotationMapProcessor extends ResourceGeneratingProcessor {
     }
 
     private String getAndCheckPackage(Element element) {
-        String pkg = CompilationProcessor.packageOf(this.getProcessingEnvironment(), element)
+        String pkg = ElementUtils.packageOf(this.getProcessingEnvironment(), element)
                 .getQualifiedName()
                 .toString();
 
