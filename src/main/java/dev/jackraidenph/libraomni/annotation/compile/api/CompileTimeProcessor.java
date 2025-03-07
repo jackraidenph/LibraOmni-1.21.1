@@ -20,4 +20,12 @@ public interface CompileTimeProcessor {
     static PackageElement packageOf(ProcessingEnvironment processingEnvironment, Element element) {
         return processingEnvironment.getElementUtils().getPackageOf(element);
     }
+
+    static String qualifiedName(PackageElement packageElement) {
+        return packageElement.getQualifiedName().toString();
+    }
+
+    static String qualifiedPackageName(ProcessingEnvironment processingEnvironment, Element element) {
+        return qualifiedName(packageOf(processingEnvironment, element));
+    }
 }

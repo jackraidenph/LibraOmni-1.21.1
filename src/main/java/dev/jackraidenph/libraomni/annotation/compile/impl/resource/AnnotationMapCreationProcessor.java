@@ -40,7 +40,7 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
     }
 
     private String getAndCheckModIdFromPackage(String pkg) {
-        String modId = this.annotationScanRootProcessor.getModId(pkg);
+        String modId = this.annotationScanRootProcessor.modIdFromPackage(pkg);
 
         if (modId == null) {
             throw new IllegalStateException("""

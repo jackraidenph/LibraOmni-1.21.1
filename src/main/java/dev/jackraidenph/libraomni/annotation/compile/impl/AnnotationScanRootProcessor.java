@@ -15,27 +15,16 @@ public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
 
     private static final String MOD_DECLARING_ANNOTATION = "net.neoforged.fml.common.Mod";
 
-    private final Map<String, String> packageToModId;
+    private final Map<String, String> modPackages = new HashMap<>();
 
     public AnnotationScanRootProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
-        this.packageToModId = new HashMap<>();
     }
 
-    //TODO FINISH CLEANUP
-    private void processAnnotationMirror(Element typeElement, AnnotationMirror mirror) {
+    private void tryAddIdFromModAnnotation(Element typeElement, AnnotationMirror mirror) {
         Messager messager = this.getProcessingEnvironment().getMessager();
 
-        if (!mirror.getAnnotationType().toString().equals(MOD_DECLARING_ANNOTATION)) {
-            return;
-        }
-
-        String pkg = CompileTimeProcessor.packageOf(
-                        this.getProcessingEnvironment(),
-                        typeElement
-                )
-                .getQualifiedName()
-                .toString();
+        String pkg = CompileTimeProcessor.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
 
         String modId = null;
         for (ExecutableElement executableElement : mirror.getElementValues().keySet()) {
@@ -45,88 +34,87 @@ public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
         }
 
         if (modId == null) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Failed to get value from @Mod annotation");
         }
 
-        this.packageToModId.put(pkg, modId);
+        this.modPackages.put(modId, pkg);
 
-        messager.printNote("Failed to find ScanRoot for " + modId + ", using @Mod annotation as a reference");
+        messager.printNote("@Mod[" + modId + "] + annotation as scan root");
     }
 
-    private void processElement(Element element) {
+    private boolean tryFindModAnnotation(Element element) {
         if (!element.getKind().equals(ElementKind.CLASS)) {
-            return;
+            return false;
         }
 
         List<? extends AnnotationMirror> mirrors = element.getAnnotationMirrors();
         if (mirrors.isEmpty()) {
-            return;
+            return false;
         }
 
         for (AnnotationMirror mirror : mirrors) {
+            if (!mirror.getAnnotationType().toString().equals(MOD_DECLARING_ANNOTATION)) {
+                continue;
+            }
+
             try {
-                processAnnotationMirror(element, mirror);
+                this.tryAddIdFromModAnnotation(element, mirror);
+                return true;
             } catch (IllegalStateException | NoSuchElementException noSuchElementException) {
                 throw new IllegalStateException("Found @Mod annotation, but somehow the value was not there?");
             }
         }
+
+        return false;
     }
 
-    @Override
-    public boolean processRound(RoundEnvironment roundEnvironment) {
-        Set<Element> roots = new HashSet<>(
-                roundEnvironment.getElementsAnnotatedWith(AnnotationScanRoot.class)
-        );
-
-        if (roots.isEmpty()) {
-            for (Element element : roundEnvironment.getRootElements()) {
-                this.processElement(element);
-            }
-        }
-
-        for (Element typeElement : roots) {
+    private void processScanRoots(Set<Element> scanRoots) {
+        for (Element typeElement : scanRoots) {
             AnnotationScanRoot annotation = typeElement.getAnnotation(AnnotationScanRoot.class);
 
-            String pkg = CompileTimeProcessor.packageOf(
-                            this.getProcessingEnvironment(),
-                            typeElement
-                    )
-                    .getQualifiedName()
-                    .toString();
+            String pkg = CompileTimeProcessor.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
 
-            String modId = this.getModId(pkg);
+            String modId = this.modIdFromPackage(pkg);
 
             if (modId != null && !annotation.value().equals(modId)) {
                 throw new IllegalStateException("""
                         Found overlapping scan roots.
                         [%s] at [%s] overlaps [%s] at [%s]
-                        """.formatted(modId, this.getPackageOfModId(modId), annotation.value(), pkg));
+                        """.formatted(modId, this.modPackages.get(modId), annotation.value(), pkg));
             }
 
-            this.packageToModId.put(pkg, annotation.value());
+            this.modPackages.put(annotation.value(), pkg);
         }
+    }
+
+    private void tryProcessModAnnotation(RoundEnvironment roundEnvironment) {
+        for (Element element : roundEnvironment.getRootElements()) {
+            boolean modAnnotationFound = this.tryFindModAnnotation(element);
+            if (modAnnotationFound) {
+                return;
+            }
+        }
+    }
+
+    @Override
+    public boolean finish(RoundEnvironment roundEnvironment) {
+        Set<Element> scanRoots = new HashSet<>(
+                roundEnvironment.getElementsAnnotatedWith(AnnotationScanRoot.class)
+        );
+
+        if (scanRoots.isEmpty()) {
+            this.tryProcessModAnnotation(roundEnvironment);
+        } else {
+            this.processScanRoots(scanRoots);
+        }
+
         return true;
     }
 
-    private String getPackageOfModId(String modId) {
-        for (Entry<String, String> entry : this.packageToModId.entrySet()) {
-            if (entry.getValue().equals(modId)) {
-                return entry.getKey();
-            }
-        }
-
-        return null;
-    }
-
-    public String getModId(String packageString) {
-        String modId = this.packageToModId.get(packageString);
-        if (modId != null) {
-            return modId;
-        }
-
-        for (Entry<String, String> rootToModId : this.packageToModId.entrySet()) {
-            if (packageString.startsWith(rootToModId.getKey())) {
-                return this.packageToModId.get(rootToModId.getKey());
+    public String modIdFromPackage(String packageString) {
+        for (Entry<String, String> idToPackage : this.modPackages.entrySet()) {
+            if (packageString.startsWith(idToPackage.getValue())) {
+                return idToPackage.getKey();
             }
         }
 
