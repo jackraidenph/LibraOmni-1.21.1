@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapProcessor;
 import dev.jackraidenph.libraomni.context.ModContext;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -68,8 +68,8 @@ public class LibraOmni {
     @SubscribeEvent
     public void enqueueConstructModContextJobs(FMLConstructModEvent constructModEvent) {
         constructModEvent.enqueueWork(() -> {
-            for (String annotationMap : AnnotationMapCreationProcessor.allAnnotationMaps()) {
-                String modId = AnnotationMapCreationProcessor.extractModNameFromMapFile(annotationMap);
+            for (String annotationMap : AnnotationMapProcessor.allAnnotationMaps()) {
+                String modId = AnnotationMapProcessor.extractModNameFromMapFile(annotationMap);
 
                 if (!MOD_CONTEXT_MAP.containsKey(modId)) {
                     ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);

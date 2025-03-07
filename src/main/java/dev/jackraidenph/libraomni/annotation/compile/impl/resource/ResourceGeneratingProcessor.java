@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.annotation.compile.impl.resource;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompilationProcessor;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -18,12 +18,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.StringJoiner;
 
-public abstract class AbstractResourceGeneratingProcessor extends AbstractCompileTimeProcessor {
+public abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor {
 
     private final String[] rootElements;
     private static final String ROOT_PATTERN_STRING = "[A-z_]([\\-\\w]+/)+";
 
-    public AbstractResourceGeneratingProcessor(ProcessingEnvironment processingEnvironment, String root) {
+    public ResourceGeneratingProcessor(ProcessingEnvironment processingEnvironment, String root) {
         super(processingEnvironment);
 
         if (!checkRoot(root)) {

@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
-import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.api.CompilationProcessor;
 import dev.jackraidenph.libraomni.annotation.impl.AnnotationScanRoot;
 
 import javax.annotation.processing.Messager;
@@ -11,20 +11,20 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
+public class ScanRootProcessor extends AbstractCompilationProcessor {
 
     private static final String MOD_DECLARING_ANNOTATION = "net.neoforged.fml.common.Mod";
 
     private final Map<String, String> modPackages = new HashMap<>();
 
-    public AnnotationScanRootProcessor(ProcessingEnvironment processingEnvironment) {
+    public ScanRootProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
     }
 
     private void tryAddIdFromModAnnotation(Element typeElement, AnnotationMirror mirror) {
         Messager messager = this.getProcessingEnvironment().getMessager();
 
-        String pkg = CompileTimeProcessor.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
+        String pkg = CompilationProcessor.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
 
         String modId = null;
         for (ExecutableElement executableElement : mirror.getElementValues().keySet()) {
@@ -72,7 +72,7 @@ public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
         for (Element typeElement : scanRoots) {
             AnnotationScanRoot annotation = typeElement.getAnnotation(AnnotationScanRoot.class);
 
-            String pkg = CompileTimeProcessor.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
+            String pkg = CompilationProcessor.qualifiedPackageName(this.getProcessingEnvironment(), typeElement);
 
             String modId = this.modIdFromPackage(pkg);
 

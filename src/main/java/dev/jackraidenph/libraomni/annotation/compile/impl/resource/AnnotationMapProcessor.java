@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl.resource;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.AnnotationScanRootProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.api.CompilationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.ScanRootProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
 import dev.jackraidenph.libraomni.annotation.impl.AnnotationScanRoot;
@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingProcessor {
+public class AnnotationMapProcessor extends ResourceGeneratingProcessor {
 
     public static final String ROOT = "META-INF/" + LibraOmni.MODID + "/";
 
@@ -26,21 +26,21 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
 
     public static final String ANNOTATION_REGISTRY_FILE = LibraOmni.MODID + "." + ANNOTATION_MAP_FILE_SUFFIX + "." + ANNOTATION_REGISTRY_FILE_EXT;
 
-    private final AnnotationScanRootProcessor annotationScanRootProcessor;
+    private final ScanRootProcessor scanRootProcessor;
 
     private final Map<String, Map<String, Map<ElementKind, Set<String>>>> targetsMap = new HashMap<>();
 
 
-    public AnnotationMapCreationProcessor(
+    public AnnotationMapProcessor(
             ProcessingEnvironment processingEnvironment,
-            AnnotationScanRootProcessor rootProcessor
+            ScanRootProcessor rootProcessor
     ) {
         super(processingEnvironment, ROOT);
-        this.annotationScanRootProcessor = rootProcessor;
+        this.scanRootProcessor = rootProcessor;
     }
 
     private String getAndCheckModIdFromPackage(String pkg) {
-        String modId = this.annotationScanRootProcessor.modIdFromPackage(pkg);
+        String modId = this.scanRootProcessor.modIdFromPackage(pkg);
 
         if (modId == null) {
             throw new IllegalStateException("""
@@ -53,7 +53,7 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
     }
 
     private String getAndCheckPackage(Element element) {
-        String pkg = CompileTimeProcessor.packageOf(this.getProcessingEnvironment(), element)
+        String pkg = CompilationProcessor.packageOf(this.getProcessingEnvironment(), element)
                 .getQualifiedName()
                 .toString();
 

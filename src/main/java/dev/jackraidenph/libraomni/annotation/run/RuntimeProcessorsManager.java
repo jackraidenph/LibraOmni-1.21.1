@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.run;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.ElementStorage.AnnotatedElement;
@@ -26,7 +26,7 @@ public class RuntimeProcessorsManager {
 
         AnnotationMapReader annotationMapReader = new AnnotationMapReader(
                 modId,
-                AnnotationMapCreationProcessor.annotationsForModId(modId)
+                AnnotationMapProcessor.annotationsForModId(modId)
         );
 
         this.elementStorage = annotationMapReader.readElements();

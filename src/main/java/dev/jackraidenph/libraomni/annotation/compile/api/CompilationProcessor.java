@@ -7,7 +7,7 @@ import javax.lang.model.element.PackageElement;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-public interface CompileTimeProcessor {
+public interface CompilationProcessor {
 
     boolean checkAndProcessRound(RoundEnvironment roundEnvironment);
 

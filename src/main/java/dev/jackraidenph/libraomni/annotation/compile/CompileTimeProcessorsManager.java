@@ -1,9 +1,9 @@
 package dev.jackraidenph.libraomni.annotation.compile;
 
-import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapCreationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.api.CompilationProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.RegisteredProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.AnnotationScanRootProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.impl.ScanRootProcessor;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -20,20 +20,20 @@ import java.util.stream.Collectors;
 
 public class CompileTimeProcessorsManager extends AbstractProcessor {
 
-    List<CompileTimeProcessor> processors = new ArrayList<>();
+    List<CompilationProcessor> processors = new ArrayList<>();
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
 
-        AnnotationScanRootProcessor annotationScanRootProcessor = new AnnotationScanRootProcessor(processingEnv);
+        ScanRootProcessor scanRootProcessor = new ScanRootProcessor(processingEnv);
 
         this.addProcessors(
-                annotationScanRootProcessor,
+                scanRootProcessor,
                 new RegisteredProcessor(processingEnv),
-                new AnnotationMapCreationProcessor(
+                new AnnotationMapProcessor(
                         processingEnv,
-                        annotationScanRootProcessor
+                        scanRootProcessor
                 )
         );
     }
@@ -42,10 +42,10 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         Messager messager = this.processingEnv.getMessager();
 
-        for (CompileTimeProcessor compileTimeProcessor : this.processors) {
+        for (CompilationProcessor compilationProcessor : this.processors) {
             if (roundEnvironment.processingOver()) {
-                messager.printNote("Finishing " + compileTimeProcessor + "...");
-                boolean successfulFinish = compileTimeProcessor.finish(roundEnvironment);
+                messager.printNote("Finishing " + compilationProcessor + "...");
+                boolean successfulFinish = compilationProcessor.finish(roundEnvironment);
                 if (!successfulFinish) {
                     messager.printError("There was an error finishing either of compile processors");
                     return false;
@@ -53,8 +53,8 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
                 continue;
             }
 
-            messager.printNote("Invoking " + compileTimeProcessor + "...");
-            boolean successfulRound = compileTimeProcessor.checkAndProcessRound(roundEnvironment);
+            messager.printNote("Invoking " + compilationProcessor + "...");
+            boolean successfulRound = compilationProcessor.checkAndProcessRound(roundEnvironment);
             if (!successfulRound) {
                 messager.printError("There was an error during a round of either of compile processors");
                 return false;
@@ -64,18 +64,18 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
         return true;
     }
 
-    private void addProcessors(CompileTimeProcessor... processors) {
-        for (CompileTimeProcessor compileTimeProcessor : processors) {
-            if (this.processors.contains(compileTimeProcessor)) {
+    private void addProcessors(CompilationProcessor... processors) {
+        for (CompilationProcessor compilationProcessor : processors) {
+            if (this.processors.contains(compilationProcessor)) {
                 throw new IllegalArgumentException("Duplicate processor");
             }
-            this.processors.add(compileTimeProcessor);
+            this.processors.add(compilationProcessor);
         }
     }
 
     private Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
         return this.processors.stream()
-                .map(CompileTimeProcessor::supportedAnnotations)
+                .map(CompilationProcessor::supportedAnnotations)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
     }

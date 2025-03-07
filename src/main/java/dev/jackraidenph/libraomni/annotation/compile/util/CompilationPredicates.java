@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.util;
 
-import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompileTimeProcessor.CompilationPredicate;
+import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompilationProcessor.CompilationPredicate;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;

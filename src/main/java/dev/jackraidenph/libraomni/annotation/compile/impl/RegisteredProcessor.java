@@ -8,7 +8,7 @@ import javax.lang.model.element.Element;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-public class RegisteredProcessor extends AbstractCompileTimeProcessor {
+public class RegisteredProcessor extends AbstractCompilationProcessor {
 
     public RegisteredProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);

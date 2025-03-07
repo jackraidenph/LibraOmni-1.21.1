@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl;
 
-import dev.jackraidenph.libraomni.annotation.compile.api.CompileTimeProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.api.CompilationProcessor;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -9,11 +9,11 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public abstract class AbstractCompileTimeProcessor implements CompileTimeProcessor {
+public abstract class AbstractCompilationProcessor implements CompilationProcessor {
 
     private final ProcessingEnvironment processingEnvironment;
 
-    public AbstractCompileTimeProcessor(ProcessingEnvironment processingEnvironment) {
+    public AbstractCompilationProcessor(ProcessingEnvironment processingEnvironment) {
         this.processingEnvironment = processingEnvironment;
     }
 
