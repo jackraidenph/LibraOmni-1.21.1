@@ -9,11 +9,11 @@ import java.util.Set;
 
 public interface CompileTimeProcessor {
 
-    boolean onRound(RoundEnvironment roundEnvironment);
+    boolean checkAndProcessRound(RoundEnvironment roundEnvironment);
 
-    boolean onFinish(RoundEnvironment roundEnvironment);
+    boolean finish(RoundEnvironment roundEnvironment);
 
-    Set<Class<? extends Annotation>> getSupportedAnnotationClasses();
+    Set<Class<? extends Annotation>> supportedAnnotations();
 
     ProcessingEnvironment getProcessingEnvironment();
 

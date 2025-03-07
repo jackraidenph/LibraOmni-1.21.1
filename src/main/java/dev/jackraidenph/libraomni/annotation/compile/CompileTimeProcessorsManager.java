@@ -45,7 +45,7 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
         for (CompileTimeProcessor compileTimeProcessor : this.processors) {
             if (roundEnvironment.processingOver()) {
                 messager.printNote("Finishing " + compileTimeProcessor + "...");
-                boolean successfulFinish = compileTimeProcessor.onFinish(roundEnvironment);
+                boolean successfulFinish = compileTimeProcessor.finish(roundEnvironment);
                 if (!successfulFinish) {
                     messager.printError("There was an error finishing either of compile processors");
                     return false;
@@ -54,7 +54,7 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
             }
 
             messager.printNote("Invoking " + compileTimeProcessor + "...");
-            boolean successfulRound = compileTimeProcessor.onRound(roundEnvironment);
+            boolean successfulRound = compileTimeProcessor.checkAndProcessRound(roundEnvironment);
             if (!successfulRound) {
                 messager.printError("There was an error during a round of either of compile processors");
                 return false;
@@ -75,7 +75,7 @@ public class CompileTimeProcessorsManager extends AbstractProcessor {
 
     private Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
         return this.processors.stream()
-                .map(CompileTimeProcessor::getSupportedAnnotationClasses)
+                .map(CompileTimeProcessor::supportedAnnotations)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
     }

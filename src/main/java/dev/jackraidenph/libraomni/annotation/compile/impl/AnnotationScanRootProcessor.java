@@ -134,7 +134,7 @@ public class AnnotationScanRootProcessor extends AbstractCompileTimeProcessor {
     }
 
     @Override
-    public Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
+    public Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of(
                 AnnotationScanRoot.class
         );

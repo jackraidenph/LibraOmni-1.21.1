@@ -54,10 +54,10 @@ public abstract class AbstractResourceGeneratingProcessor extends AbstractCompil
     }
 
     @Override
-    public final boolean onFinish(RoundEnvironment roundEnvironment) {
+    public final boolean finish(RoundEnvironment roundEnvironment) {
         Messager messager = this.getProcessingEnvironment().getMessager();
 
-        boolean finishRes = super.onFinish(roundEnvironment);
+        boolean finishRes = super.finish(roundEnvironment);
 
         if (!finishRes) {
             return false;

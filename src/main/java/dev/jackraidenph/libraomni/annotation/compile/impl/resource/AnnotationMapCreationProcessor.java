@@ -10,14 +10,10 @@ import dev.jackraidenph.libraomni.util.ResourceUtilities;
 
 import javax.annotation.processing.*;
 import javax.lang.model.element.*;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Target;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingProcessor {
 
@@ -94,7 +90,7 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
 
     @Override
     public boolean processRound(RoundEnvironment roundEnvironment) {
-        for (Class<? extends Annotation> annotation : this.getSupportedAnnotationClasses()) {
+        for (Class<? extends Annotation> annotation : this.supportedAnnotations()) {
 
             if (!this.processAnnotation(annotation, roundEnvironment)) {
                 return false;
@@ -131,7 +127,7 @@ public class AnnotationMapCreationProcessor extends AbstractResourceGeneratingPr
     }
 
     @Override
-    public Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
+    public Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of(
                 Registered.class
         );

@@ -22,23 +22,23 @@ public abstract class AbstractCompileTimeProcessor implements CompileTimeProcess
     }
 
     @Override
-    public boolean onFinish(RoundEnvironment roundEnvironment) {
+    public boolean finish(RoundEnvironment roundEnvironment) {
         return true;
     }
 
-    public Set<CompilationPredicate<Element>> getPredicatesAndDescriptions() {
+    public Set<CompilationPredicate<Element>> predicates() {
         return Set.of();
     }
 
     @Override
-    public Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
+    public Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of();
     }
 
     private boolean processPredicates(RoundEnvironment roundEnvironment) {
-        for (Class<? extends Annotation> annotation : this.getSupportedAnnotationClasses()) {
+        for (Class<? extends Annotation> annotation : this.supportedAnnotations()) {
             for (Element e : roundEnvironment.getElementsAnnotatedWith(annotation)) {
-                for (CompilationPredicate<Element> predicate : this.getPredicatesAndDescriptions()) {
+                for (CompilationPredicate<Element> predicate : this.predicates()) {
                     if (!predicate.predicate().test(e)) {
                         this.getProcessingEnvironment().getMessager().printError("""
                                 Annotation conditions are not satisfied
@@ -54,7 +54,7 @@ public abstract class AbstractCompileTimeProcessor implements CompileTimeProcess
     }
 
     @Override
-    public final boolean onRound(RoundEnvironment roundEnvironment) {
+    public final boolean checkAndProcessRound(RoundEnvironment roundEnvironment) {
         if (!this.processPredicates(roundEnvironment)) {
             return false;
         }

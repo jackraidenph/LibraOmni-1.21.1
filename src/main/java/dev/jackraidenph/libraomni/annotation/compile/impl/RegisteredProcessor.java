@@ -15,7 +15,7 @@ public class RegisteredProcessor extends AbstractCompileTimeProcessor {
     }
 
     @Override
-    public Set<CompilationPredicate<Element>> getPredicatesAndDescriptions() {
+    public Set<CompilationPredicate<Element>> predicates() {
         return Set.of(
                 CompilationPredicates.MUST_BE_ON_CLASS,
                 CompilationPredicates.mustExtend(
@@ -25,7 +25,7 @@ public class RegisteredProcessor extends AbstractCompileTimeProcessor {
     }
 
     @Override
-    public Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
+    public Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of(
                 Registered.class
         );
