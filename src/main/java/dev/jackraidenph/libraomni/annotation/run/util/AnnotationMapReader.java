@@ -32,14 +32,14 @@ public class AnnotationMapReader {
     }
 
     @SuppressWarnings("unchecked")
-    public ElementStorage readElements() {
+    public ElementStorage readElements() throws NoSuchFieldException, NoSuchMethodException {
         Map<String, Map<String, List<String>>> annotationInfo = this.readFileToMap();
 
         Map<Class<? extends Annotation>, Set<AnnotatedElement<?>>> map = new HashMap<>();
 
         for (String annotationClassString : annotationInfo.keySet()) {
             Class<? extends Annotation> annotation =
-                    (Class<? extends Annotation>) SerializationHelper.INSTANCE.toClass(annotationClassString);
+                    (Class<? extends Annotation>) SerializationHelper.toClass(annotationClassString);
 
             Set<AnnotatedElement<?>> annotatedAnnotatedElements = new HashSet<>();
 
@@ -58,13 +58,12 @@ public class AnnotationMapReader {
         return new ElementStorage(map);
     }
 
-    private @Nullable AnnotatedElement<?> getElement(ElementKind elementKind, String objectString) {
-        final SerializationHelper helper = SerializationHelper.INSTANCE;
+    private @Nullable AnnotatedElement<?> getElement(ElementKind elementKind, String objectString) throws NoSuchMethodException, NoSuchFieldException {
         return switch (elementKind) {
-            case CLASS -> new AnnotatedElement<Class<?>>(elementKind, helper.toClass(objectString));
-            case FIELD -> new AnnotatedElement<Field>(elementKind, helper.toField(objectString));
-            case METHOD -> new AnnotatedElement<Method>(elementKind, helper.toMethod(objectString));
-            case CONSTRUCTOR -> new AnnotatedElement<Constructor<?>>(elementKind, helper.toConstructor(objectString));
+            case CLASS -> new AnnotatedElement<Class<?>>(elementKind, SerializationHelper.toClass(objectString));
+            case FIELD -> new AnnotatedElement<Field>(elementKind, SerializationHelper.toField(objectString));
+            case METHOD -> new AnnotatedElement<Method>(elementKind, SerializationHelper.toMethod(objectString));
+            case CONSTRUCTOR -> new AnnotatedElement<Constructor<?>>(elementKind, SerializationHelper.toConstructor(objectString));
             default -> null;
         };
     }

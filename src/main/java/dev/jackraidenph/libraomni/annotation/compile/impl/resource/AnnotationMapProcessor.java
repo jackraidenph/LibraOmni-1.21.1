@@ -82,7 +82,7 @@ public class AnnotationMapProcessor extends ResourceGeneratingProcessor {
 
             annotationMap.put(annotation.getCanonicalName(), elementTypeMap);
 
-            elementTypeMap.get(element.getKind()).add(SerializationHelper.INSTANCE.getElementString(element));
+            elementTypeMap.get(element.getKind()).add(SerializationHelper.getElementString(element));
         }
 
         return true;

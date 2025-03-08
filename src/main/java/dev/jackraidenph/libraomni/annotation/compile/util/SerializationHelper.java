@@ -1,27 +1,49 @@
 package dev.jackraidenph.libraomni.annotation.compile.util;
 
+import dev.jackraidenph.libraomni.LibraOmni;
+
 import javax.lang.model.element.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.StringJoiner;
 
 public class SerializationHelper {
 
-    public static final SerializationHelper INSTANCE = new SerializationHelper(ReflectionCachingHelper.INSTANCE);
-
-    private final ReflectionCachingHelper reflectionCachingHelper;
-
-    private SerializationHelper(ReflectionCachingHelper reflectionCachingHelper) {
-        this.reflectionCachingHelper = reflectionCachingHelper;
+    private SerializationHelper() {
     }
 
-    public String toClassString(TypeElement typeElement) {
+    private static final Map<String, Class<?>> PRIMITIVE_TYPES_MAP = Map.of(
+            "int", Integer.TYPE,
+            "long", Long.TYPE,
+            "short", Short.TYPE,
+            "byte", Byte.TYPE,
+            "boolean", Boolean.TYPE,
+            "double", Double.TYPE,
+            "float", Float.TYPE,
+            "char", Character.TYPE
+    );
+
+    private static Class<?> classOrPrimitive(String name) {
+        Class<?> primitive = PRIMITIVE_TYPES_MAP.get(name);
+        if (primitive != null) {
+            return primitive;
+        }
+
+        try {
+            return Class.forName(name, false, LibraOmni.classLoader());
+        } catch (ClassNotFoundException classNotFoundException) {
+            throw new IllegalArgumentException(classNotFoundException);
+        }
+    }
+
+    public static String toClassString(TypeElement typeElement) {
         return typeElement.getQualifiedName().toString();
     }
 
-    public Class<?> toClass(String typeElementString) {
-        return this.reflectionCachingHelper.getClassOrPrimitiveByName(typeElementString);
+    public static Class<?> toClass(String typeElementString) {
+        return classOrPrimitive(typeElementString);
     }
 
     public static String classesToString(Class<?>[] classes) {
@@ -32,7 +54,7 @@ public class SerializationHelper {
         return paramTypes.toString();
     }
 
-    public String getParameterTypesString(ExecutableElement executableElement) {
+    public static String getParameterTypesString(ExecutableElement executableElement) {
         StringJoiner paramTypes = new StringJoiner(",", "(", ")");
         for (VariableElement param : executableElement.getParameters()) {
             paramTypes.add(param.asType().toString());
@@ -40,25 +62,21 @@ public class SerializationHelper {
         return paramTypes.toString();
     }
 
-    public String toMethodString(ExecutableElement executableElement) {
+    public static String toMethodString(ExecutableElement executableElement) {
         if (executableElement.getKind().equals(ElementKind.CONSTRUCTOR)) {
             throw new IllegalArgumentException("Passed element is a constructor");
         }
 
-        String clazz = this.toClassString((TypeElement) executableElement.getEnclosingElement());
+        String clazz = toClassString((TypeElement) executableElement.getEnclosingElement());
         String name = executableElement.getSimpleName().toString();
-        String paramTypes = this.getParameterTypesString(executableElement);
+        String paramTypes = getParameterTypesString(executableElement);
         return clazz + "#" + name + paramTypes;
     }
 
-    private record MethodData(Class<?> clazz, String name, Class<?>[] paramTypes) {
-
-    }
-
-    private MethodData toMethodData(String string) {
+    private static ExecutableData<?> parseExecutableData(String string) {
         String[] parts = string.split("#");
         String clazzString = parts[0];
-        Class<?> clazz = this.toClass(clazzString);
+        Class<?> clazz = toClass(clazzString);
         String[] nameParams = parts[1].split("\\(");
         String name = nameParams[0];
         String paramsString = nameParams[1].substring(0, nameParams[1].length() - 1);
@@ -67,65 +85,71 @@ public class SerializationHelper {
             String[] paramTypesStrings = paramsString.split(",");
             Class<?>[] paramTypes = new Class<?>[paramTypesStrings.length];
             for (int i = 0; i < paramTypesStrings.length; i++) {
-                paramTypes[i] = this.toClass(paramTypesStrings[i]);
+                paramTypes[i] = toClass(paramTypesStrings[i]);
             }
 
-            return new MethodData(clazz, name, paramTypes);
-        } else {
-            return new MethodData(clazz, name, new Class[]{});
+            return new ExecutableData<>(clazz, name, paramTypes);
         }
+
+        return new ExecutableData<>(clazz, name);
     }
 
-    public Method toMethod(String string) {
-        MethodData methodData = this.toMethodData(string);
-        return this.reflectionCachingHelper.getDeclaredMethod(
-                methodData.clazz(),
-                methodData.name(),
-                methodData.paramTypes()
-        );
+    public static Method toMethod(String string) throws NoSuchMethodException {
+        return parseExecutableData(string).asMethod();
     }
 
-    public String toConstructorString(ExecutableElement executableElement) {
+    public static String toConstructorString(ExecutableElement executableElement) {
         if (!executableElement.getKind().equals(ElementKind.CONSTRUCTOR)) {
             throw new IllegalArgumentException("Passed element is not a constructor");
         }
 
-        String clazz = this.toClassString((TypeElement) executableElement.getEnclosingElement());
-        String paramTypes = this.getParameterTypesString(executableElement);
+        String clazz = toClassString((TypeElement) executableElement.getEnclosingElement());
+        String paramTypes = getParameterTypesString(executableElement);
         return clazz + "#" + "<init>" + paramTypes;
     }
 
-    public Constructor<?> toConstructor(String string) {
-        MethodData methodData = toMethodData(string);
-        return this.reflectionCachingHelper.getDeclaredConstructor(
-                methodData.clazz(),
-                methodData.paramTypes()
-        );
+    public static Constructor<?> toConstructor(String string) throws NoSuchMethodException {
+        return parseExecutableData(string).asConstructor();
     }
 
-    public String toFieldString(VariableElement variableElement) {
-        String clazz = this.toClassString((TypeElement) variableElement.getEnclosingElement());
+    public static String toFieldString(VariableElement variableElement) {
+        String clazz = toClassString((TypeElement) variableElement.getEnclosingElement());
         String name = variableElement.getSimpleName().toString();
         return clazz + "#" + name;
     }
 
-    public Field toField(String string) {
+    public static Field toField(String string) throws NoSuchFieldException {
         String[] parts = string.split("#");
         String clazzString = parts[0];
-        Class<?> clazz = this.toClass(clazzString);
+        Class<?> clazz = toClass(clazzString);
         String name = parts[1];
 
-        return this.reflectionCachingHelper.getDeclaredField(clazz, name);
+        return clazz.getDeclaredField(name);
     }
 
 
-    public String getElementString(Element element) {
+    public static String getElementString(Element element) {
         return switch (element.getKind()) {
-            case CLASS -> this.toClassString((TypeElement) element);
-            case FIELD -> this.toFieldString((VariableElement) element);
-            case CONSTRUCTOR -> this.toConstructorString((ExecutableElement) element);
-            case METHOD -> this.toMethodString((ExecutableElement) element);
+            case CLASS -> toClassString((TypeElement) element);
+            case FIELD -> toFieldString((VariableElement) element);
+            case CONSTRUCTOR -> toConstructorString((ExecutableElement) element);
+            case METHOD -> toMethodString((ExecutableElement) element);
             default -> throw new IllegalStateException();
         };
+    }
+
+    private record ExecutableData<T>(Class<T> clazz, String name, Class<?>... paramTypes) {
+        public Constructor<T> asConstructor() throws NoSuchMethodException {
+            return clazz.getDeclaredConstructor(paramTypes);
+        }
+
+        public Method asMethod() throws NoSuchMethodException {
+            return clazz.getMethod(name, paramTypes);
+        }
+
+        @Override
+        public String toString() {
+            return clazz.getName() + "#" + name + classesToString(paramTypes);
+        }
     }
 }

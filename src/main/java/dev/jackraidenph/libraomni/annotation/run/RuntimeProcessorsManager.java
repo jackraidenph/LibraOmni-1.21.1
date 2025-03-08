@@ -12,6 +12,7 @@ import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.Elemen
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class RuntimeProcessorsManager {
 
@@ -29,7 +30,11 @@ public class RuntimeProcessorsManager {
                 AnnotationMapProcessor.annotationsForModId(modId)
         );
 
-        this.elementStorage = annotationMapReader.readElements();
+        try {
+            this.elementStorage = annotationMapReader.readElements();
+        } catch (NoSuchMethodException | NoSuchFieldException e) {
+            throw new RuntimeException("Exception was thrown while trying to read annotation map", e);
+        }
     }
 
     public void registerProcessor(RuntimeProcessor<?> runTimeProcessor) {
