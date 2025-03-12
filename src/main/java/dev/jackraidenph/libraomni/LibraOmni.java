@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni;
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapProcessor;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
+import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.impl.RegisteredAnnotationProcessor;
 import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
@@ -26,10 +27,10 @@ public class LibraOmni {
 
     private static final Map<String, ModContext> MOD_CONTEXT_MAP = new HashMap<>();
 
-    private final RuntimeProcessorsManager processorsManager = new RuntimeProcessorsManager();
-
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
-        this.processorsManager.registerProcessor(Scope.CONSTRUCT, new RegisteredAnnotationProcessor());
+        RuntimeProcessorsManager runtimeProcessorsManager = RuntimeProcessorsManager.getInstance();
+
+        runtimeProcessorsManager.registerProcessor(Scope.CONSTRUCT, new RegisteredAnnotationProcessor());
 
         modEventBus.addListener((FMLConstructModEvent event) -> event.enqueueWork(
                 () -> {
@@ -37,16 +38,16 @@ public class LibraOmni {
                     this.initContextRegisters();
 
                     this.prepareForProcessing();
-                    this.processorsManager.processAll(Scope.CONSTRUCT);
+                    runtimeProcessorsManager.processAll(Scope.CONSTRUCT);
                 })
         );
 
         modEventBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(
-                () -> processorsManager.processAll(Scope.COMMON))
+                () -> runtimeProcessorsManager.processAll(Scope.COMMON))
         );
 
         modEventBus.addListener((FMLClientSetupEvent event) -> event.enqueueWork(
-                () -> processorsManager.processAll(Scope.CLIENT))
+                () -> runtimeProcessorsManager.processAll(Scope.CLIENT))
         );
     }
 
@@ -85,7 +86,7 @@ public class LibraOmni {
 
     private void prepareForProcessing() {
         for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
-            this.processorsManager.prepareForMod(modContext);
+            RuntimeProcessorsManager.getInstance().prepareForMod(modContext);
         }
     }
 

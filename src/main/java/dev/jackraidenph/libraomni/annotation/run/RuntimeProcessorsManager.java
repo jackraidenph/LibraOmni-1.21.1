@@ -21,7 +21,17 @@ public class RuntimeProcessorsManager {
 
     private final Set<ModContext> modsToProcess = new HashSet<>();
 
-    public RuntimeProcessorsManager() {
+    private static RuntimeProcessorsManager INSTANCE;
+
+    public static RuntimeProcessorsManager getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new RuntimeProcessorsManager();
+        }
+
+        return INSTANCE;
+    }
+
+    private RuntimeProcessorsManager() {
     }
 
     private Set<AnnotatedElement> gatherElements(String modId, Set<Class<? extends Annotation>> annotations) {
