@@ -13,7 +13,7 @@ import java.util.Map.Entry;
 
 public class ScanRootProcessor extends AbstractCompilationProcessor {
 
-    private static final String MOD_DECLARING_ANNOTATION = "net.neoforged.fml.common.Mod";
+    private static final String MOD_ANNOTATION = "net.neoforged.fml.common.Mod";
 
     private final Map<String, String> modPackages = new HashMap<>();
 
@@ -53,7 +53,7 @@ public class ScanRootProcessor extends AbstractCompilationProcessor {
         }
 
         for (AnnotationMirror mirror : mirrors) {
-            if (!mirror.getAnnotationType().toString().equals(MOD_DECLARING_ANNOTATION)) {
+            if (!mirror.getAnnotationType().toString().equals(MOD_ANNOTATION)) {
                 continue;
             }
 
