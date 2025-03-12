@@ -137,7 +137,7 @@ public class AnnotationMapProcessor extends ResourceGeneratingProcessor {
         return ROOT + ANNOTATION_REGISTRY_FILE;
     }
 
-    public static String annotationsForModId(String modId) {
+    public static String annotationsFileLocation(String modId) {
         return ROOT + modId + "." + ANNOTATION_MAP_FILE_SUFFIX + "." + ANNOTATION_MAP_FILE_EXT;
     }
 
