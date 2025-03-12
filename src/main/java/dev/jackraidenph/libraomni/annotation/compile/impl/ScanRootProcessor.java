@@ -97,7 +97,7 @@ public class ScanRootProcessor extends AbstractCompilationProcessor {
     }
 
     @Override
-    public boolean finish(RoundEnvironment roundEnvironment) {
+    public boolean processRound(RoundEnvironment roundEnvironment) {
         Set<Element> scanRoots = new HashSet<>(
                 roundEnvironment.getElementsAnnotatedWith(AnnotationScanRoot.class)
         );
