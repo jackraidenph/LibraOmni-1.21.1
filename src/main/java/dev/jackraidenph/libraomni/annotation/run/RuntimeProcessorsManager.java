@@ -53,7 +53,7 @@ public class RuntimeProcessorsManager {
         return elements;
     }
 
-    public void prepareForMod(ModContext modContext) {
+    public void registerMod(ModContext modContext) {
         this.modsToProcess.add(modContext);
 
         String modId = modContext.modId();

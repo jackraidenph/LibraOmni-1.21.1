@@ -3,7 +3,6 @@ package dev.jackraidenph.libraomni;
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapProcessor;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
-import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.impl.RegisteredAnnotationProcessor;
 import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
@@ -37,7 +36,7 @@ public class LibraOmni {
                     this.createDefaultContexts();
                     this.initContextRegisters();
 
-                    this.prepareForProcessing();
+                    this.registerMods();
                     runtimeProcessorsManager.processAll(Scope.CONSTRUCT);
                 })
         );
@@ -84,9 +83,9 @@ public class LibraOmni {
         }
     }
 
-    private void prepareForProcessing() {
+    private void registerMods() {
         for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
-            RuntimeProcessorsManager.getInstance().prepareForMod(modContext);
+            RuntimeProcessorsManager.getInstance().registerMod(modContext);
         }
     }
 
