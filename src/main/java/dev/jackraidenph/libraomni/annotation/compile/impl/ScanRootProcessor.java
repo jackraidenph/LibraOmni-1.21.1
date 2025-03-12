@@ -39,7 +39,7 @@ public class ScanRootProcessor extends AbstractCompilationProcessor {
 
         this.modPackages.put(modId, pkg);
 
-        messager.printNote("@Mod[" + modId + "] + annotation as scan root");
+        messager.printNote("Using @Mod[" + modId + "] annotation as scan root");
     }
 
     private boolean tryFindModAnnotation(Element element) {
