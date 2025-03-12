@@ -2,9 +2,11 @@ package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapProcessor;
-import dev.jackraidenph.libraomni.context.ModContext;
+import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
+import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.annotation.run.impl.RegisteredAnnotationProcessor;
+import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
@@ -24,10 +26,28 @@ public class LibraOmni {
 
     private static final Map<String, ModContext> MOD_CONTEXT_MAP = new HashMap<>();
 
+    private final RuntimeProcessorsManager processorsManager = new RuntimeProcessorsManager();
+
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
-        modEventBus.addListener(this::enqueueCommonModContextJobs);
-        modEventBus.addListener(this::enqueueClientModContextJobs);
-        modEventBus.addListener(this::enqueueConstructModContextJobs);
+        this.processorsManager.registerProcessor(Scope.CONSTRUCT, new RegisteredAnnotationProcessor());
+
+        modEventBus.addListener((FMLConstructModEvent event) -> event.enqueueWork(
+                () -> {
+                    this.createDefaultContexts();
+                    this.initContextRegisters();
+
+                    this.prepareForProcessing();
+                    this.processorsManager.processAll(Scope.CONSTRUCT);
+                })
+        );
+
+        modEventBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(
+                () -> processorsManager.processAll(Scope.COMMON))
+        );
+
+        modEventBus.addListener((FMLClientSetupEvent event) -> event.enqueueWork(
+                () -> processorsManager.processAll(Scope.CLIENT))
+        );
     }
 
     public static ModContext createContext(ModContainer modContainer) {
@@ -47,43 +67,29 @@ public class LibraOmni {
         return MOD_CONTEXT_MAP.get(modId);
     }
 
-    @SubscribeEvent
-    public void enqueueCommonModContextJobs(FMLCommonSetupEvent commonSetupEvent) {
-        commonSetupEvent.enqueueWork(() -> {
-            for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
-                modContext.invokeCommon();
+    private void createDefaultContexts() {
+        for (String annotationMap : AnnotationMapProcessor.allAnnotationMaps()) {
+            String modId = AnnotationMapProcessor.extractModNameFromMapFile(annotationMap);
+
+            if (!MOD_CONTEXT_MAP.containsKey(modId)) {
+                ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);
             }
-        });
+        }
     }
 
-    @SubscribeEvent
-    public void enqueueClientModContextJobs(FMLClientSetupEvent clientSetupEvent) {
-        clientSetupEvent.enqueueWork(() -> {
-            for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
-                modContext.invokeClient();
-            }
-        });
+    private void initContextRegisters() {
+        for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
+            modContext.initRegisters();
+        }
     }
 
-    @SubscribeEvent
-    public void enqueueConstructModContextJobs(FMLConstructModEvent constructModEvent) {
-        constructModEvent.enqueueWork(() -> {
-            for (String annotationMap : AnnotationMapProcessor.allAnnotationMaps()) {
-                String modId = AnnotationMapProcessor.extractModNameFromMapFile(annotationMap);
-
-                if (!MOD_CONTEXT_MAP.containsKey(modId)) {
-                    ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);
-                }
-            }
-
-            for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
-                modContext.invokeConstruct();
-            }
-        });
+    private void prepareForProcessing() {
+        for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
+            this.processorsManager.prepareForMod(modContext);
+        }
     }
 
     public static ClassLoader classLoader() {
         return LibraOmni.class.getClassLoader();
     }
-
 }

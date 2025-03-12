@@ -1,25 +1,19 @@
 package dev.jackraidenph.libraomni.annotation.run.api;
 
-import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.ElementStorage.AnnotatedElement;
-import dev.jackraidenph.libraomni.context.ModContext;
+import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
 
-import javax.annotation.Nullable;
-import javax.lang.model.element.Element;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.util.Set;
 
-public interface RuntimeProcessor<T extends Annotation> {
+public interface RuntimeProcessor {
 
     void process(
             ModContext modContext,
-            AnnotatedElement<?> annotatedElement
+            Set<AnnotatedElement> elements
     );
 
-    @Nullable
-    default T getElementAnnotation(AnnotatedElement<?> element) {
-        return element.getAnnotation(this.getSupportedAnnotation());
-    }
-
-    Class<T> getSupportedAnnotation();
+    Set<Class<? extends Annotation>> getSupportedAnnotations();
 
     Scope getScope();
 

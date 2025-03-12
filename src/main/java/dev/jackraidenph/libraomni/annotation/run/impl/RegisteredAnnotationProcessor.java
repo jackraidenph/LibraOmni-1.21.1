@@ -4,30 +4,31 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader.ElementStorage.AnnotatedElement;
-import dev.jackraidenph.libraomni.context.ModContext;
-import net.minecraft.core.registries.Registries;
+import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Locale;
+import java.util.Set;
 
-public class RegisteredAnnotationProcessor implements RuntimeProcessor<Registered> {
-
-    public static RegisteredAnnotationProcessor INSTANCE = new RegisteredAnnotationProcessor();
-
-    private RegisteredAnnotationProcessor() {
-
-    }
+public class RegisteredAnnotationProcessor implements RuntimeProcessor {
 
     @Override
-    public void process(
-            ModContext modContext,
-            AnnotatedElement<?> annotatedElement
-    ) {
-        Registered registered = this.getElementAnnotation(annotatedElement);
+    public void process(ModContext modContext, Set<AnnotatedElement> elements) {
+        for (AnnotatedElement annotatedElement : elements) {
+            if (annotatedElement instanceof Class<?> clazz) {
+                this.tryRegisterClass(modContext, clazz);
+            }
+        }
+    }
+
+    private <T> void tryRegisterClass(ModContext modContext, Class<T> clazz) {
+        Registered registered = clazz.getAnnotation(Registered.class);
 
         if (registered == null) {
             return;
@@ -36,21 +37,34 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor<Registere
         String id = registered.value();
 
         if (id == null || id.isBlank()) {
-            id = annotatedElement.asClass().getSimpleName().toLowerCase(Locale.ROOT);
+            id = clazz.getSimpleName().toLowerCase(Locale.ROOT);
         }
 
         try {
-            Constructor<?> emptyConstructor = annotatedElement.asClass().getConstructor();
+            Constructor<T> emptyConstructor = clazz.getDeclaredConstructor();
+            emptyConstructor.setAccessible(true);
 
-            modContext.blocksRegister().register(
-                    id,
-                    () -> (Block) safeConstruct(emptyConstructor)
-            );
+            if (Block.class.isAssignableFrom(clazz)) {
+                this.registerBlock(modContext.blocksRegister(), id, emptyConstructor);
+            } else if (Item.class.isAssignableFrom(clazz)) {
+                this.registerItem(modContext.itemsRegister(), id, emptyConstructor);
+            } else {
+                DeferredRegister<T> register = modContext.getRegister(clazz);
+                register.register(id, () -> safeConstruct(emptyConstructor));
+            }
         } catch (NoSuchMethodException noSuchMethodException) {
             LibraOmni.LOGGER.error("Failed to register [{}] as there's no proper empty constructor",
-                    annotatedElement.asClass().getSimpleName()
+                    clazz.getSimpleName()
             );
         }
+    }
+
+    private void registerBlock(DeferredRegister.Blocks register, String id, Constructor<?> constructor) {
+        register.register(id, () -> (Block) safeConstruct(constructor));
+    }
+
+    private void registerItem(DeferredRegister.Items register, String id, Constructor<?> constructor) {
+        register.register(id, () -> (Item) safeConstruct(constructor));
     }
 
     private static <E> E safeConstruct(Constructor<E> emptyConstructor) {
@@ -75,7 +89,9 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor<Registere
     }
 
     @Override
-    public Class<Registered> getSupportedAnnotation() {
-        return Registered.class;
+    public Set<Class<? extends Annotation>> getSupportedAnnotations() {
+        return Set.of(
+                Registered.class
+        );
     }
 }

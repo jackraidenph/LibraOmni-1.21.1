@@ -127,7 +127,6 @@ public class SerializationHelper {
         return clazz.getDeclaredField(name);
     }
 
-
     public static String getElementString(Element element) {
         return switch (element.getKind()) {
             case CLASS -> toClassString((TypeElement) element);
@@ -135,6 +134,16 @@ public class SerializationHelper {
             case CONSTRUCTOR -> toConstructorString((ExecutableElement) element);
             case METHOD -> toMethodString((ExecutableElement) element);
             default -> throw new IllegalStateException();
+        };
+    }
+
+    public static Object parse(ElementKind elementKind, String string) throws NoSuchFieldException, NoSuchMethodException {
+        return switch (elementKind) {
+            case CLASS -> toClass(string);
+            case FIELD -> toField(string);
+            case CONSTRUCTOR -> toConstructor(string);
+            case METHOD -> toMethod(string);
+            default -> throw new UnsupportedOperationException();
         };
     }
 
