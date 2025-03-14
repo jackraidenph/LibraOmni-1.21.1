@@ -16,6 +16,8 @@ public class ModContext {
     private DeferredRegister.Blocks blocksRegister;
     private DeferredRegister.Items itemsRegister;
 
+    private boolean registersRegistered = false;
+
     public ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
         this.registersMap = new HashMap<>();
@@ -61,11 +63,16 @@ public class ModContext {
     }
 
     public void initRegisters() {
+        if (this.registersRegistered) {
+            throw new IllegalStateException("Registers for [" + this.modId() + "] were already initialized");
+        }
+
         for (DeferredRegister<?> deferredRegister : this.allRegisters()) {
             IEventBus eventBus = this.modContainer().getEventBus();
             if (eventBus != null) {
                 deferredRegister.register(eventBus);
             }
         }
+        this.registersRegistered = true;
     }
 }
