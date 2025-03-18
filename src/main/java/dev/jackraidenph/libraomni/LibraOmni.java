@@ -1,11 +1,13 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.util.MetadataFileManager;
+import dev.jackraidenph.libraomni.annotation.compile.util.dto.Metadata.ModData;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.impl.RegisteredAnnotationProcessor;
 import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
+import dev.jackraidenph.libraomni.annotation.run.util.ModContextManager;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -15,17 +17,16 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Mod(LibraOmni.MODID)
 public class LibraOmni {
 
     public static final String MODID = "libraomni";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final Map<String, ModContext> MOD_CONTEXT_MAP = new HashMap<>();
-
+    //TODO ADD ACTUAL METADATA CREATION
+    //TODO REARRANGE PACKAGES
+    //TODO MOVE SHIT BELOW INTO RUNTIME PROCESSOR INITIALIZATION
+    //TODO ADD HIERARCHICAL CLASS LOOKUP FOR REGISTRIES
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         RuntimeProcessorsManager runtimeProcessorsManager = RuntimeProcessorsManager.getInstance();
 
@@ -33,7 +34,7 @@ public class LibraOmni {
 
         modEventBus.addListener((FMLConstructModEvent event) -> event.enqueueWork(
                 () -> {
-                    this.createDefaultContexts();
+                    this.createMissingContexts();
                     this.initContextRegisters();
 
                     this.registerMods();
@@ -50,43 +51,29 @@ public class LibraOmni {
         );
     }
 
-    public static ModContext createContext(ModContainer modContainer) {
-        if (MOD_CONTEXT_MAP.containsKey(modContainer.getModId())) {
-            throw new IllegalStateException("Context for " + modContainer + " was already opened");
-        }
-        ModContext modContext = new ModContext(modContainer);
-        LOGGER.info("Opened context for {}", modContainer.getModId());
-        MOD_CONTEXT_MAP.put(modContainer.getModId(), modContext);
-        return modContext;
-    }
-
-    public static ModContext getContext(String modId) {
-        if (!MOD_CONTEXT_MAP.containsKey(modId)) {
-            throw new IllegalArgumentException("Context for " + modId + " was never opened");
-        }
-        return MOD_CONTEXT_MAP.get(modId);
-    }
-
-    private void createDefaultContexts() {
-        for (String annotationMap : AnnotationMapProcessor.allAnnotationMaps()) {
-            String modId = AnnotationMapProcessor.extractModNameFromMapFile(annotationMap);
-
-            if (!MOD_CONTEXT_MAP.containsKey(modId)) {
-                ModList.get().getModContainerById(modId).ifPresent(LibraOmni::createContext);
+    private void createMissingContexts() {
+        ModList modList = ModList.get();
+        for (ModData modData : MetadataFileManager.reader().readAllModData()) {
+            String id = modData.modId();
+            if (!modList.isLoaded(id)) {
+                continue;
             }
+
+            modList.getModContainerById(id).ifPresent(container -> {
+                ModContextManager contextManager = ModContextManager.get();
+                if (!contextManager.existsForMod(id)) {
+                    contextManager.newContext(container);
+                }
+            });
         }
     }
 
     private void initContextRegisters() {
-        for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
-            modContext.initRegisters();
-        }
+        ModContextManager.get().contexts().forEach(ModContext::initRegisters);
     }
 
     private void registerMods() {
-        for (ModContext modContext : MOD_CONTEXT_MAP.values()) {
-            RuntimeProcessorsManager.getInstance().registerMod(modContext);
-        }
+        ModContextManager.get().contexts().forEach(RuntimeProcessorsManager.getInstance()::registerMod);
     }
 
     public static ClassLoader classLoader() {

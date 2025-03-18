@@ -1,12 +1,11 @@
 package dev.jackraidenph.libraomni.annotation.run;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.compile.impl.resource.AnnotationMapProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.util.ElementData;
+import dev.jackraidenph.libraomni.annotation.compile.util.MetadataFileManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
-import dev.jackraidenph.libraomni.annotation.run.util.AnnotationMapReader;
-import dev.jackraidenph.libraomni.annotation.run.util.ElementStorage;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class RuntimeProcessorsManager {
 
-    private final Map<String, ElementStorage> elementStoragePerMod = new HashMap<>();
+    private final Map<String, ElementData> elementDataMap = new HashMap<>();
 
     private final Map<Scope, List<RuntimeProcessor>> processors = new HashMap<>();
 
@@ -34,42 +33,40 @@ public class RuntimeProcessorsManager {
     private RuntimeProcessorsManager() {
     }
 
-    private Set<AnnotatedElement> gatherElements(String modId, Set<Class<? extends Annotation>> annotations) {
+    private Set<AnnotatedElement> readElements(String modId) {
+        if (elementDataMap.containsKey(modId)) {
+            return elementDataMap.get(modId).getElements();
+        }
+
+        return MetadataFileManager.reader().readElementData(modId)
+                .map(data -> {
+                    this.elementDataMap.put(modId, data);
+                    return data.getElements();
+                })
+                .orElseGet(Set::of);
+    }
+
+    private static boolean anyAnnotationPresent(AnnotatedElement e, Set<Class<? extends Annotation>> annotations) {
+        for (Class<? extends Annotation> a : annotations) {
+            if (e.isAnnotationPresent(a)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Set<AnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
         if (annotations.isEmpty()) {
             return Set.of();
         }
-
-        ElementStorage elementStorage = this.elementStoragePerMod.get(modId);
-
-        if (elementStorage == null) {
-            return Set.of();
-        }
-
-        Set<AnnotatedElement> elements = new HashSet<>();
-        for (Class<? extends Annotation> annotation : annotations) {
-            elements.addAll(elementStorage.elementsAnnotatedWith(annotation));
-        }
-
-        return elements;
+        return this.readElements(modId).stream()
+                .filter(e -> anyAnnotationPresent(e, annotations))
+                .collect(Collectors.toSet());
     }
 
     public void registerMod(ModContext modContext) {
         this.modsToProcess.add(modContext);
-
-        String modId = modContext.modId();
-
-        ElementStorage elementStorage = new ElementStorage();
-
-        this.elementStoragePerMod.put(modId, elementStorage);
-
-        try {
-            AnnotationMapReader.readElementsToStorage(
-                    AnnotationMapProcessor.annotationsFileLocation(modId),
-                    elementStorage
-            );
-        } catch (NoSuchMethodException | NoSuchFieldException e) {
-            throw new RuntimeException("An exception was thrown while trying to read annotation map", e);
-        }
     }
 
     private Set<RuntimeProcessor> allProcessors() {
@@ -91,7 +88,7 @@ public class RuntimeProcessorsManager {
 
         for (ModContext modContext : this.modsToProcess) {
             for (RuntimeProcessor runtimeProcessor : processors) {
-                Set<AnnotatedElement> elements = this.gatherElements(
+                Set<AnnotatedElement> elements = this.elementsAnnotatedWith(
                         modContext.modId(),
                         runtimeProcessor.getSupportedAnnotations()
                 );

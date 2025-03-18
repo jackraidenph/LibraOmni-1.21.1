@@ -1,41 +1,31 @@
 package dev.jackraidenph.libraomni.annotation.compile.impl.resource;
 
-import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompilationProcessor;
 import dev.jackraidenph.libraomni.annotation.compile.impl.ScanRootProcessor;
+import dev.jackraidenph.libraomni.annotation.compile.util.ElementData;
 import dev.jackraidenph.libraomni.annotation.compile.util.ElementUtils;
-import dev.jackraidenph.libraomni.annotation.compile.util.SerializationHelper;
+import dev.jackraidenph.libraomni.annotation.compile.util.MetadataFileManager;
 import dev.jackraidenph.libraomni.annotation.impl.Registered;
 import dev.jackraidenph.libraomni.annotation.impl.AnnotationScanRoot;
-import dev.jackraidenph.libraomni.util.ResourceUtilities;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.processing.*;
 import javax.lang.model.element.*;
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Target;
+import javax.tools.FileObject;
+import java.io.IOException;
+import java.lang.annotation.*;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Map.Entry;
 
-public class AnnotationMapProcessor extends ResourceGeneratingProcessor {
-
-    public static final String ROOT = "META-INF/" + LibraOmni.MODID + "/";
-
-    public static final String ANNOTATION_MAP_FILE_SUFFIX = "annotations";
-
-    public static final String ANNOTATION_REGISTRY_FILE_EXT = "list";
-    public static final String ANNOTATION_MAP_FILE_EXT = "json";
-
-    public static final String ANNOTATION_REGISTRY_FILE = LibraOmni.MODID + "." + ANNOTATION_MAP_FILE_SUFFIX + "." + ANNOTATION_REGISTRY_FILE_EXT;
+public class AnnotationMapProcessor extends AbstractCompilationProcessor {
 
     private final ScanRootProcessor scanRootProcessor;
-
-    private final Map<String, Map<String, Map<ElementKind, Set<String>>>> targetsMap = new HashMap<>();
-
 
     public AnnotationMapProcessor(
             ProcessingEnvironment processingEnvironment,
             ScanRootProcessor rootProcessor
     ) {
-        super(processingEnvironment, ROOT);
+        super(processingEnvironment);
         this.scanRootProcessor = rootProcessor;
     }
 
@@ -64,66 +54,53 @@ public class AnnotationMapProcessor extends ResourceGeneratingProcessor {
         return pkg;
     }
 
-    private boolean processAnnotation(Class<? extends Annotation> annotation, RoundEnvironment roundEnvironment) {
-        for (Element element : roundEnvironment.getElementsAnnotatedWith(annotation)) {
+    private final Map<String, ElementData> dataMap = new HashMap<>();
 
+    private ElementData getOrCreateElementData(String modId) {
+        return dataMap.computeIfAbsent(modId, id -> new ElementData());
+    }
+
+    private void processAnnotation(Class<? extends Annotation> annotation, RoundEnvironment roundEnvironment) {
+        for (Element element : roundEnvironment.getElementsAnnotatedWith(annotation)) {
             String pkg = this.getAndCheckPackage(element);
             String modId = this.getAndCheckModIdFromPackage(pkg);
-
-            Map<String, Map<ElementKind, Set<String>>> annotationMap = new HashMap<>();
-            this.targetsMap.put(modId, annotationMap);
-
-            Map<ElementKind, Set<String>> elementTypeMap = Map.of(
-                    ElementKind.CLASS, new HashSet<>(),
-                    ElementKind.FIELD, new HashSet<>(),
-                    ElementKind.CONSTRUCTOR, new HashSet<>(),
-                    ElementKind.METHOD, new HashSet<>()
-            );
-
-            annotationMap.put(annotation.getCanonicalName(), elementTypeMap);
-
-            elementTypeMap.get(element.getKind()).add(SerializationHelper.getElementString(element));
+            this.getOrCreateElementData(modId).addElement(element);
         }
 
-        return true;
     }
 
     @Override
     public boolean processRound(RoundEnvironment roundEnvironment) {
         for (Class<? extends Annotation> annotation : this.supportedAnnotations()) {
-
-            if (!this.processAnnotation(annotation, roundEnvironment)) {
-                return false;
+            Retention retention = annotation.getAnnotation(Retention.class);
+            if (retention == null || !retention.value().equals(RetentionPolicy.RUNTIME)) {
+                continue;
             }
 
-            Target targetAnnotation = annotation.getAnnotation(Target.class);
-            if (targetAnnotation == null) {
-                this.getProcessingEnvironment().getMessager().printNote("No target specified for " + annotation);
-                return false;
-            }
+            this.processAnnotation(annotation, roundEnvironment);
         }
 
         return true;
     }
 
     @Override
-    public Set<TransientResource> output(RoundEnvironment roundEnvironment) {
-        Set<TransientResource> createdFiles = new HashSet<>();
+    public boolean finish(RoundEnvironment roundEnvironment) {
+        Filer filer = this.getProcessingEnvironment().getFiler();
+        Messager messager = this.getProcessingEnvironment().getMessager();
+        MetadataFileManager.Writer writer = MetadataFileManager.writer(filer);
+        for (Entry<String, ElementData> dataEntry : this.dataMap.entrySet()) {
+            String modId = dataEntry.getKey();
+            ElementData elements = dataEntry.getValue();
 
-        StringJoiner stringJoiner = new StringJoiner("\n");
-
-        for (String modId : this.targetsMap.keySet()) {
-            Map<String, Map<ElementKind, Set<String>>> jsonFileContentsObject = this.targetsMap.get(modId);
-            String fileName = modId + "." + ANNOTATION_MAP_FILE_SUFFIX;
-
-            createdFiles.add(TransientResource.json(fileName, jsonFileContentsObject));
-
-            stringJoiner.add(fileName + "." + ANNOTATION_MAP_FILE_EXT);
+            try {
+                FileObject file = writer.writeElementData(modId, elements);
+                messager.printNote("Created elements data for [" + modId + "]: " + FilenameUtils.getName(file.getName()));
+            } catch (IOException ioException) {
+                throw new RuntimeException(ioException);
+            }
         }
 
-        createdFiles.add(TransientResource.fullName(ANNOTATION_REGISTRY_FILE, stringJoiner.toString()));
-
-        return createdFiles;
+        return true;
     }
 
     @Override
@@ -131,28 +108,5 @@ public class AnnotationMapProcessor extends ResourceGeneratingProcessor {
         return Set.of(
                 Registered.class
         );
-    }
-
-    public static String registryLocation() {
-        return ROOT + ANNOTATION_REGISTRY_FILE;
-    }
-
-    public static String annotationsFileLocation(String modId) {
-        return ROOT + modId + "." + ANNOTATION_MAP_FILE_SUFFIX + "." + ANNOTATION_MAP_FILE_EXT;
-    }
-
-    public static Set<String> allAnnotationMaps() {
-        return ResourceUtilities.getResourcesAsStrings(registryLocation())
-                .flatMap(String::lines)
-                .collect(Collectors.toSet());
-    }
-
-    public static String extractModNameFromMapFile(String name) {
-        String endingString = "." + ANNOTATION_MAP_FILE_SUFFIX + "." + ANNOTATION_MAP_FILE_EXT;
-        if (!name.endsWith(endingString)) {
-            throw new IllegalArgumentException("The name is not a proper annotation map file");
-        }
-
-        return name.substring(0, name.indexOf(endingString));
     }
 }
