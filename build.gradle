@@ -111,10 +111,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    annotationProcessor 'com.google.auto.service:auto-service:1.0-rc5'
-    compileOnly 'com.google.auto.service:auto-service:1.0-rc5'
-
-    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation('com.google.code.gson:gson:2.8.9')
 }
 
 tasks.named('test') {
