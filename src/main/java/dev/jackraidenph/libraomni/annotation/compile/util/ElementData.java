@@ -2,7 +2,6 @@ package dev.jackraidenph.libraomni.annotation.compile.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.compile.util.dto.ExecutableData;
 import dev.jackraidenph.libraomni.annotation.compile.util.dto.TypeData;
 import dev.jackraidenph.libraomni.annotation.compile.util.dto.VariableData;
@@ -34,8 +33,14 @@ public class ElementData {
     private final Set<ExecutableData> methods = new HashSet<>();
     private final Set<ExecutableData> constructors = new HashSet<>();
 
-    public ElementData() {
+    private final String modId;
 
+    public ElementData(String modId) {
+        this.modId = modId;
+    }
+
+    public String getModId() {
+        return modId;
     }
 
     public boolean isEmpty() {
@@ -52,8 +57,8 @@ public class ElementData {
         return GSON.fromJson(str, ElementData.class);
     }
 
-    public static String fileNameForMod(String modId) {
-        return modId + "." + FILE_NAME_SUFFIX + ".json";
+    public String fileName() {
+        return this.getModId() + "." + FILE_NAME_SUFFIX + ".json";
     }
 
     public void addElement(Element element) {

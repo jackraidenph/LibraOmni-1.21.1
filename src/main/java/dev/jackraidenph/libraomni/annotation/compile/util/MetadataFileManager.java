@@ -2,7 +2,6 @@ package dev.jackraidenph.libraomni.annotation.compile.util;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.compile.util.dto.Metadata;
-import dev.jackraidenph.libraomni.annotation.compile.util.dto.Metadata.ModData;
 import dev.jackraidenph.libraomni.util.ResourceUtilities;
 
 import javax.annotation.processing.Filer;
@@ -39,28 +38,52 @@ public class MetadataFileManager {
 
     public static class Reader {
 
+        private final Map<String, Metadata> modMetadataCache = new HashMap<>();
+
         private Reader() {
 
         }
 
-        public Optional<ModData> readModData(String modId) {
-            return this.readAllModData().stream().filter(modData -> modData.modId().equals(modId)).findFirst();
+        public Metadata readModData(String modId) {
+            if (this.modMetadataCache.containsKey(modId)) {
+                return this.modMetadataCache.get(modId);
+            }
+
+            return this.readAllModData()
+                    .stream()
+                    .filter(modData -> modData.getModId().equals(modId))
+                    .findFirst()
+                    .orElse(null);
         }
 
-        public Set<ModData> findModsWithElementData() {
-            return this.readAllModData().stream().filter(modData -> modData.elementDataFile() != null).collect(Collectors.toSet());
-        }
+        public Set<Metadata> findModsWithElementData() {
+            if (!this.modMetadataCache.isEmpty()) {
+                return this.modMetadataCache.values()
+                        .stream()
+                        .filter(modData -> modData.getElementDataPath() != null)
+                        .collect(Collectors.toSet());
+            }
 
-        public Set<ModData> readAllModData() {
-            return ResourceUtilities.getResources(Metadata.fileName())
-                    .map(url -> readModDataFromLocation(url.getPath()))
-                    .filter(Objects::nonNull)
-                    .flatMap(metadata -> metadata.data().stream())
+            return this.readAllModData()
+                    .stream()
+                    .filter(modData -> modData.getElementDataPath() != null)
                     .collect(Collectors.toSet());
         }
 
-        public Optional<ElementData> readElementData(String modId) {
-            return this.readModData(modId).map(modData -> readElementDataFromLocation(modData.elementDataFile()));
+        public Set<Metadata> readAllModData() {
+            return ResourceUtilities.getResources(Metadata.fileName())
+                    .map(url -> readModDataFromLocation(url.getPath()))
+                    .filter(Objects::nonNull)
+                    .peek(metadata -> this.modMetadataCache.put(metadata.getModId(), metadata))
+                    .collect(Collectors.toSet());
+        }
+
+        public ElementData readElementData(String modId) {
+            Metadata metadata = this.readModData(modId);
+            if (metadata != null) {
+                return readElementDataFromLocation(metadata.getElementDataPath());
+            }
+            return null;
         }
 
         private static Metadata readModDataFromLocation(String resource) {
@@ -76,7 +99,8 @@ public class MetadataFileManager {
                 String str = new String(byteInputStream.readAllBytes(), StandardCharsets.UTF_8);
                 return ElementData.fromJson(str);
             } catch (IOException e) {
-                throw new IllegalArgumentException(e);
+                LibraOmni.LOGGER.error("Failed to read element data from [{}]", location);
+                return null;
             }
         }
     }
@@ -89,11 +113,11 @@ public class MetadataFileManager {
             this.filer = filer;
         }
 
-        public FileObject writeElementData(String modId, ElementData data) throws IOException {
+        public FileObject writeElementData(ElementData data) throws IOException {
             FileObject fileObject = filer.createResource(
                     StandardLocation.SOURCE_OUTPUT,
                     "",
-                    FILE_ROOT + ElementData.fileNameForMod(modId)
+                    elementDataResource(data)
             );
 
             try (OutputStream outputStream = fileObject.openOutputStream()) {
@@ -107,7 +131,7 @@ public class MetadataFileManager {
             FileObject fileObject = filer.createResource(
                     StandardLocation.SOURCE_OUTPUT,
                     "",
-                    FILE_ROOT + Metadata.fileName()
+                    metadataResource()
             );
 
             try (OutputStream outputStream = fileObject.openOutputStream()) {
@@ -115,6 +139,14 @@ public class MetadataFileManager {
             }
 
             return fileObject;
+        }
+
+        public static String elementDataResource(ElementData elementData) {
+            return FILE_ROOT + elementData.fileName();
+        }
+
+        public static String metadataResource() {
+            return FILE_ROOT + Metadata.fileName();
         }
     }
 }

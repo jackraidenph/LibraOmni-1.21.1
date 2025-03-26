@@ -38,12 +38,13 @@ public class RuntimeProcessorsManager {
             return elementDataMap.get(modId).getElements();
         }
 
-        return MetadataFileManager.reader().readElementData(modId)
-                .map(data -> {
-                    this.elementDataMap.put(modId, data);
-                    return data.getElements();
-                })
-                .orElseGet(Set::of);
+        ElementData elementData = MetadataFileManager.reader().readElementData(modId);
+        if (elementData != null) {
+            this.elementDataMap.put(modId, elementData);
+            return elementData.getElements();
+        }
+
+        return Set.of();
     }
 
     private static boolean anyAnnotationPresent(AnnotatedElement e, Set<Class<? extends Annotation>> annotations) {

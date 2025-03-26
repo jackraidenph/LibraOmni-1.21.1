@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.annotation.compile.util.MetadataFileManager;
-import dev.jackraidenph.libraomni.annotation.compile.util.dto.Metadata.ModData;
+import dev.jackraidenph.libraomni.annotation.compile.util.dto.Metadata;
 import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
 import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.annotation.run.impl.RegisteredAnnotationProcessor;
@@ -23,7 +23,6 @@ public class LibraOmni {
     public static final String MODID = "libraomni";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    //TODO ADD ACTUAL METADATA CREATION
     //TODO REARRANGE PACKAGES
     //TODO MOVE SHIT BELOW INTO RUNTIME PROCESSOR INITIALIZATION
     //TODO ADD HIERARCHICAL CLASS LOOKUP FOR REGISTRIES
@@ -53,8 +52,8 @@ public class LibraOmni {
 
     private void createMissingContexts() {
         ModList modList = ModList.get();
-        for (ModData modData : MetadataFileManager.reader().readAllModData()) {
-            String id = modData.modId();
+        for (Metadata modData : MetadataFileManager.reader().readAllModData()) {
+            String id = modData.getModId();
             if (!modList.isLoaded(id)) {
                 continue;
             }
