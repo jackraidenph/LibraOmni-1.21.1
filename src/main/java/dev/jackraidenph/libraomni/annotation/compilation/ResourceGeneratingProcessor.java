@@ -1,8 +1,7 @@
-package dev.jackraidenph.libraomni.annotation.compile.impl.resource;
+package dev.jackraidenph.libraomni.annotation.compilation;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompilationProcessor;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;

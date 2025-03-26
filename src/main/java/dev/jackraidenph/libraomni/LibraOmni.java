@@ -1,13 +1,13 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.annotation.compile.util.MetadataFileManager;
-import dev.jackraidenph.libraomni.annotation.compile.util.dto.Metadata;
-import dev.jackraidenph.libraomni.annotation.run.RuntimeProcessorsManager;
-import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.annotation.run.impl.RegisteredAnnotationProcessor;
-import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
-import dev.jackraidenph.libraomni.annotation.run.util.ModContextManager;
+import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
+import dev.jackraidenph.libraomni.util.data.Metadata;
+import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessorsManager;
+import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.annotation.runtime.RegisteredAnnotationProcessor;
+import dev.jackraidenph.libraomni.util.context.ModContext;
+import dev.jackraidenph.libraomni.util.context.ModContextManager;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -23,7 +23,6 @@ public class LibraOmni {
     public static final String MODID = "libraomni";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    //TODO REARRANGE PACKAGES
     //TODO MOVE SHIT BELOW INTO RUNTIME PROCESSOR INITIALIZATION
     //TODO ADD HIERARCHICAL CLASS LOOKUP FOR REGISTRIES
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {

@@ -1,10 +1,7 @@
-package dev.jackraidenph.libraomni.annotation.compile.util;
+package dev.jackraidenph.libraomni.util.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.jackraidenph.libraomni.annotation.compile.util.dto.ExecutableData;
-import dev.jackraidenph.libraomni.annotation.compile.util.dto.TypeData;
-import dev.jackraidenph.libraomni.annotation.compile.util.dto.VariableData;
 
 import javax.lang.model.element.*;
 import java.io.IOException;

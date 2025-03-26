@@ -1,13 +1,12 @@
-package dev.jackraidenph.libraomni.annotation.compile.impl.resource;
+package dev.jackraidenph.libraomni.annotation.compilation;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompilationProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.util.ElementData;
-import dev.jackraidenph.libraomni.annotation.compile.util.MetadataFileManager;
-import dev.jackraidenph.libraomni.annotation.compile.util.dto.Metadata;
-import dev.jackraidenph.libraomni.annotation.impl.CompilationProcessor;
-import dev.jackraidenph.libraomni.annotation.impl.RuntimeProcessor;
+import dev.jackraidenph.libraomni.annotation.CompilationProcessor;
+import dev.jackraidenph.libraomni.annotation.RuntimeProcessor;
+import dev.jackraidenph.libraomni.util.data.ElementData;
+import dev.jackraidenph.libraomni.util.data.Metadata;
+import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import net.neoforged.fml.common.Mod;
 import org.apache.commons.io.FilenameUtils;
 
@@ -20,7 +19,7 @@ import java.lang.annotation.*;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class MetadataProcessor extends AbstractCompilationProcessor {
+class MetadataProcessor extends AbstractCompilationProcessor {
 
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
     private final Map<String, Element> modClasses = new HashMap<>();
@@ -36,7 +35,7 @@ public class MetadataProcessor extends AbstractCompilationProcessor {
 
     private final Set<Class<? extends Annotation>> processableAnnotations = new HashSet<>();
 
-    public MetadataProcessor(
+    protected MetadataProcessor(
             ProcessingEnvironment processingEnvironment,
             Collection<Class<? extends Annotation>> processableAnnotations
     ) {

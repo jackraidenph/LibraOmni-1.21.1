@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compile.util;
+package dev.jackraidenph.libraomni.util.data;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;

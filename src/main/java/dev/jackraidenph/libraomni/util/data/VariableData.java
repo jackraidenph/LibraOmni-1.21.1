@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compile.util.dto;
+package dev.jackraidenph.libraomni.util.data;
 
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;

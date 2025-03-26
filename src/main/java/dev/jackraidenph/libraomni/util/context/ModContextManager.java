@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.run.util;
+package dev.jackraidenph.libraomni.util.context;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import net.neoforged.fml.ModContainer;

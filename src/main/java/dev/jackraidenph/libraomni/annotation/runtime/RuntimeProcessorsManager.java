@@ -1,11 +1,10 @@
-package dev.jackraidenph.libraomni.annotation.run;
+package dev.jackraidenph.libraomni.annotation.runtime;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.compile.util.ElementData;
-import dev.jackraidenph.libraomni.annotation.compile.util.MetadataFileManager;
-import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
-import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
+import dev.jackraidenph.libraomni.util.data.ElementData;
+import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
+import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.util.context.ModContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;

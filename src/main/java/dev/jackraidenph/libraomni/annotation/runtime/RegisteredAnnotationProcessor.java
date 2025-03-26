@@ -1,10 +1,8 @@
-package dev.jackraidenph.libraomni.annotation.run.impl;
+package dev.jackraidenph.libraomni.annotation.runtime;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.impl.Registered;
-import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor;
-import dev.jackraidenph.libraomni.annotation.run.api.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.annotation.run.util.ModContext;
+import dev.jackraidenph.libraomni.annotation.Registered;
+import dev.jackraidenph.libraomni.util.context.ModContext;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredRegister;

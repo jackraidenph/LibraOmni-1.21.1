@@ -1,6 +1,6 @@
-package dev.jackraidenph.libraomni.annotation.compile.util;
+package dev.jackraidenph.libraomni.annotation.compilation;
 
-import dev.jackraidenph.libraomni.annotation.compile.impl.AbstractCompilationProcessor.CompilationPredicate;
+import dev.jackraidenph.libraomni.annotation.compilation.AbstractCompilationProcessor.CompilationPredicate;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class CompilationPredicates {
+class CompilationPredicates {
 
     public static CompilationPredicate<Element> MUST_BE_ON_CLASS = mustBeOn(ElementKind.CLASS);
     public static CompilationPredicate<Element> MUST_BE_ON_FIELD = mustBeOn(ElementKind.FIELD);
     public static CompilationPredicate<Element> MUST_BE_ON_METHOD = mustBeOn(ElementKind.METHOD);
     public static CompilationPredicate<Element> MUST_BE_ON_CONSTRUCTOR = mustBeOn(ElementKind.CONSTRUCTOR);
 
-    public static CompilationPredicate<Element> mustBeOn(ElementKind... elementKinds) {
+    protected static CompilationPredicate<Element> mustBeOn(ElementKind... elementKinds) {
         return new CompilationPredicate<>(
                 e -> {
                     for (ElementKind kind : elementKinds) {
@@ -32,7 +32,7 @@ public class CompilationPredicates {
         );
     }
 
-    public static CompilationPredicate<Element> mustAlsoBeAnnotatedWith(String... annotations) {
+    protected static CompilationPredicate<Element> mustAlsoBeAnnotatedWith(String... annotations) {
         return new CompilationPredicate<>(
                 e -> appliedAnnotations(e).containsAll(Set.of(annotations)),
                 "Annotation must be used alongside with " + Set.of(annotations)
@@ -51,14 +51,14 @@ public class CompilationPredicates {
         return names;
     }
 
-    public static CompilationPredicate<Element> parentMustBeAnnotatedWith(String... annotations) {
+    protected static CompilationPredicate<Element> parentMustBeAnnotatedWith(String... annotations) {
         return new CompilationPredicate<>(
                 e -> appliedAnnotations(e.getEnclosingElement()).containsAll(Set.of(annotations)),
                 "Parent element must be annotated with " + Set.of(annotations)
         );
     }
 
-    public static CompilationPredicate<Element> mustHaveMatchingConstructor(String... typeParameters) {
+    protected static CompilationPredicate<Element> mustHaveMatchingConstructor(String... typeParameters) {
         return new CompilationPredicate<>(
                 e -> {
                     if (!e.getKind().equals(ElementKind.CLASS)) {
@@ -101,7 +101,7 @@ public class CompilationPredicates {
         );
     }
 
-    public static CompilationPredicate<Element> mustExtend(String... classNames) {
+    protected static CompilationPredicate<Element> mustExtend(String... classNames) {
         return new CompilationPredicate<>(
                 e -> {
                     if (!e.getKind().isDeclaredType()) {

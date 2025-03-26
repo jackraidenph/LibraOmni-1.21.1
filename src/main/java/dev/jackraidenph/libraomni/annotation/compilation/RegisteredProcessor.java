@@ -1,7 +1,6 @@
-package dev.jackraidenph.libraomni.annotation.compile.impl;
+package dev.jackraidenph.libraomni.annotation.compilation;
 
-import dev.jackraidenph.libraomni.annotation.compile.util.CompilationPredicates;
-import dev.jackraidenph.libraomni.annotation.impl.Registered;
+import dev.jackraidenph.libraomni.annotation.Registered;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;

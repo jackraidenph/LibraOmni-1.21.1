@@ -1,7 +1,6 @@
-package dev.jackraidenph.libraomni.annotation.compile.util;
+package dev.jackraidenph.libraomni.util.data;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.compile.util.dto.Metadata;
 import dev.jackraidenph.libraomni.util.ResourceUtilities;
 
 import javax.annotation.processing.Filer;

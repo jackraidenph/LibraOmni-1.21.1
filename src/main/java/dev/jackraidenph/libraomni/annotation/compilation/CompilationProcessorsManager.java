@@ -1,8 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compile;
-
-import dev.jackraidenph.libraomni.annotation.compile.api.CompilationProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.resource.MetadataProcessor;
-import dev.jackraidenph.libraomni.annotation.compile.impl.RegisteredProcessor;
+package dev.jackraidenph.libraomni.annotation.compilation;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
