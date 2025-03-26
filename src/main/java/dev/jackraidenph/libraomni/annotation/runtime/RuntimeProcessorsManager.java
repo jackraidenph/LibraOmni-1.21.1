@@ -1,10 +1,17 @@
 package dev.jackraidenph.libraomni.annotation.runtime;
 
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.util.context.ModContextManager;
 import dev.jackraidenph.libraomni.util.data.ElementData;
+import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.context.ModContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -14,10 +21,10 @@ import java.util.stream.Collectors;
 public class RuntimeProcessorsManager {
 
     private final Map<String, ElementData> elementDataMap = new HashMap<>();
-
     private final Map<Scope, List<RuntimeProcessor>> processors = new HashMap<>();
-
     private final Set<ModContext> modsToProcess = new HashSet<>();
+
+    private boolean setup = false;
 
     private static RuntimeProcessorsManager INSTANCE;
 
@@ -27,6 +34,61 @@ public class RuntimeProcessorsManager {
         }
 
         return INSTANCE;
+    }
+
+    private void createMissingContexts() {
+        ModList modList = ModList.get();
+        for (Metadata modData : MetadataFileManager.reader().readAllModData()) {
+            String id = modData.getModId();
+            if (!modList.isLoaded(id)) {
+                continue;
+            }
+
+            modList.getModContainerById(id).ifPresent(container -> {
+                ModContextManager contextManager = ModContextManager.get();
+                if (!contextManager.existsForMod(id)) {
+                    contextManager.newContext(container);
+                }
+            });
+        }
+    }
+
+    private void initContextRegisters() {
+        ModContextManager.get().contexts().forEach(ModContext::initRegisters);
+    }
+
+    private void registerMods() {
+        ModContextManager.get().contexts().forEach(RuntimeProcessorsManager.getInstance()::registerMod);
+    }
+
+    public void setup(IEventBus libraOmniEventBus) {
+        if (this.setup) {
+            LibraOmni.LOGGER.error("RuntimeProcessorManager already initialized!");
+            return;
+        }
+
+        libraOmniEventBus.addListener((FMLConstructModEvent event) -> event.enqueueWork(
+                () -> {
+                    this.createMissingContexts();
+                    this.initContextRegisters();
+                    this.registerMods();
+                    this.processAll(Scope.CONSTRUCT);
+                })
+        );
+
+        libraOmniEventBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(
+                () -> this.processAll(Scope.COMMON))
+        );
+
+        libraOmniEventBus.addListener((FMLClientSetupEvent event) -> event.enqueueWork(
+                () -> this.processAll(Scope.CLIENT))
+        );
+
+        this.setup = true;
+    }
+
+    public boolean isSetup() {
+        return this.setup;
     }
 
     private RuntimeProcessorsManager() {
