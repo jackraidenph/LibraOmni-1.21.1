@@ -70,8 +70,8 @@ public class MetadataFileManager {
         }
 
         public Set<Metadata> readAllModData() {
-            return ResourceUtilities.getResources(Metadata.fileName())
-                    .map(url -> readModDataFromLocation(url.getPath()))
+            return ResourceUtilities.getResourcesAsStrings(MetadataFileManager.FILE_ROOT + Metadata.fileName())
+                    .map(Metadata::deserialize)
                     .filter(Objects::nonNull)
                     .peek(metadata -> this.modMetadataCache.put(metadata.getModId(), metadata))
                     .collect(Collectors.toSet());
