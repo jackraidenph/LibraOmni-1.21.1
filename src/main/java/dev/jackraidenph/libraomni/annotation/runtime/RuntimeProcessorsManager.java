@@ -7,6 +7,7 @@ import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.context.ModContext;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -61,30 +62,38 @@ public class RuntimeProcessorsManager {
         ModContextManager.get().contexts().forEach(RuntimeProcessorsManager.getInstance()::registerMod);
     }
 
-    public void setup(IEventBus libraOmniEventBus) {
+    public void setup(IEventBus libraOmniEventBus, Set<ModContext> modsToRegister) {
         if (this.setup) {
             LibraOmni.LOGGER.error("RuntimeProcessorManager already initialized!");
             return;
         }
+        libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueConstruct);
+        libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueCommon);
+        libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueClient);
 
-        libraOmniEventBus.addListener((FMLConstructModEvent event) -> event.enqueueWork(
+        for (ModContext context : modsToRegister) {
+            this.registerMod(context);
+        }
+
+        this.setup = true;
+    }
+
+    private void enqueueConstruct(FMLConstructModEvent constructModEvent) {
+        constructModEvent.enqueueWork(
                 () -> {
                     this.createMissingContexts();
                     this.initContextRegisters();
                     this.registerMods();
                     this.processAll(Scope.CONSTRUCT);
-                })
-        );
+                });
+    }
 
-        libraOmniEventBus.addListener((FMLCommonSetupEvent event) -> event.enqueueWork(
-                () -> this.processAll(Scope.COMMON))
-        );
+    private void enqueueCommon(FMLCommonSetupEvent commonSetupEvent) {
+        commonSetupEvent.enqueueWork(() -> this.processAll(Scope.COMMON));
+    }
 
-        libraOmniEventBus.addListener((FMLClientSetupEvent event) -> event.enqueueWork(
-                () -> this.processAll(Scope.CLIENT))
-        );
-
-        this.setup = true;
+    private void enqueueClient(FMLClientSetupEvent clientSetupEvent) {
+        clientSetupEvent.enqueueWork(() -> this.processAll(Scope.CLIENT));
     }
 
     public boolean isSetup() {
