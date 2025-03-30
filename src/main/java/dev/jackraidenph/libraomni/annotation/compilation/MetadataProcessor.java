@@ -4,11 +4,13 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import dev.jackraidenph.libraomni.annotation.CompilationProcessor;
 import dev.jackraidenph.libraomni.annotation.RuntimeProcessor;
+import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import net.neoforged.fml.common.Mod;
 import org.apache.commons.io.FilenameUtils;
+import org.checkerframework.checker.units.qual.C;
 
 
 import javax.annotation.processing.*;
@@ -24,13 +26,15 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
     private final Map<String, Element> modClasses = new HashMap<>();
     private final Map<String, Metadata> modMetadata = new HashMap<>();
-    private final SetMultimap<String, String> modRuntimeProcessors = HashMultimap.create();
+    private final SetMultimap<String, String> modConstructRuntimeProcessors = HashMultimap.create();
+    private final SetMultimap<String, String> modCommonRuntimeProcessors = HashMultimap.create();
+    private final SetMultimap<String, String> modClientRuntimeProcessors = HashMultimap.create();
     private final SetMultimap<String, String> modCompilationProcessors = HashMultimap.create();
     private final Map<String, ElementData> modElementData = new HashMap<>();
 
     private final Set<Element> runtimeElements = new HashSet<>();
 
-    private final Set<Element> runtimeProcessorElements = new HashSet<>();
+    private final SetMultimap<Scope, Element> runtimeProcessorElements = HashMultimap.create();
     private final Set<Element> compilationProcessorElements = new HashSet<>();
 
     private final Set<Class<? extends Annotation>> processableAnnotations = new HashSet<>();
@@ -93,9 +97,12 @@ class MetadataProcessor extends AbstractCompilationProcessor {
         this.runtimeElements.addAll(
                 roundEnvironment.getElementsAnnotatedWithAny(this.processableAnnotations)
         );
-        this.runtimeProcessorElements.addAll(
-                roundEnvironment.getElementsAnnotatedWith(RuntimeProcessor.class)
-        );
+
+        for (Element e : roundEnvironment.getElementsAnnotatedWith(RuntimeProcessor.class)) {
+            RuntimeProcessor annotation = e.getAnnotation(RuntimeProcessor.class);
+            this.runtimeProcessorElements.get(annotation.value()).add(e);
+        }
+
         this.compilationProcessorElements.addAll(
                 roundEnvironment.getElementsAnnotatedWith(CompilationProcessor.class)
         );
@@ -136,23 +143,31 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private void addRuntimeProcessors() {
-        for (Element processorElement : this.runtimeProcessorElements) {
-            String name = ((TypeElement) processorElement).getQualifiedName().toString();
-            String pkg = ((PackageElement) processorElement.getEnclosingElement()).getQualifiedName().toString();
-            String modId = this.modIdByPackage(pkg);
-            if (modId == null) {
-                this.messager().printWarning("Got runtime processor [" + name + "], but failed to compute the owning mod");
-                continue;
-            }
+        for (Entry<Scope, Collection<Element>> entry : this.runtimeProcessorElements.asMap().entrySet()) {
+            for (Element element : entry.getValue()) {
+                String name = ((TypeElement) element).getQualifiedName().toString();
+                String pkg = ((PackageElement) element.getEnclosingElement()).getQualifiedName().toString();
+                String modId = this.modIdByPackage(pkg);
+                if (modId == null) {
+                    this.messager().printWarning("Got runtime processor [" + name + "], but failed to compute the owning mod");
+                    continue;
+                }
 
-            this.modRuntimeProcessors.get(modId).add(name);
+                switch (entry.getKey()) {
+                    case CONSTRUCT -> this.modConstructRuntimeProcessors.get(modId).add(name);
+                    case COMMON -> this.modCommonRuntimeProcessors.get(modId).add(name);
+                    case CLIENT -> this.modClientRuntimeProcessors.get(modId).add(name);
+                }
+            }
         }
     }
 
     private void addProcessorsToMetadata() {
         for (String mod : modClasses.keySet()) {
             Metadata metadata = this.getOrCreateMetadata(mod);
-            this.modRuntimeProcessors.get(mod).forEach(metadata::addRuntimeProcessorClass);
+            this.modConstructRuntimeProcessors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(Scope.CONSTRUCT, rp));
+            this.modCommonRuntimeProcessors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(Scope.COMMON, rp));
+            this.modClientRuntimeProcessors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(Scope.CLIENT, rp));
             this.modCompilationProcessors.get(mod).forEach(metadata::addCompilationProcessorClass);
         }
     }

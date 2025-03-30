@@ -1,13 +1,18 @@
 package dev.jackraidenph.libraomni.util.data;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Metadata {
@@ -20,8 +25,8 @@ public class Metadata {
     private final String modId;
 
     private String elementDataPath = null;
-    private Set<String> runtimeProcessors = null;
-    private Set<String> compilationProcessors = null;
+    private final Map<Scope, Set<String>> runtimeProcessors = new HashMap<>();
+    private final Set<String> compilationProcessors = new HashSet<>();
 
     public Metadata(String modId) {
         this.modId = modId;
@@ -35,28 +40,20 @@ public class Metadata {
         return elementDataPath;
     }
 
-    public Set<String> getRuntimeProcessors() {
-        if (runtimeProcessors == null) {
-            runtimeProcessors = new HashSet<>();
-        }
-
-        return runtimeProcessors;
+    public Set<String> getRuntimeProcessors(Scope scope) {
+        return runtimeProcessors.computeIfAbsent(scope, k -> new HashSet<>());
     }
 
     public Set<String> getCompilationProcessors() {
-        if (compilationProcessors == null) {
-            compilationProcessors = new HashSet<>();
-        }
-
-        return compilationProcessors;
+        return this.compilationProcessors;
     }
 
     public void setElementDataPath(String path) {
         this.elementDataPath = path;
     }
 
-    public void addRuntimeProcessorClass(String qualifiedName) {
-        this.getRuntimeProcessors().add(qualifiedName);
+    public void addRuntimeProcessorClass(Scope scope, String qualifiedName) {
+        this.getRuntimeProcessors(scope).add(qualifiedName);
     }
 
     public void addCompilationProcessorClass(String qualifiedName) {
