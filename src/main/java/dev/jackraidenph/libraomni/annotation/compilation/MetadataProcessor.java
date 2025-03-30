@@ -10,7 +10,6 @@ import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import net.neoforged.fml.common.Mod;
 import org.apache.commons.io.FilenameUtils;
-import org.checkerframework.checker.units.qual.C;
 
 
 import javax.annotation.processing.*;
