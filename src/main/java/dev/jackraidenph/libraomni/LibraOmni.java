@@ -25,7 +25,6 @@ public class LibraOmni {
     public static final String MODID = "libraomni";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    //TODO ADD HIERARCHICAL CLASS LOOKUP FOR REGISTRIES
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         RuntimeProcessorsManager runtimeProcessorsManager = RuntimeProcessorsManager.getInstance();
         runtimeProcessorsManager.registerProcessor(Scope.CONSTRUCT, new RegisteredAnnotationProcessor());

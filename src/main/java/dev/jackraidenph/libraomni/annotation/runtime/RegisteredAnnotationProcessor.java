@@ -47,7 +47,7 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor {
             } else if (Item.class.isAssignableFrom(clazz)) {
                 this.registerItem(modContext.itemsRegister(), id, emptyConstructor);
             } else {
-                DeferredRegister<T> register = modContext.getRegister(clazz);
+                DeferredRegister<? super T> register = modContext.getRegister(clazz);
                 register.register(id, () -> safeConstruct(emptyConstructor));
             }
         } catch (NoSuchMethodException noSuchMethodException) {

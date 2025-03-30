@@ -11,7 +11,7 @@ import java.util.*;
 public class ModContext {
 
     private final ModContainer modContainer;
-    private final Map<Class<?>, DeferredRegister<?>> registersMap;
+    private final Map<Class<?>, DeferredRegister<?>> registersMap = new HashMap<>();
 
     private DeferredRegister.Blocks blocksRegister;
     private DeferredRegister.Items itemsRegister;
@@ -20,8 +20,6 @@ public class ModContext {
 
     public ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
-        this.registersMap = new HashMap<>();
-
         this.initRegistries();
     }
 
@@ -45,13 +43,30 @@ public class ModContext {
         return this.blocksRegister;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> DeferredRegister<T> getRegister(Class<T> resourceKey) {
-        return (DeferredRegister<T>) registersMap.get(resourceKey);
+    public <T> DeferredRegister<T> getRegister(Class<? extends T> clazz) {
+        Class<? super T> superclass = this.tryFindSuperclass(this.registersMap.keySet(), clazz);
+        if (superclass == null) {
+            return null;
+        }
+        //Checked via previous isAssignableFrom check
+        //noinspection unchecked
+        return (DeferredRegister<T>) this.registersMap.get(superclass);
     }
 
-    private <T> void addRegister(Class<T> resourceKey, DeferredRegister<T> register) {
-        this.registersMap.put(resourceKey, register);
+    private <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<? extends T> child) {
+        for (Class<?> superclass : classes) {
+            if (superclass.isAssignableFrom(child)) {
+                //Checked via isAssignableFrom
+                //noinspection unchecked
+                return (Class<T>) superclass;
+            }
+        }
+
+        return null;
+    }
+
+    private <T> void addRegister(Class<T> clazz, DeferredRegister<T> register) {
+        this.registersMap.put(clazz, register);
     }
 
     public Collection<DeferredRegister<?>> allRegisters() {
