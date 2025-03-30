@@ -7,6 +7,7 @@ import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.context.ModContext;
+import dev.jackraidenph.libraomni.util.data.MetadataFileManager.Reader;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
@@ -16,6 +17,8 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,6 +70,9 @@ public class RuntimeProcessorsManager {
             LibraOmni.LOGGER.error("RuntimeProcessorManager already initialized!");
             return;
         }
+
+        this.registerAnnotatedProcessors();
+
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueConstruct);
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueCommon);
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueClient);
@@ -76,6 +82,32 @@ public class RuntimeProcessorsManager {
         }
 
         this.setup = true;
+    }
+
+    private void registerAnnotatedProcessors() {
+        Reader reader = MetadataFileManager.reader();
+        for (Metadata metadata : reader.readAllModData()) {
+            for (Scope scope : Scope.values()) {
+                for (String runtimeProcessorClass : metadata.getRuntimeProcessors(scope)) {
+                    try {
+                        //Potential exception is handled
+                        //noinspection unchecked
+                        Class<? extends RuntimeProcessor> clazz = (Class<? extends RuntimeProcessor>) Class.forName(runtimeProcessorClass);
+                        Constructor<? extends RuntimeProcessor> constructor = clazz.getDeclaredConstructor();
+                        RuntimeProcessor runtimeProcessor = constructor.newInstance();
+                        this.registerProcessor(scope, runtimeProcessor);
+                    } catch (ClassNotFoundException classNotFoundException) {
+                        LibraOmni.LOGGER.error("Failed to instantiate {}, the class does not exist!", runtimeProcessorClass);
+                    } catch (ClassCastException classCastException) {
+                        throw new IllegalArgumentException(runtimeProcessorClass + " does not implement RuntimeProcessor");
+                    } catch (NoSuchMethodException noConstructor) {
+                        throw new IllegalStateException("No empty constructor found for " + runtimeProcessorClass);
+                    } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
     }
 
     private void enqueueConstruct(FMLConstructModEvent constructModEvent) {
