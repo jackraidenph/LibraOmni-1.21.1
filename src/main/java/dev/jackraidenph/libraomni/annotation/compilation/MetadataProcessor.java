@@ -125,7 +125,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
         for (Element processorElement : this.compilationProcessorElements) {
             String name = ((TypeElement) processorElement).getQualifiedName().toString();
             String pkg = ((PackageElement) processorElement.getEnclosingElement()).getQualifiedName().toString();
-            System.out.println(pkg);
             String modId = this.modIdByPackage(pkg);
             if (modId == null) {
                 this.messager().printWarning("Got compilation processor [" + name + "], but failed to compute the owning mod");
