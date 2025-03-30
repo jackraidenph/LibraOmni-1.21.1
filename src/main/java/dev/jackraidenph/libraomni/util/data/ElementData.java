@@ -20,7 +20,6 @@ public class ElementData {
     private static final Gson GSON = new GsonBuilder()
             .disableHtmlEscaping()
             .setPrettyPrinting()
-            .registerTypeAdapterFactory(EmptySetToNullFactory.INSTANCE)
             .create();
 
     private static final String FILE_NAME_SUFFIX = "elements";
