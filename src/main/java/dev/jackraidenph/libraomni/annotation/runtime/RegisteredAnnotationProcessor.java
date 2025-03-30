@@ -82,11 +82,6 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor {
     }
 
     @Override
-    public Scope getScope() {
-        return Scope.CONSTRUCT;
-    }
-
-    @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotations() {
         return Set.of(
                 Registered.class

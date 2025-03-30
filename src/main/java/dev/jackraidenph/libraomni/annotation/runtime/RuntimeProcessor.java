@@ -15,8 +15,6 @@ public interface RuntimeProcessor {
 
     Set<Class<? extends Annotation>> getSupportedAnnotations();
 
-    Scope getScope();
-
     enum Scope {
         CONSTRUCT,
         COMMON,
