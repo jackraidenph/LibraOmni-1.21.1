@@ -1,7 +1,5 @@
 package dev.jackraidenph.libraomni.util.data;
 
-import dev.jackraidenph.libraomni.LibraOmni;
-
 import javax.lang.model.element.TypeElement;
 import java.util.Map;
 import java.util.WeakHashMap;

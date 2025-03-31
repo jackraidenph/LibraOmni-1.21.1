@@ -1,12 +1,12 @@
 package dev.jackraidenph.libraomni.annotation.runtime;
 
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.util.context.ModContext;
 import dev.jackraidenph.libraomni.util.context.ModContextManager;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
-import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.util.context.ModContext;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager.Reader;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;

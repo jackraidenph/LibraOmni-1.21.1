@@ -15,12 +15,16 @@ import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import net.neoforged.fml.common.Mod;
 import org.apache.commons.io.FilenameUtils;
 
-
-import javax.annotation.processing.*;
-import javax.lang.model.element.*;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
 import java.io.IOException;
-import java.lang.annotation.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.Map.Entry;
