@@ -43,7 +43,7 @@ public class ModContextManager {
     }
 
     private ModContext createContext(ModContainer modContainer) {
-        ModContext modContext = new ModContext(modContainer);
+        ModContext modContext = ModContext.builder(modContainer).build();
         this.addContext(modContainer.getModId(), modContext);
         LibraOmni.LOGGER.info("Created context for [{}]", modContainer.getModId());
         return modContext;

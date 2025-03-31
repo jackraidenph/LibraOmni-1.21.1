@@ -18,16 +18,15 @@ public class ModContext {
 
     private boolean registersRegistered = false;
 
-    public ModContext(ModContainer modContainer) {
+    private ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
-        this.initRegistries();
     }
 
     public String modId() {
         return this.modContainer.getModId();
     }
 
-    private void initRegistries() {
+    private void createBlockAndItemRegisters() {
         this.blocksRegister = DeferredRegister.createBlocks(modContainer.getModId());
         this.itemsRegister = DeferredRegister.createItems(modContainer.getModId());
 
@@ -82,6 +81,8 @@ public class ModContext {
             throw new IllegalStateException("Registers for [" + this.modId() + "] were already initialized");
         }
 
+        this.createBlockAndItemRegisters();
+
         for (DeferredRegister<?> deferredRegister : this.allRegisters()) {
             IEventBus eventBus = this.modContainer().getEventBus();
             if (eventBus != null) {
@@ -89,5 +90,27 @@ public class ModContext {
             }
         }
         this.registersRegistered = true;
+    }
+
+    public static Builder builder(ModContainer modContainer) {
+        return new Builder(modContainer);
+    }
+
+    public static class Builder {
+        private final ModContext modContext;
+
+
+        public Builder(ModContainer modContainer) {
+            this.modContext = new ModContext(modContainer);
+        }
+
+        public <T> Builder addRegister(Class<T> type, DeferredRegister<T> register) {
+            this.modContext.addRegister(type, register);
+            return this;
+        }
+
+        public ModContext build() {
+            return this.modContext;
+        }
     }
 }
