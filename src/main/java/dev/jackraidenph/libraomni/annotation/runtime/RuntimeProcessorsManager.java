@@ -40,18 +40,6 @@ public class RuntimeProcessorsManager {
         return INSTANCE;
     }
 
-    private void createMissingContexts() {
-        ModList modList = ModList.get();
-        for (Metadata modData : MetadataFileManager.getReader().readAllModData()) {
-            String id = modData.getModId();
-            if (!modList.isLoaded(id)) {
-                continue;
-            }
-
-            ModContextManager.getInstance().createContext(id);
-        }
-    }
-
     private void initContextRegisters() {
         ModContextManager.getInstance().contexts().forEach(ModContext::initRegisters);
     }
