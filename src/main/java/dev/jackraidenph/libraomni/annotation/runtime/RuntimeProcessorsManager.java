@@ -42,7 +42,7 @@ public class RuntimeProcessorsManager {
 
     private void createMissingContexts() {
         ModList modList = ModList.get();
-        for (Metadata modData : MetadataFileManager.reader().readAllModData()) {
+        for (Metadata modData : MetadataFileManager.getReader().readAllModData()) {
             String id = modData.getModId();
             if (!modList.isLoaded(id)) {
                 continue;
@@ -85,7 +85,7 @@ public class RuntimeProcessorsManager {
     }
 
     private void registerAnnotatedProcessors() {
-        Reader reader = MetadataFileManager.reader();
+        Reader reader = MetadataFileManager.getReader();
         for (Metadata metadata : reader.readAllModData()) {
             for (Scope scope : Scope.values()) {
                 for (String runtimeProcessorClass : metadata.getRuntimeProcessors(scope)) {
@@ -140,7 +140,7 @@ public class RuntimeProcessorsManager {
             return elementDataMap.get(modId).getElements();
         }
 
-        ElementData elementData = MetadataFileManager.reader().readElementData(modId);
+        ElementData elementData = MetadataFileManager.getReader().readElementData(modId);
         if (elementData != null) {
             this.elementDataMap.put(modId, elementData);
             return elementData.getElements();

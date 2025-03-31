@@ -23,7 +23,7 @@ public class MetadataFileManager {
 
     }
 
-    public static Reader reader() {
+    public static Reader getReader() {
         if (READER == null) {
             READER = new Reader();
         }
@@ -31,7 +31,7 @@ public class MetadataFileManager {
         return READER;
     }
 
-    public static Writer writer(Filer filer) {
+    public static Writer newWriter(Filer filer) {
         return new Writer(filer);
     }
 

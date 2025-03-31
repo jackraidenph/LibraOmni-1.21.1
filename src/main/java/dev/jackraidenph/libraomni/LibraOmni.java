@@ -33,7 +33,7 @@ public class LibraOmni {
     }
 
     private Set<ModContext> gatherModsToProcess() {
-        Reader reader = MetadataFileManager.reader();
+        Reader reader = MetadataFileManager.getReader();
         ModContextManager contextManager = ModContextManager.getInstance();
         ModList modList = ModList.get();
 

@@ -143,7 +143,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private void serializeElementData() {
-        MetadataFileManager.Writer writer = MetadataFileManager.writer(this.filer());
+        MetadataFileManager.Writer writer = MetadataFileManager.newWriter(this.filer());
 
         for (ElementData data : modElementData.values()) {
             if (data.isEmpty()) {
@@ -166,7 +166,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private void serializeMetadata() {
-        MetadataFileManager.Writer writer = MetadataFileManager.writer(this.filer());
+        MetadataFileManager.Writer writer = MetadataFileManager.newWriter(this.filer());
 
         for (Metadata metadata : this.modMetadata.values()) {
             try {
