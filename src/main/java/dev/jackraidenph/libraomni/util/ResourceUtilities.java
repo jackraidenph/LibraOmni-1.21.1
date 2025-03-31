@@ -1,7 +1,5 @@
 package dev.jackraidenph.libraomni.util;
 
-import dev.jackraidenph.libraomni.LibraOmni;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -11,12 +9,16 @@ import java.util.stream.Stream;
 
 public class ResourceUtilities {
 
+    private static ClassLoader classLoader() {
+        return ResourceUtilities.class.getClassLoader();
+    }
+
     public static InputStream openResourceStream(String resourceLocation) {
-        return LibraOmni.classLoader().getResourceAsStream(resourceLocation);
+        return classLoader().getResourceAsStream(resourceLocation);
     }
 
     public static Stream<URL> getResources(String resourceLocation) {
-        return LibraOmni.classLoader().resources(resourceLocation);
+        return classLoader().resources(resourceLocation);
     }
 
     public static Stream<byte[]> getResourcesAsBytes(String resourceLocation) {
@@ -24,6 +26,7 @@ public class ResourceUtilities {
             try (InputStream is = url.openStream()) {
                 return is.readAllBytes();
             } catch (IOException ioException) {
+                ioException.printStackTrace();
                 return null;
             }
         }).filter(Objects::nonNull);
