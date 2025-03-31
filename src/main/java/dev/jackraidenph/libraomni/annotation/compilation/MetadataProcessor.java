@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 class MetadataProcessor extends AbstractCompilationProcessor {
 
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
-    private final Map<String, Element> modClasses = new HashMap<>();
+    private final Set<String> modClasses = new HashSet<>();
     private final Map<String, Metadata> modMetadata = new HashMap<>();
     private final SetMultimap<String, String> modConstructRuntimeProcessors = HashMultimap.create();
     private final SetMultimap<String, String> modCommonRuntimeProcessors = HashMultimap.create();
@@ -68,7 +68,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
         }
 
         this.packageToModId.put(pkg, modId);
-        this.modClasses.put(modId, modClass);
+        this.modClasses.add(modId);
 
         messager.printNote("Using @Mod[" + modId + "] annotation as annotation scan root");
     }
@@ -101,11 +101,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private void createModMetadata() {
-        this.modClasses
-                .keySet()
-                .forEach(
-                        id -> this.modMetadata.computeIfAbsent(id, Metadata::new)
-                );
+        this.modClasses.forEach(id -> this.modMetadata.computeIfAbsent(id, Metadata::new));
     }
 
     private void associateElements() {
@@ -140,7 +136,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private void addProcessorsToMetadata() {
-        for (String mod : modClasses.keySet()) {
+        for (String mod : modClasses) {
             Metadata metadata = this.getOrCreateMetadata(mod);
             this.modConstructRuntimeProcessors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(Scope.CONSTRUCT, rp));
             this.modCommonRuntimeProcessors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(Scope.COMMON, rp));
