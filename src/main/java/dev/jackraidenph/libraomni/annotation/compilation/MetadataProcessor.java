@@ -2,7 +2,6 @@ package dev.jackraidenph.libraomni.annotation.compilation;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import dev.jackraidenph.libraomni.annotation.CompilationProcessor;
 import dev.jackraidenph.libraomni.annotation.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.data.ElementData;
@@ -28,13 +27,11 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     private final SetMultimap<String, String> modConstructRuntimeProcessors = HashMultimap.create();
     private final SetMultimap<String, String> modCommonRuntimeProcessors = HashMultimap.create();
     private final SetMultimap<String, String> modClientRuntimeProcessors = HashMultimap.create();
-    private final SetMultimap<String, String> modCompilationProcessors = HashMultimap.create();
     private final Map<String, ElementData> modElementData = new HashMap<>();
 
     private final Set<Element> runtimeElements = new HashSet<>();
 
     private final SetMultimap<Scope, Element> runtimeProcessorElements = HashMultimap.create();
-    private final Set<Element> compilationProcessorElements = new HashSet<>();
 
     private final Set<Class<? extends Annotation>> processableAnnotations = new HashSet<>();
 
@@ -101,10 +98,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
             RuntimeProcessor annotation = e.getAnnotation(RuntimeProcessor.class);
             this.runtimeProcessorElements.get(annotation.value()).add(e);
         }
-
-        this.compilationProcessorElements.addAll(
-                roundEnvironment.getElementsAnnotatedWith(CompilationProcessor.class)
-        );
     }
 
     private void createModMetadata() {
@@ -123,20 +116,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
             }
 
             this.modElementData.computeIfAbsent(modId, ElementData::new).addElement(element);
-        }
-    }
-
-    private void addCompilationProcessors() {
-        for (Element processorElement : this.compilationProcessorElements) {
-            String name = ((TypeElement) processorElement).getQualifiedName().toString();
-            String pkg = ((PackageElement) processorElement.getEnclosingElement()).getQualifiedName().toString();
-            String modId = this.modIdByPackage(pkg);
-            if (modId == null) {
-                this.messager().printWarning("Got compilation processor [" + name + "], but failed to compute the owning mod");
-                continue;
-            }
-
-            this.modCompilationProcessors.get(modId).add(name);
         }
     }
 
@@ -166,7 +145,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
             this.modConstructRuntimeProcessors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(Scope.CONSTRUCT, rp));
             this.modCommonRuntimeProcessors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(Scope.COMMON, rp));
             this.modClientRuntimeProcessors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(Scope.CLIENT, rp));
-            this.modCompilationProcessors.get(mod).forEach(metadata::addCompilationProcessorClass);
         }
     }
 
@@ -212,7 +190,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     public void finish(RoundEnvironment roundEnvironment) {
         this.createModMetadata();
         this.associateElements();
-        this.addCompilationProcessors();
         this.addRuntimeProcessors();
         this.addProcessorsToMetadata();
         this.serializeElementData();

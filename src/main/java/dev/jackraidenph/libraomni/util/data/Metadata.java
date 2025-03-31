@@ -24,7 +24,6 @@ public class Metadata {
 
     private String elementDataPath = null;
     private final Map<Scope, Set<String>> runtimeProcessors = new HashMap<>();
-    private final Set<String> compilationProcessors = new HashSet<>();
 
     public Metadata(String modId) {
         this.modId = modId;
@@ -42,20 +41,12 @@ public class Metadata {
         return runtimeProcessors.computeIfAbsent(scope, k -> new HashSet<>());
     }
 
-    public Set<String> getCompilationProcessors() {
-        return this.compilationProcessors;
-    }
-
     public void setElementDataPath(String path) {
         this.elementDataPath = path;
     }
 
     public void addRuntimeProcessorClass(Scope scope, String qualifiedName) {
         this.getRuntimeProcessors(scope).add(qualifiedName);
-    }
-
-    public void addCompilationProcessorClass(String qualifiedName) {
-        this.getCompilationProcessors().add(qualifiedName);
     }
 
     private static final String FILE_NAME_SUFFIX = "metadata";
