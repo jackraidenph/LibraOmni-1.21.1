@@ -24,7 +24,7 @@ public class ElementData {
 
     private static final String FILE_NAME_SUFFIX = "elements";
 
-    private final Set<TypeData> classes = new HashSet<>();
+    private final Set<String> classes = new HashSet<>();
     private final Set<VariableData> fields = new HashSet<>();
     private final Set<ExecutableData> methods = new HashSet<>();
     private final Set<ExecutableData> constructors = new HashSet<>();
@@ -80,7 +80,7 @@ public class ElementData {
     }
 
     public void addClass(TypeElement typeElement) {
-        this.classes.add(new TypeData(typeElement));
+        this.classes.add(typeElement.getQualifiedName().toString());
     }
 
     public void addField(VariableElement variableElement) {
@@ -96,7 +96,7 @@ public class ElementData {
     }
 
     public Set<Class<?>> getClasses() {
-        return classes.stream().map(TypeData::asClass).collect(Collectors.toSet());
+        return classes.stream().map(TypeData::classOrPrimitive).collect(Collectors.toSet());
     }
 
     public Set<Field> getFields() {

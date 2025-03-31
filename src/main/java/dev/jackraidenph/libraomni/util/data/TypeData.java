@@ -25,7 +25,7 @@ public record TypeData(String name) {
             "char", Character.TYPE
     );
 
-    private static Class<?> classOrPrimitive(String name) {
+    public static Class<?> classOrPrimitive(String name) {
         Class<?> primitive = PRIMITIVE_TYPES_MAP.get(name);
         if (primitive != null) {
             return primitive;
