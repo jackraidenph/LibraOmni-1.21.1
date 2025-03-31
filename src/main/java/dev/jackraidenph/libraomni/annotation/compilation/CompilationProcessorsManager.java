@@ -38,23 +38,25 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         for (CompilationProcessor compilationProcessor : this.processors) {
             if (roundEnvironment.processingOver()) {
                 messager.printNote("Finishing " + compilationProcessor + "...");
-                boolean successfulFinish = compilationProcessor.finish(roundEnvironment);
-                if (!successfulFinish) {
-                    messager.printError("There was an error finishing either of compile processors");
+                try {
+                    compilationProcessor.finish(roundEnvironment);
+                } catch (Exception processorException) {
+                    messager.printError("There was an error finishing a compile processor");
                     return false;
                 }
                 continue;
             }
 
             messager.printNote("Invoking " + compilationProcessor + "...");
-            boolean successfulRound = compilationProcessor.checkAndProcessRound(roundEnvironment);
-            if (!successfulRound) {
-                messager.printError("There was an error during a round of either of compile processors");
+            try {
+                compilationProcessor.checkAndProcessRound(roundEnvironment);
+            } catch (Exception processorException) {
+                messager.printError("There was an error during a round a compile processor");
                 return false;
             }
         }
 
-        return true;
+        return false;
     }
 
     private void addProcessors(CompilationProcessor... processors) {

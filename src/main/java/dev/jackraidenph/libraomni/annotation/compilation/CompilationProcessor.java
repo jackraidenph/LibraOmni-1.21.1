@@ -7,9 +7,9 @@ import java.util.Set;
 
 public interface CompilationProcessor {
 
-    boolean checkAndProcessRound(RoundEnvironment roundEnvironment);
+    void checkAndProcessRound(RoundEnvironment roundEnvironment);
 
-    boolean finish(RoundEnvironment roundEnvironment);
+    void finish(RoundEnvironment roundEnvironment);
 
     Set<Class<? extends Annotation>> supportedAnnotations();
 

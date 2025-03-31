@@ -90,7 +90,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     //METADATA PIPELINE START
 
     @Override
-    public boolean processRound(RoundEnvironment roundEnvironment) {
+    public void processRound(RoundEnvironment roundEnvironment) {
         roundEnvironment.getElementsAnnotatedWith(Mod.class).forEach(this::addMod);
 
         this.runtimeElements.addAll(
@@ -105,7 +105,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
         this.compilationProcessorElements.addAll(
                 roundEnvironment.getElementsAnnotatedWith(CompilationProcessor.class)
         );
-        return true;
     }
 
     private void createModMetadata() {
@@ -210,7 +209,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     @Override
-    public boolean finish(RoundEnvironment roundEnvironment) {
+    public void finish(RoundEnvironment roundEnvironment) {
         this.createModMetadata();
         this.associateElements();
         this.addCompilationProcessors();
@@ -218,7 +217,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
         this.addProcessorsToMetadata();
         this.serializeElementData();
         this.serializeMetadata();
-        return true;
     }
 
     //METADATA PIPELINE END

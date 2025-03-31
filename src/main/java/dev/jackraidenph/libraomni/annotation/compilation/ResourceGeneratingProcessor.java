@@ -53,15 +53,10 @@ public abstract class ResourceGeneratingProcessor extends AbstractCompilationPro
     }
 
     @Override
-    public final boolean finish(RoundEnvironment roundEnvironment) {
+    public final void finish(RoundEnvironment roundEnvironment) {
         Messager messager = this.getProcessingEnvironment().getMessager();
 
-        boolean finishRes = super.finish(roundEnvironment);
-
-        if (!finishRes) {
-            return false;
-        }
-
+        super.finish(roundEnvironment);
 
         Set<TransientResource> createdFiles = this.output(roundEnvironment);
 
@@ -88,9 +83,6 @@ public abstract class ResourceGeneratingProcessor extends AbstractCompilationPro
             }
             messager.printNote("Files created during the run: " + fileNames);
         }
-
-
-        return true;
     }
 
     public Set<TransientResource> output(RoundEnvironment roundEnvironment) {

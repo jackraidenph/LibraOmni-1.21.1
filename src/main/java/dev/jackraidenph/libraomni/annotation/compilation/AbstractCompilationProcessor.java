@@ -15,13 +15,11 @@ public abstract class AbstractCompilationProcessor implements CompilationProcess
         this.processingEnvironment = processingEnvironment;
     }
 
-    public boolean processRound(RoundEnvironment roundEnvironment) {
-        return true;
+    public void processRound(RoundEnvironment roundEnvironment) {
     }
 
     @Override
-    public boolean finish(RoundEnvironment roundEnvironment) {
-        return true;
+    public void finish(RoundEnvironment roundEnvironment) {
     }
 
     public Set<CompilationPredicate<Element>> predicates() {
@@ -52,11 +50,11 @@ public abstract class AbstractCompilationProcessor implements CompilationProcess
     }
 
     @Override
-    public final boolean checkAndProcessRound(RoundEnvironment roundEnvironment) {
+    public final void checkAndProcessRound(RoundEnvironment roundEnvironment) {
         if (!this.processPredicates(roundEnvironment)) {
-            return false;
+            throw new IllegalStateException("Predicate check failed");
         }
-        return this.processRound(roundEnvironment);
+        this.processRound(roundEnvironment);
     }
 
     @Override
