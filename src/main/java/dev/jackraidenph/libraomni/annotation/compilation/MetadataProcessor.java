@@ -24,7 +24,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
     private final Set<String> modClasses = new HashSet<>();
     private final Map<String, Metadata> modMetadata = new HashMap<>();
-    private final Map<Scope, SetMultimap<String, String>> modRuntimeProcessorsPerScope = new HashMap<>();
+    private final Map<String, SetMultimap<Scope, String>> modRuntimeProcessorsPerScope = new HashMap<>();
     private final Map<String, ElementData> modElementData = new HashMap<>();
 
     private final Set<Element> runtimeElements = new HashSet<>();
@@ -115,6 +115,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
 
     private void addRuntimeProcessors() {
         for (Entry<Scope, Collection<Element>> entry : this.runtimeProcessorElements.asMap().entrySet()) {
+            Scope scope = entry.getKey();
             for (Element element : entry.getValue()) {
                 String name = ((TypeElement) element).getQualifiedName().toString();
                 String pkg = ((PackageElement) element.getEnclosingElement()).getQualifiedName().toString();
@@ -124,7 +125,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
                     continue;
                 }
 
-                this.modRuntimeProcessorsPerScope.computeIfAbsent(entry.getKey(), k -> HashMultimap.create()).get(modId).add(name);
+                this.modRuntimeProcessorsPerScope.computeIfAbsent(modId, k -> HashMultimap.create()).get(scope).add(name);
             }
         }
     }
@@ -132,11 +133,11 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     private void addProcessorsToMetadata() {
         for (String mod : modClasses) {
             Metadata metadata = this.getOrCreateMetadata(mod);
-            for (Scope scope : Scope.values()) {
-                SetMultimap<String, String> processors = this.modRuntimeProcessorsPerScope.get(scope);
-                if (processors != null) {
-                    processors.get(mod).forEach(rp -> metadata.addRuntimeProcessorClass(scope, rp));
-                }
+            SetMultimap<Scope, String> processors = this.modRuntimeProcessorsPerScope.get(mod);
+            for (Entry<Scope, Collection<String>> perScopeProcessors : processors.asMap().entrySet()) {
+                Scope scope = perScopeProcessors.getKey();
+                Collection<String> scopeProcessors = perScopeProcessors.getValue();
+                metadata.getRuntimeProcessors(scope).addAll(scopeProcessors);
             }
         }
     }
