@@ -2,8 +2,13 @@ package dev.jackraidenph.libraomni.annotation.compilation;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.util.ResourceUtilities;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
@@ -16,8 +21,10 @@ import javax.lang.model.element.*;
 import javax.tools.FileObject;
 import java.io.IOException;
 import java.lang.annotation.*;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 class MetadataProcessor extends AbstractCompilationProcessor {
 
@@ -33,12 +40,37 @@ class MetadataProcessor extends AbstractCompilationProcessor {
 
     private final Set<Class<? extends Annotation>> processableAnnotations = new HashSet<>();
 
-    protected MetadataProcessor(
-            ProcessingEnvironment processingEnvironment,
-            Collection<Class<? extends Annotation>> processableAnnotations
-    ) {
+    protected MetadataProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
-        this.processableAnnotations.addAll(processableAnnotations);
+        this.registerRuntimeAnnotations(processingEnvironment.getMessager());
+    }
+
+    public static final String RUNTIME_ANNOTATIONS_CONFIG = LibraOmni.MODID + ".runtime.json";
+    private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Type STRING_SET_TYPE = new TypeToken<Set<String>>() {
+    }.getType();
+
+    private Set<String> readProcessableAnnotations() {
+        return ResourceUtilities.getResourcesAsStrings(RUNTIME_ANNOTATIONS_CONFIG)
+                .map(
+                        s -> (Set<String>) GSON.fromJson(s, STRING_SET_TYPE)
+                ).flatMap(Set::stream)
+                .collect(Collectors.toSet());
+    }
+
+    private void registerRuntimeAnnotations(Messager messager) {
+        Set<String> annotations = this.readProcessableAnnotations();
+        for (String className : annotations) {
+            try {
+                Class<?> clazz = Class.forName(className);
+                if (Annotation.class.isAssignableFrom(clazz)) {
+                    this.processableAnnotations.add((Class<? extends Annotation>) clazz);
+                    messager.printNote("[" + className + "] was added as a runtime annotation");
+                }
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException("Failed to get class for name " + className, e);
+            }
+        }
     }
 
     //UTILITY START

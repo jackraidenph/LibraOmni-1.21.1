@@ -20,15 +20,9 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         super.init(processingEnv);
 
         this.addProcessors(
+                new MetadataProcessor(processingEnv),
                 new RegisteredProcessor(processingEnv)
         );
-
-        MetadataProcessor metadataProcessor = new MetadataProcessor(
-                processingEnv,
-                this.getSupportedAnnotationClasses()
-        );
-
-        this.addProcessors(metadataProcessor);
     }
 
     @Override
