@@ -32,7 +32,7 @@ public record TypeData(String name) {
         }
 
         try {
-            return Class.forName(name, false, LibraOmni.classLoader());
+            return Class.forName(name, false, TypeData.class.getClassLoader());
         } catch (ClassNotFoundException classNotFoundException) {
             throw new IllegalArgumentException(classNotFoundException);
         }

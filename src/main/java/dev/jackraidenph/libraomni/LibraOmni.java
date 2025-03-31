@@ -20,8 +20,4 @@ public class LibraOmni {
         runtimeProcessorsManager.registerProcessor(Scope.CONSTRUCT, new RegisteredAnnotationProcessor());
         runtimeProcessorsManager.setup(modEventBus);
     }
-
-    public static ClassLoader classLoader() {
-        return LibraOmni.class.getClassLoader();
-    }
 }
