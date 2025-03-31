@@ -48,12 +48,7 @@ public class RuntimeProcessorsManager {
                 continue;
             }
 
-            modList.getModContainerById(id).ifPresent(container -> {
-                ModContextManager contextManager = ModContextManager.getInstance();
-                if (!contextManager.existsForMod(id)) {
-                    contextManager.newContext(container);
-                }
-            });
+            ModContextManager.getInstance().createContext(id);
         }
     }
 
@@ -61,11 +56,7 @@ public class RuntimeProcessorsManager {
         ModContextManager.getInstance().contexts().forEach(ModContext::initRegisters);
     }
 
-    private void registerMods() {
-        ModContextManager.getInstance().contexts().forEach(RuntimeProcessorsManager.getInstance()::registerMod);
-    }
-
-    public void setup(IEventBus libraOmniEventBus, Set<ModContext> modsToRegister) {
+    public void setup(IEventBus libraOmniEventBus) {
         if (this.setup) {
             LibraOmni.LOGGER.error("RuntimeProcessorManager already initialized!");
             return;
@@ -77,11 +68,21 @@ public class RuntimeProcessorsManager {
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueCommon);
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueClient);
 
-        for (ModContext context : modsToRegister) {
+        this.setup = true;
+    }
+
+    private void registerMods() {
+        Reader reader = MetadataFileManager.getReader();
+        ModContextManager contextManager = ModContextManager.getInstance();
+
+        Set<Metadata> modsData = reader.findModsWithElementData();
+        for (Metadata metadata : modsData) {
+            String modId = metadata.getModId();
+            ModContext context = contextManager.existsForMod(modId)
+                    ? contextManager.getContext(modId)
+                    : contextManager.createContext(modId);
             this.registerMod(context);
         }
-
-        this.setup = true;
     }
 
     private void registerAnnotatedProcessors() {
@@ -113,9 +114,8 @@ public class RuntimeProcessorsManager {
     private void enqueueConstruct(FMLConstructModEvent constructModEvent) {
         constructModEvent.enqueueWork(
                 () -> {
-                    this.createMissingContexts();
-                    this.initContextRegisters();
                     this.registerMods();
+                    this.initContextRegisters();
                     this.processAll(Scope.CONSTRUCT);
                 });
     }

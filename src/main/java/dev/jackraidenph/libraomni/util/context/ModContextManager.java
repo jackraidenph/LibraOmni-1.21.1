@@ -4,10 +4,7 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ModContextManager {
 
@@ -26,11 +23,7 @@ public class ModContextManager {
         return INSTANCE;
     }
 
-    public ModContext forMod(String modId) {
-        if (ModList.get().getModContainerById(modId).isEmpty()) {
-            throw new IllegalArgumentException("No such mod id exists [" + modId + "]");
-        }
-
+    public ModContext getContext(String modId) {
         if (!this.contextMap.containsKey(modId)) {
             throw new IllegalStateException("No context found for [" + modId + "]");
         }
@@ -38,7 +31,18 @@ public class ModContextManager {
         return this.contextMap.get(modId);
     }
 
-    public ModContext newContext(ModContainer modContainer) {
+    public ModContext createContext(String modId) {
+        ModList modList = ModList.get();
+        Optional<? extends ModContainer> modContainerOptional = modList.getModContainerById(modId);
+        if (modContainerOptional.isEmpty()) {
+            throw new IllegalArgumentException("No ModContainer exists for [" + modId + "]");
+        }
+
+        ModContainer modContainer = modContainerOptional.get();
+        return createContext(modContainer);
+    }
+
+    private ModContext createContext(ModContainer modContainer) {
         ModContext modContext = new ModContext(modContainer);
         this.addContext(modContainer.getModId(), modContext);
         LibraOmni.LOGGER.info("Created context for [{}]", modContainer.getModId());
