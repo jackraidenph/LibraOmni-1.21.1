@@ -18,7 +18,7 @@ public class ModContextManager {
     private ModContextManager() {
     }
 
-    public static ModContextManager get() {
+    public static ModContextManager getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new ModContextManager();
         }

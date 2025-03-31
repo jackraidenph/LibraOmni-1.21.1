@@ -49,7 +49,7 @@ public class RuntimeProcessorsManager {
             }
 
             modList.getModContainerById(id).ifPresent(container -> {
-                ModContextManager contextManager = ModContextManager.get();
+                ModContextManager contextManager = ModContextManager.getInstance();
                 if (!contextManager.existsForMod(id)) {
                     contextManager.newContext(container);
                 }
@@ -58,11 +58,11 @@ public class RuntimeProcessorsManager {
     }
 
     private void initContextRegisters() {
-        ModContextManager.get().contexts().forEach(ModContext::initRegisters);
+        ModContextManager.getInstance().contexts().forEach(ModContext::initRegisters);
     }
 
     private void registerMods() {
-        ModContextManager.get().contexts().forEach(RuntimeProcessorsManager.getInstance()::registerMod);
+        ModContextManager.getInstance().contexts().forEach(RuntimeProcessorsManager.getInstance()::registerMod);
     }
 
     public void setup(IEventBus libraOmniEventBus, Set<ModContext> modsToRegister) {

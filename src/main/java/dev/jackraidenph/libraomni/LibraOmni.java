@@ -34,7 +34,7 @@ public class LibraOmni {
 
     private Set<ModContext> gatherModsToProcess() {
         Reader reader = MetadataFileManager.reader();
-        ModContextManager contextManager = ModContextManager.get();
+        ModContextManager contextManager = ModContextManager.getInstance();
         ModList modList = ModList.get();
 
         Set<Metadata> modsData = reader.findModsWithElementData();
