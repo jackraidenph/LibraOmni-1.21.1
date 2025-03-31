@@ -190,7 +190,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
                 String modId = data.getModId();
                 FileObject file = writer.writeElementData(data);
                 this.messager().printNote(
-                        "Created elements data for [" + data.getModId() + "]: " + FilenameUtils.getBaseName(file.getName())
+                        "Created elements data for [" + data.getModId() + "]: " + FilenameUtils.getName(file.getName())
                 );
 
                 Metadata metadata = this.getOrCreateMetadata(modId);
@@ -208,7 +208,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
             try {
                 FileObject file = writer.writeMetadata(metadata);
                 this.messager().printNote(
-                        "Created metadata for [" + metadata.getModId() + "]: " + FilenameUtils.getBaseName(file.getName())
+                        "Created metadata for [" + metadata.getModId() + "]: " + FilenameUtils.getName(file.getName())
                 );
             } catch (IOException ioException) {
                 throw new RuntimeException(ioException);

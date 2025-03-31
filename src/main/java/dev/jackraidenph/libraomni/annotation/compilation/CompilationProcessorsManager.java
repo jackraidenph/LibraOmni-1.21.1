@@ -31,7 +31,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
 
         for (CompilationProcessor compilationProcessor : this.processors) {
             if (roundEnvironment.processingOver()) {
-                messager.printNote("Finishing " + compilationProcessor + "...");
+                messager.printNote("Finishing " + compilationProcessor.getClass().getSimpleName() + "...");
                 try {
                     compilationProcessor.finish(roundEnvironment);
                 } catch (Exception processorException) {
@@ -41,7 +41,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
                 continue;
             }
 
-            messager.printNote("Invoking " + compilationProcessor + "...");
+            messager.printNote("Invoking " + compilationProcessor.getClass().getSimpleName() + "...");
             try {
                 compilationProcessor.checkAndProcessRound(roundEnvironment);
             } catch (Exception processorException) {
