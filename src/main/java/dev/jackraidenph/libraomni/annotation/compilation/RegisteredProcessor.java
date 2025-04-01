@@ -16,7 +16,6 @@ public class RegisteredProcessor extends AbstractCompilationProcessor {
     @Override
     public Set<CompilationPredicate<Element>> predicates() {
         return Set.of(
-                CompilationPredicates.MUST_BE_ON_CLASS,
                 CompilationPredicates.mustExtend(
                         "net.minecraft.world.level.block.Block"
                 )

@@ -13,25 +13,6 @@ import java.util.function.Predicate;
 
 class CompilationPredicates {
 
-    public static CompilationPredicate<Element> MUST_BE_ON_CLASS = mustBeOn(ElementKind.CLASS);
-    public static CompilationPredicate<Element> MUST_BE_ON_FIELD = mustBeOn(ElementKind.FIELD);
-    public static CompilationPredicate<Element> MUST_BE_ON_METHOD = mustBeOn(ElementKind.METHOD);
-    public static CompilationPredicate<Element> MUST_BE_ON_CONSTRUCTOR = mustBeOn(ElementKind.CONSTRUCTOR);
-
-    protected static CompilationPredicate<Element> mustBeOn(ElementKind... elementKinds) {
-        return new CompilationPredicate<>(
-                e -> {
-                    for (ElementKind kind : elementKinds) {
-                        if (e.getKind().equals(kind)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-                "Annotation must be applied to %s".formatted(Arrays.asList(elementKinds))
-        );
-    }
-
     protected static CompilationPredicate<Element> mustAlsoBeAnnotatedWith(String... annotations) {
         return new CompilationPredicate<>(
                 e -> appliedAnnotations(e).containsAll(Set.of(annotations)),
