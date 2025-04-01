@@ -49,12 +49,12 @@ public abstract class ResourceGeneratingProcessor extends AbstractCompilationPro
     }
 
     public Filer getFiler() {
-        return this.getProcessingEnvironment().getFiler();
+        return this.processingEnvironment().getFiler();
     }
 
     @Override
     public final void finish(RoundEnvironment roundEnvironment) {
-        Messager messager = this.getProcessingEnvironment().getMessager();
+        Messager messager = this.processingEnvironment().getMessager();
 
         super.finish(roundEnvironment);
 

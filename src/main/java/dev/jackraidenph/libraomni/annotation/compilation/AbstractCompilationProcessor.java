@@ -4,12 +4,10 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
 import java.util.Set;
-import java.util.function.Predicate;
 
 public abstract class AbstractCompilationProcessor implements CompilationProcessor {
 
@@ -19,6 +17,7 @@ public abstract class AbstractCompilationProcessor implements CompilationProcess
         this.processingEnvironment = processingEnvironment;
     }
 
+    @Override
     public void processRound(RoundEnvironment roundEnvironment) {
     }
 
@@ -26,62 +25,29 @@ public abstract class AbstractCompilationProcessor implements CompilationProcess
     public void finish(RoundEnvironment roundEnvironment) {
     }
 
-    public Set<CompilationPredicate<Element>> predicates() {
-        return Set.of();
+    @Override
+    public ProcessingEnvironment processingEnvironment() {
+        return this.processingEnvironment;
+    }
+
+    protected Messager messager() {
+        return this.processingEnvironment().getMessager();
+    }
+
+    protected Filer filer() {
+        return this.processingEnvironment().getFiler();
+    }
+
+    protected Elements elementUtils() {
+        return this.processingEnvironment().getElementUtils();
+    }
+
+    protected Types typeUtils() {
+        return this.processingEnvironment().getTypeUtils();
     }
 
     @Override
     public Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of();
-    }
-
-    private boolean processPredicates(RoundEnvironment roundEnvironment) {
-        for (Class<? extends Annotation> annotation : this.supportedAnnotations()) {
-            for (Element e : roundEnvironment.getElementsAnnotatedWith(annotation)) {
-                for (CompilationPredicate<Element> predicate : this.predicates()) {
-                    if (!predicate.predicate().test(e)) {
-                        this.getProcessingEnvironment().getMessager().printError("""
-                                Annotation conditions are not satisfied
-                                Annotation: %s
-                                Details: %s
-                                """.formatted(annotation.toString(), predicate.description()), e);
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public final void checkAndProcessRound(RoundEnvironment roundEnvironment) {
-        if (!this.processPredicates(roundEnvironment)) {
-            throw new IllegalStateException("Predicate check failed");
-        }
-        this.processRound(roundEnvironment);
-    }
-
-    @Override
-    public ProcessingEnvironment getProcessingEnvironment() {
-        return this.processingEnvironment;
-    }
-
-    protected Messager messager() {
-        return this.getProcessingEnvironment().getMessager();
-    }
-
-    protected Filer filer() {
-        return this.getProcessingEnvironment().getFiler();
-    }
-
-    protected Elements elementUtils() {
-        return this.getProcessingEnvironment().getElementUtils();
-    }
-
-    protected Types typeUtils() {
-        return this.getProcessingEnvironment().getTypeUtils();
-    }
-
-    public record CompilationPredicate<T>(Predicate<T> predicate, String description) {
     }
 }

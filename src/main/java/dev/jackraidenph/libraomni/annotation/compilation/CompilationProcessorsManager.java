@@ -20,8 +20,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         super.init(processingEnv);
 
         this.addProcessors(
-                new MetadataProcessor(processingEnv),
-                new RegisteredProcessor(processingEnv)
+                new MetadataProcessor(processingEnv)
         );
     }
 
@@ -43,7 +42,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
 
             messager.printNote("Invoking " + compilationProcessor.getClass().getSimpleName() + "...");
             try {
-                compilationProcessor.checkAndProcessRound(roundEnvironment);
+                compilationProcessor.processRound(roundEnvironment);
             } catch (Exception processorException) {
                 messager.printError("There was an error during a round a compile processor");
                 return false;

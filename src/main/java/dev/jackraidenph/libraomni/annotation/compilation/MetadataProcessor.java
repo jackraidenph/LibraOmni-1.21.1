@@ -12,7 +12,6 @@ import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import net.neoforged.fml.common.Mod;
 import org.apache.commons.io.FilenameUtils;
 
-import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -54,7 +53,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     //UTILITY START
 
     private String getPackage(Element element) {
-        return this.getProcessingEnvironment()
+        return this.processingEnvironment()
                 .getElementUtils()
                 .getPackageOf(element)
                 .getQualifiedName()
@@ -66,7 +65,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private void addMod(Element modClass) {
-        Messager messager = this.getProcessingEnvironment().getMessager();
+        Messager messager = this.processingEnvironment().getMessager();
         Mod modAnnotation = modClass.getAnnotation(Mod.class);
         String pkg = this.getPackage(modClass);
         String modId = modAnnotation.value();
@@ -109,7 +108,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private TypeElement[] typesFromStrings(Set<String> names) {
-        Elements elements = this.getProcessingEnvironment().getElementUtils();
+        Elements elements = this.processingEnvironment().getElementUtils();
         return names.stream().map(elements::getTypeElement).toArray(TypeElement[]::new);
     }
 
