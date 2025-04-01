@@ -2,13 +2,10 @@ package dev.jackraidenph.libraomni.annotation.compilation;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.annotation.Discoverable;
+import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.annotation.RuntimeProcessor;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.util.ResourceUtilities;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
@@ -22,15 +19,20 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 class MetadataProcessor extends AbstractCompilationProcessor {
+
+    private static final Set<String> NATIVE_PROCESSABLE = Set.of(
+            Registered.class.getTypeName()
+    );
 
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
     private final Set<String> modClasses = new HashSet<>();
@@ -42,39 +44,11 @@ class MetadataProcessor extends AbstractCompilationProcessor {
 
     private final SetMultimap<Scope, Element> runtimeProcessorElements = HashMultimap.create();
 
-    private final Set<Class<? extends Annotation>> processableAnnotations = new HashSet<>();
+    private final Set<String> processableAnnotations = new HashSet<>();
 
     protected MetadataProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
-        this.registerRuntimeAnnotations(processingEnvironment.getMessager());
-    }
-
-    public static final String RUNTIME_ANNOTATIONS_CONFIG = LibraOmni.MODID + ".runtime.json";
-    private final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Type STRING_SET_TYPE = new TypeToken<Set<String>>() {
-    }.getType();
-
-    private Set<String> readProcessableAnnotations() {
-        return ResourceUtilities.getResourcesAsStrings(RUNTIME_ANNOTATIONS_CONFIG)
-                .map(
-                        s -> (Set<String>) GSON.fromJson(s, STRING_SET_TYPE)
-                ).flatMap(Set::stream)
-                .collect(Collectors.toSet());
-    }
-
-    private void registerRuntimeAnnotations(Messager messager) {
-        Set<String> annotations = this.readProcessableAnnotations();
-        for (String className : annotations) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                if (Annotation.class.isAssignableFrom(clazz)) {
-                    this.processableAnnotations.add((Class<? extends Annotation>) clazz);
-                    messager.printNote("[" + className + "] was added as a runtime annotation");
-                }
-            } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException("Failed to get class for name " + className, e);
-            }
-        }
+        this.processableAnnotations.addAll(NATIVE_PROCESSABLE);
     }
 
     //UTILITY START
@@ -120,12 +94,39 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     //UTILITY END
     //METADATA PIPELINE START
 
+    private Set<String> findDiscoverableAnnotations(RoundEnvironment roundEnvironment) {
+        return roundEnvironment
+                .getElementsAnnotatedWith(Discoverable.class).stream()
+                .filter(
+                        e -> {
+                            TypeElement annotationType = (TypeElement) e;
+                            Retention retention = annotationType.asType().getAnnotation(Retention.class);
+                            return ((retention != null) && retention.value().equals(RetentionPolicy.RUNTIME));
+                        }
+                )
+                .map(e -> ((TypeElement) e).getQualifiedName().toString())
+                .collect(Collectors.toSet());
+    }
+
+    private TypeElement[] typesFromStrings(Set<String> names) {
+        Elements elements = this.getProcessingEnvironment().getElementUtils();
+        return names.stream().map(elements::getTypeElement).toArray(TypeElement[]::new);
+    }
+
     @Override
     public void processRound(RoundEnvironment roundEnvironment) {
+        Set<String> discoverable = this.findDiscoverableAnnotations(roundEnvironment);
+        if (!discoverable.isEmpty()) {
+            this.processableAnnotations.addAll(discoverable);
+            this.messager().printNote("Found runtime annotations " + discoverable);
+        }
+
         roundEnvironment.getElementsAnnotatedWith(Mod.class).forEach(this::addMod);
 
         this.runtimeElements.addAll(
-                roundEnvironment.getElementsAnnotatedWithAny(this.processableAnnotations)
+                roundEnvironment.getElementsAnnotatedWithAny(
+                        this.typesFromStrings(this.processableAnnotations)
+                )
         );
 
         for (Element e : roundEnvironment.getElementsAnnotatedWith(RuntimeProcessor.class)) {
