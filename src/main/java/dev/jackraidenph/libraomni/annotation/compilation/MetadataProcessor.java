@@ -228,12 +228,4 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     //METADATA PIPELINE END
-
-    private Messager messager() {
-        return this.getProcessingEnvironment().getMessager();
-    }
-
-    private Filer filer() {
-        return this.getProcessingEnvironment().getFiler();
-    }
 }

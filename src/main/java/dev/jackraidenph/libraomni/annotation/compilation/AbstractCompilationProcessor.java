@@ -1,8 +1,12 @@
 package dev.jackraidenph.libraomni.annotation.compilation;
 
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -60,6 +64,22 @@ public abstract class AbstractCompilationProcessor implements CompilationProcess
     @Override
     public ProcessingEnvironment getProcessingEnvironment() {
         return this.processingEnvironment;
+    }
+
+    protected Messager messager() {
+        return this.getProcessingEnvironment().getMessager();
+    }
+
+    protected Filer filer() {
+        return this.getProcessingEnvironment().getFiler();
+    }
+
+    protected Elements elementUtils() {
+        return this.getProcessingEnvironment().getElementUtils();
+    }
+
+    protected Types typeUtils() {
+        return this.getProcessingEnvironment().getTypeUtils();
     }
 
     public record CompilationPredicate<T>(Predicate<T> predicate, String description) {
