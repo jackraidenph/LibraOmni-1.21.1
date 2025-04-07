@@ -1,15 +1,15 @@
 package dev.jackraidenph.libraomni.annotation.compilation;
 
+import net.neoforged.fml.common.Mod;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
-import java.lang.annotation.Annotation;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class CompilationProcessorsManager extends AbstractProcessor {
 
@@ -61,20 +61,11 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         }
     }
 
-    private Set<Class<? extends Annotation>> getSupportedAnnotationClasses() {
-        return this.processors.stream()
-                .map(CompilationProcessor::supportedAnnotations)
-                .flatMap(Set::stream)
-                .collect(Collectors.toSet());
-    }
-
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        Set<String> qualifiers = new HashSet<>();
-        for (Class<? extends Annotation> annotation : this.getSupportedAnnotationClasses()) {
-            qualifiers.add(annotation.getName());
-        }
-        return qualifiers;
+        return Set.of(
+                Mod.class.getName()
+        );
     }
 
     @Override
