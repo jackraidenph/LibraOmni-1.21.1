@@ -93,16 +93,23 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     //UTILITY END
     //METADATA PIPELINE START
 
+    private static boolean isRuntimeAnnotation(Element e) {
+        if (!(e instanceof TypeElement annotationType)) {
+            return false;
+        }
+
+        Retention retention = annotationType.getAnnotation(Retention.class);
+        if (retention == null) {
+            return false;
+        }
+
+        return retention.value().equals(RetentionPolicy.RUNTIME);
+    }
+
     private Set<String> findDiscoverableAnnotations(RoundEnvironment roundEnvironment) {
-        return roundEnvironment
-                .getElementsAnnotatedWith(Discoverable.class).stream()
-                .filter(
-                        e -> {
-                            TypeElement annotationType = (TypeElement) e;
-                            Retention retention = annotationType.asType().getAnnotation(Retention.class);
-                            return ((retention != null) && retention.value().equals(RetentionPolicy.RUNTIME));
-                        }
-                )
+        return roundEnvironment.getElementsAnnotatedWith(Discoverable.class)
+                .stream()
+                .filter(MetadataProcessor::isRuntimeAnnotation)
                 .map(e -> ((TypeElement) e).getQualifiedName().toString())
                 .collect(Collectors.toSet());
     }
