@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum ValidatorFactory {
+enum ValidatorFactory {
     INSTANCE;
 
     private final Map<String, Validator> instances = new HashMap<>();

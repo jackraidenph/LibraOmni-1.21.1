@@ -9,11 +9,11 @@ import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-public abstract class AbstractCompilationProcessor implements CompilationProcessor {
+abstract class AbstractCompilationProcessor implements CompilationProcessor {
 
     private final ProcessingEnvironment processingEnvironment;
 
-    public AbstractCompilationProcessor(ProcessingEnvironment processingEnvironment) {
+    protected AbstractCompilationProcessor(ProcessingEnvironment processingEnvironment) {
         this.processingEnvironment = processingEnvironment;
     }
 

@@ -9,7 +9,7 @@ import javax.lang.model.type.TypeMirror;
 import java.util.List;
 import java.util.Set;
 
-public class ValidationUtils {
+class ValidationUtils {
 
     public static boolean elementExtendsAny(Element e, String... classNames) {
         if (!e.getKind().isDeclaredType()) {

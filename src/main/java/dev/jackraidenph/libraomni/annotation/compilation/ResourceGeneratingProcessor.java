@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.StringJoiner;
 
-public abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor {
+abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor {
 
     private final String[] rootElements;
     private static final String ROOT_PATTERN_STRING = "[A-z_]([\\-\\w]+/)+";

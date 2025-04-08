@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class CompilationProcessorsManager extends AbstractProcessor {
 
-    Set<CompilationProcessor> processors = new HashSet<>();
+    private final Set<CompilationProcessor> processors = new HashSet<>();
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {

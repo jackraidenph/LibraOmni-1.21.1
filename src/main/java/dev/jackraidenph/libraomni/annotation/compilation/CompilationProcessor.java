@@ -5,7 +5,7 @@ import javax.annotation.processing.RoundEnvironment;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-public interface CompilationProcessor {
+interface CompilationProcessor {
 
     void processRound(RoundEnvironment roundEnvironment);
 
