@@ -20,7 +20,8 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         super.init(processingEnv);
 
         this.addProcessors(
-                new MetadataProcessor(processingEnv)
+                new MetadataProcessor(processingEnv),
+                new ValidationProcessor(processingEnv)
         );
     }
 
@@ -34,6 +35,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
                 try {
                     compilationProcessor.finish(roundEnvironment);
                 } catch (Exception processorException) {
+                    processorException.printStackTrace();
                     messager.printError("There was an error finishing a compile processor");
                     return false;
                 }
@@ -44,6 +46,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
             try {
                 compilationProcessor.processRound(roundEnvironment);
             } catch (Exception processorException) {
+                processorException.printStackTrace();
                 messager.printError("There was an error during a round a compile processor");
                 return false;
             }
