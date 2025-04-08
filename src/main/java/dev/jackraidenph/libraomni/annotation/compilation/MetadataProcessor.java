@@ -4,7 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import dev.jackraidenph.libraomni.annotation.Discoverable;
 import dev.jackraidenph.libraomni.annotation.Registered;
-import dev.jackraidenph.libraomni.annotation.RuntimeProcessorImplementation;
+import dev.jackraidenph.libraomni.annotation.Processor;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
@@ -135,8 +135,8 @@ class MetadataProcessor extends AbstractCompilationProcessor {
                 )
         );
 
-        for (Element e : roundEnvironment.getElementsAnnotatedWith(RuntimeProcessorImplementation.class)) {
-            RuntimeProcessorImplementation annotation = e.getAnnotation(RuntimeProcessorImplementation.class);
+        for (Element e : roundEnvironment.getElementsAnnotatedWith(Processor.class)) {
+            Processor annotation = e.getAnnotation(Processor.class);
             this.runtimeProcessorElements.get(annotation.value()).add(e);
         }
     }

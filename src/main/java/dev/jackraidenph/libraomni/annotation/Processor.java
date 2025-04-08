@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 @Validated(RuntimeProcessorImplementationValidator.class)
-public @interface RuntimeProcessorImplementation {
+public @interface Processor {
     Scope value();
 }
