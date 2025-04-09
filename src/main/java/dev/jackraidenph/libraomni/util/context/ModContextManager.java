@@ -6,22 +6,11 @@ import net.neoforged.fml.ModList;
 
 import java.util.*;
 
-public class ModContextManager {
+public enum ModContextManager {
 
-    private static ModContextManager INSTANCE;
+    INSTANCE;
 
     private final Map<String, ModContext> contextMap = new HashMap<>();
-
-    private ModContextManager() {
-    }
-
-    public static ModContextManager getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new ModContextManager();
-        }
-
-        return INSTANCE;
-    }
 
     public ModContext getContext(String modId) {
         if (!this.contextMap.containsKey(modId)) {
@@ -64,5 +53,4 @@ public class ModContextManager {
 
         this.contextMap.put(modId, modContext);
     }
-
 }

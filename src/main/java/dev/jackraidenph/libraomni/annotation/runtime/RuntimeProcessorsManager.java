@@ -10,7 +10,6 @@ import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager.Reader;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
@@ -22,7 +21,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RuntimeProcessorsManager {
+public enum RuntimeProcessorsManager {
+
+    INSTANCE;
 
     private final Map<String, ElementData> elementDataMap = new HashMap<>();
     private final Map<Scope, List<RuntimeProcessor>> processors = new HashMap<>();
@@ -30,18 +31,8 @@ public class RuntimeProcessorsManager {
 
     private boolean setup = false;
 
-    private static RuntimeProcessorsManager INSTANCE;
-
-    public static RuntimeProcessorsManager getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new RuntimeProcessorsManager();
-        }
-
-        return INSTANCE;
-    }
-
     private void initContextRegisters() {
-        ModContextManager.getInstance().contexts().forEach(ModContext::initRegisters);
+        ModContextManager.INSTANCE.contexts().forEach(ModContext::initRegisters);
     }
 
     public void setup(IEventBus libraOmniEventBus) {
@@ -61,7 +52,7 @@ public class RuntimeProcessorsManager {
 
     private void registerMods() {
         Reader reader = MetadataFileManager.getReader();
-        ModContextManager contextManager = ModContextManager.getInstance();
+        ModContextManager contextManager = ModContextManager.INSTANCE;
 
         Set<Metadata> modsData = reader.findModsWithElementData();
         for (Metadata metadata : modsData) {
@@ -118,9 +109,6 @@ public class RuntimeProcessorsManager {
 
     public boolean isSetup() {
         return this.setup;
-    }
-
-    private RuntimeProcessorsManager() {
     }
 
     private Set<AnnotatedElement> readElements(String modId) {

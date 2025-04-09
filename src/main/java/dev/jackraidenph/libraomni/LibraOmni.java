@@ -16,7 +16,7 @@ public class LibraOmni {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
-        RuntimeProcessorsManager runtimeProcessorsManager = RuntimeProcessorsManager.getInstance();
+        RuntimeProcessorsManager runtimeProcessorsManager = RuntimeProcessorsManager.INSTANCE;
         runtimeProcessorsManager.registerProcessor(Scope.CONSTRUCT, new RegisteredAnnotationProcessor());
         runtimeProcessorsManager.setup(modEventBus);
     }
