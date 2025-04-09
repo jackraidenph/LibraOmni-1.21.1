@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.util.context;
 
+import dev.jackraidenph.libraomni.LibraOmni;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
@@ -14,7 +15,7 @@ import java.util.Set;
 public class ModContext {
 
     private final ModContainer modContainer;
-    private final Map<Class<?>, DeferredRegister<?>> registersMap = new HashMap<>();
+    private final TypeSafeRegisterMap registersMap = new TypeSafeRegisterMap();
 
     private DeferredRegister.Blocks blocksRegister;
     private DeferredRegister.Items itemsRegister;
@@ -46,13 +47,12 @@ public class ModContext {
     }
 
     public <T> DeferredRegister<T> getRegister(Class<? extends T> clazz) {
-        Class<? super T> superclass = this.tryFindSuperclass(this.registersMap.keySet(), clazz);
+        Class<T> superclass = this.tryFindSuperclass(this.registersMap.keySet(), clazz);
         if (superclass == null) {
             return null;
         }
-        //Checked via previous isAssignableFrom check
-        //noinspection unchecked
-        return (DeferredRegister<T>) this.registersMap.get(superclass);
+
+        return this.registersMap.get(superclass);
     }
 
     private <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<? extends T> child) {
@@ -99,9 +99,10 @@ public class ModContext {
         return new Builder(modContainer);
     }
 
+    //Builder
+    @SuppressWarnings("unused")
     public static class Builder {
         private final ModContext modContext;
-
 
         public Builder(ModContainer modContainer) {
             this.modContext = new ModContext(modContainer);
@@ -114,6 +115,28 @@ public class ModContext {
 
         public ModContext build() {
             return this.modContext;
+        }
+    }
+
+    private static class TypeSafeRegisterMap {
+        private final Map<Class<?>, DeferredRegister<?>> classToRegisterMap = new HashMap<>();
+
+        @SuppressWarnings("unchecked")
+        public <T> DeferredRegister<T> put(Class<T> clazz, DeferredRegister<T> register) {
+            return (DeferredRegister<T>) this.classToRegisterMap.put(clazz, register);
+        }
+
+        @SuppressWarnings("unchecked")
+        public <T> DeferredRegister<T> get(Class<T> clazz) {
+            return (DeferredRegister<T>) this.classToRegisterMap.get(clazz);
+        }
+
+        public Set<Class<?>> keySet() {
+            return this.classToRegisterMap.keySet();
+        }
+
+        public Collection<DeferredRegister<?>> values() {
+            return this.classToRegisterMap.values();
         }
     }
 }
