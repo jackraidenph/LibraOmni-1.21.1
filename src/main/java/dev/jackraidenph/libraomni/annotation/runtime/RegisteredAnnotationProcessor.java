@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.annotation.runtime;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
+import dev.jackraidenph.libraomni.util.StringUtilities;
 import dev.jackraidenph.libraomni.util.context.ModContext;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -9,7 +10,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Locale;
 import java.util.Set;
 
 public class RegisteredAnnotationProcessor implements RuntimeProcessor {
@@ -33,7 +33,7 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor {
         String id = registered.value();
 
         if (id == null || id.isBlank()) {
-            id = clazz.getSimpleName().toLowerCase(Locale.ROOT);
+            id = StringUtilities.snakeCase(clazz.getSimpleName());
         }
 
         try {
