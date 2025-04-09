@@ -50,7 +50,7 @@ class ValidationProcessor extends AbstractCompilationProcessor {
             TypeMirror typeMirror = mirroredTypeException.getTypeMirror();
             Element element = typeUtils().asElement(typeMirror);
             TypeElement typeElement = (TypeElement) element;
-            return ValidatorFactory.INSTANCE.getOrCreate(typeElement.getQualifiedName().toString());
+            return ValidatorFactory.INSTANCE.create(typeElement.getQualifiedName().toString());
         }
 
         return null;
