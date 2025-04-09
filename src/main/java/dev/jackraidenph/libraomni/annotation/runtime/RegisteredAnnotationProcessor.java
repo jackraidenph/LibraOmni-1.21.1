@@ -41,6 +41,11 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor {
             emptyConstructor.setAccessible(true);
 
             DeferredRegister<? super T> register = modContext.getRegister(clazz);
+            LibraOmni.LOGGER.info("Found [{}] registry for [{}] with superclass [{}]",
+                    register.getRegistryName(),
+                    clazz.getSimpleName(),
+                    clazz.getSuperclass().getSimpleName()
+            );
             register.register(id, () -> safeConstruct(emptyConstructor));
             LibraOmni.LOGGER.info("Registered [{}:{}] to [{}]", modContext.modId(), id, register.getRegistryName());
         } catch (NoSuchMethodException noSuchMethodException) {

@@ -90,6 +90,7 @@ public class ModContext {
             IEventBus eventBus = this.modContainer().getEventBus();
             if (eventBus != null) {
                 deferredRegister.register(eventBus);
+                LibraOmni.LOGGER.info("Registered [{}] for [{}]", deferredRegister.getRegistryName(), this.modId());
             }
         }
         this.registersRegistered = true;
