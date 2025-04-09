@@ -3,8 +3,6 @@ package dev.jackraidenph.libraomni.annotation.runtime;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.util.context.ModContext;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.annotation.Annotation;
@@ -42,27 +40,14 @@ public class RegisteredAnnotationProcessor implements RuntimeProcessor {
             Constructor<T> emptyConstructor = clazz.getDeclaredConstructor();
             emptyConstructor.setAccessible(true);
 
-            if (Block.class.isAssignableFrom(clazz)) {
-                this.registerBlock(modContext.blocksRegister(), id, emptyConstructor);
-            } else if (Item.class.isAssignableFrom(clazz)) {
-                this.registerItem(modContext.itemsRegister(), id, emptyConstructor);
-            } else {
-                DeferredRegister<? super T> register = modContext.getRegister(clazz);
-                register.register(id, () -> safeConstruct(emptyConstructor));
-            }
+            DeferredRegister<? super T> register = modContext.getRegister(clazz);
+            register.register(id, () -> safeConstruct(emptyConstructor));
+            LibraOmni.LOGGER.info("Registered [{}:{}] to [{}]", modContext.modId(), id, register.getRegistryName());
         } catch (NoSuchMethodException noSuchMethodException) {
             LibraOmni.LOGGER.error("Failed to register [{}] as there's no proper empty constructor",
                     clazz.getSimpleName()
             );
         }
-    }
-
-    private void registerBlock(DeferredRegister.Blocks register, String id, Constructor<?> constructor) {
-        register.register(id, () -> (Block) safeConstruct(constructor));
-    }
-
-    private void registerItem(DeferredRegister.Items register, String id, Constructor<?> constructor) {
-        register.register(id, () -> (Item) safeConstruct(constructor));
     }
 
     private static <E> E safeConstruct(Constructor<E> emptyConstructor) {
