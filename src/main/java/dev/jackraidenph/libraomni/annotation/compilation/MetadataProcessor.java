@@ -2,9 +2,7 @@ package dev.jackraidenph.libraomni.annotation.compilation;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import dev.jackraidenph.libraomni.annotation.Discoverable;
-import dev.jackraidenph.libraomni.annotation.Registered;
-import dev.jackraidenph.libraomni.annotation.Processor;
+import dev.jackraidenph.libraomni.annotation.*;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
@@ -28,11 +26,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 class MetadataProcessor extends AbstractCompilationProcessor {
-
-    private static final Set<String> NATIVE_PROCESSABLE = Set.of(
-            Registered.class.getTypeName()
-    );
-
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
     private final Set<String> modClasses = new HashSet<>();
     private final Map<String, Metadata> modMetadata = new HashMap<>();
@@ -47,7 +40,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
 
     protected MetadataProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
-        this.processableAnnotations.addAll(NATIVE_PROCESSABLE);
     }
 
     //UTILITY START
@@ -106,11 +98,15 @@ class MetadataProcessor extends AbstractCompilationProcessor {
         return retention.value().equals(RetentionPolicy.RUNTIME);
     }
 
-    private Set<String> findDiscoverableAnnotations(RoundEnvironment roundEnvironment) {
-        return roundEnvironment.getElementsAnnotatedWith(Discoverable.class)
+    private Set<String> findRuntimeAnnotations(RoundEnvironment roundEnvironment) {
+        return roundEnvironment
+                .getRootElements()
                 .stream()
+                .flatMap(e -> e.getAnnotationMirrors().stream())
+                .map(am -> (TypeElement) am.getAnnotationType().asElement())
+                .filter(e -> e.getAnnotation(NeedsRuntimeProcessing.class) != null)
                 .filter(MetadataProcessor::isRuntimeAnnotation)
-                .map(e -> ((TypeElement) e).getQualifiedName().toString())
+                .map(typeElement -> typeElement.getQualifiedName().toString())
                 .collect(Collectors.toSet());
     }
 
@@ -121,10 +117,11 @@ class MetadataProcessor extends AbstractCompilationProcessor {
 
     @Override
     public void processRound(RoundEnvironment roundEnvironment) {
-        Set<String> discoverable = this.findDiscoverableAnnotations(roundEnvironment);
-        if (!discoverable.isEmpty()) {
-            this.processableAnnotations.addAll(discoverable);
-            this.messager().printNote("Found runtime annotations " + discoverable);
+        Set<String> runtimeAnnotations = this.findRuntimeAnnotations(roundEnvironment);
+
+        if (!runtimeAnnotations.isEmpty()) {
+            this.processableAnnotations.addAll(runtimeAnnotations);
+            this.messager().printNote("Found runtime annotations " + this.processableAnnotations);
         }
 
         roundEnvironment.getElementsAnnotatedWith(Mod.class).forEach(this::addMod);
