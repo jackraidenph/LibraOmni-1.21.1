@@ -31,8 +31,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
                 try {
                     compilationProcessor.finish(roundEnvironment);
                 } catch (Exception processorException) {
-                    processorException.printStackTrace();
-                    messager.printError("There was an error finishing a compile processor");
+                    messager.printError("There was an error finishing a compile processor:\n" + processorException.getLocalizedMessage());
                     return false;
                 }
                 continue;
@@ -42,8 +41,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
             try {
                 compilationProcessor.processRound(roundEnvironment);
             } catch (Exception processorException) {
-                processorException.printStackTrace();
-                messager.printError("There was an error during a round a compile processor");
+                messager.printError("There was an error during a round a compile processor:\n" + processorException.getLocalizedMessage());
                 return false;
             }
         }
