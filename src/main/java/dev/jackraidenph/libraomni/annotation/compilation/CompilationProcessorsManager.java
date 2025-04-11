@@ -17,12 +17,8 @@ public class CompilationProcessorsManager extends AbstractProcessor {
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
+        this.registerProcessors(processingEnv);
         super.init(processingEnv);
-
-        this.addProcessors(
-                new MetadataProcessor(processingEnv),
-                new ValidationProcessor(processingEnv)
-        );
     }
 
     @Override
@@ -55,8 +51,8 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         return false;
     }
 
-    private void addProcessors(CompilationProcessor... processors) {
-        for (CompilationProcessor compilationProcessor : processors) {
+    private void registerProcessors(ProcessingEnvironment environment) {
+        for (CompilationProcessor compilationProcessor : CompilationProcessorRegistry.instantiate(environment)) {
             if (this.processors.contains(compilationProcessor)) {
                 throw new IllegalArgumentException("Duplicate processor");
             }
