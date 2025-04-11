@@ -70,9 +70,7 @@ public enum RuntimeProcessorsManager {
             for (Scope scope : Scope.values()) {
                 for (String runtimeProcessorClass : metadata.getRuntimeProcessors(scope)) {
                     try {
-                        //Potential exception is handled
-                        //noinspection unchecked
-                        Class<? extends RuntimeProcessor> clazz = (Class<? extends RuntimeProcessor>) Class.forName(runtimeProcessorClass);
+                        Class<? extends RuntimeProcessor> clazz = Class.forName(runtimeProcessorClass).asSubclass(RuntimeProcessor.class);
                         Constructor<? extends RuntimeProcessor> constructor = clazz.getDeclaredConstructor();
                         RuntimeProcessor runtimeProcessor = constructor.newInstance();
                         this.registerProcessor(scope, runtimeProcessor);
