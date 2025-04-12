@@ -65,18 +65,18 @@ abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor 
 
                 try {
                     this.createResource(
-                            resource.fullName(),
+                            resource.path(),
                             new ByteArrayInputStream(resource.bytes())
                     );
                 } catch (IOException ioException) {
                     messager.printError(ioException.getLocalizedMessage());
                     messager.printError(
-                            "IOException caught trying to create resource [" + resource.fullName() + "] at " + this.getRoot()
+                            "IOException caught trying to create resource [" + resource.path() + "] at " + this.getRoot()
                     );
                     continue;
                 }
 
-                fileNames.add(resource.fullName());
+                fileNames.add(resource.path());
             }
             messager.printNote("Files created during the run: " + fileNames);
         }
