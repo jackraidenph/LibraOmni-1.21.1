@@ -16,6 +16,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
     private final Set<CompilationProcessor> processors = new HashSet<>();
     private ModLocator modLocator = null;
     private static CompilationProcessorsManager INSTANCE = null;
+    private int round = 0;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -46,7 +47,6 @@ public class CompilationProcessorsManager extends AbstractProcessor {
     }
 
     @Override
-
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         this.modLocator.updateMap(roundEnvironment);
 
@@ -54,25 +54,18 @@ public class CompilationProcessorsManager extends AbstractProcessor {
 
         for (CompilationProcessor compilationProcessor : this.processors) {
             if (roundEnvironment.processingOver()) {
-                messager.printNote("Finishing " + compilationProcessor.getClass().getSimpleName() + "...");
-                try {
-                    compilationProcessor.finish(roundEnvironment);
-                } catch (Exception processorException) {
-                    messager.printError("There was an error finishing a compile processor:\n" + processorException.getLocalizedMessage());
-                    return false;
-                }
+                messager.printNote("Processing over, finishing [" + compilationProcessor.getClass().getSimpleName() + "]...");
+                compilationProcessor.finish(roundEnvironment);
+                messager.printNote("Processing successfully finished with [" + compilationProcessor.getClass().getSimpleName() + "]");
                 continue;
             }
 
-            messager.printNote("Invoking " + compilationProcessor.getClass().getSimpleName() + "...");
-            try {
-                compilationProcessor.processRound(roundEnvironment);
-            } catch (Exception processorException) {
-                messager.printError("There was an error during a round a compile processor:\n" + processorException.getLocalizedMessage());
-                return false;
-            }
+            messager.printNote("Processing round " + this.round + " with [" + compilationProcessor.getClass().getSimpleName() + "]...");
+            compilationProcessor.processRound(roundEnvironment);
+            messager.printNote("Round " + this.round + " successfully processed with [" + compilationProcessor.getClass().getSimpleName() + "]");
         }
 
+        this.round++;
         return false;
     }
 
