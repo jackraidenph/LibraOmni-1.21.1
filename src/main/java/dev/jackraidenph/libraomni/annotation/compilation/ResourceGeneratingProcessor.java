@@ -16,11 +16,12 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.regex.Pattern;
 
 abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor {
 
     private final String[] rootElements;
-    private static final String ROOT_PATTERN_STRING = "[A-z_]([\\-\\w]+/)+";
+    private static final Pattern ROOT_PATTERN_STRING = Pattern.compile("[A-z_]([\\-\\w]+/)+");
 
     public ResourceGeneratingProcessor(ProcessingEnvironment processingEnvironment, String root) {
         super(processingEnvironment);
@@ -33,7 +34,7 @@ abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor 
     }
 
     private static boolean checkRoot(String toCheck) {
-        return toCheck.matches(ROOT_PATTERN_STRING);
+        return ROOT_PATTERN_STRING.matcher(toCheck).matches();
     }
 
     public final String[] getRootElements() {
