@@ -3,18 +3,16 @@ package dev.jackraidenph.libraomni.annotation.compilation;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import dev.jackraidenph.libraomni.annotation.*;
+import dev.jackraidenph.libraomni.annotation.compilation.CompilationProcessorsManager.ModLocator;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
-import net.neoforged.fml.common.Mod;
 import org.apache.commons.io.FilenameUtils;
 
-import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
@@ -26,8 +24,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 class MetadataProcessor extends AbstractCompilationProcessor {
-    private final NavigableMap<String, String> packageToModId = new TreeMap<>();
-    private final Set<String> modClasses = new HashSet<>();
     private final Map<String, Metadata> modMetadata = new HashMap<>();
     private final Map<String, SetMultimap<Scope, String>> modRuntimeProcessorsPerScope = new HashMap<>();
     private final Map<String, ElementData> modElementData = new HashMap<>();
@@ -44,42 +40,20 @@ class MetadataProcessor extends AbstractCompilationProcessor {
 
     //UTILITY START
 
-    private String getPackage(Element element) {
-        return this.processingEnvironment()
-                .getElementUtils()
-                .getPackageOf(element)
-                .getQualifiedName()
-                .toString();
-    }
-
     private Metadata getOrCreateMetadata(String modId) {
         return this.modMetadata.computeIfAbsent(modId, Metadata::new);
     }
 
-    private void addMod(Element modClass) {
-        Messager messager = this.processingEnvironment().getMessager();
-        Mod modAnnotation = modClass.getAnnotation(Mod.class);
-        String pkg = this.getPackage(modClass);
-        String modId = modAnnotation.value();
+    private ModLocator modLocator() {
+        return CompilationProcessorsManager.runningModLocator();
+    }
 
-        if (modId == null) {
-            throw new IllegalStateException("Failed to get value from @Mod annotation");
+    private String modIdByPackage(Element e) {
+        ModLocator modLocator = this.modLocator();
+        if (modLocator == null) {
+            return null;
         }
-
-        this.packageToModId.put(pkg, modId);
-        this.modClasses.add(modId);
-
-        messager.printNote("Using @Mod[" + modId + "] annotation as annotation scan root");
-    }
-
-    private String modIdByPackage(String pkg) {
-        Entry<String, String> entry = this.packageToModId.floorEntry(pkg);
-        return entry == null ? null : entry.getValue();
-    }
-
-    private String modIdForElement(Element element) {
-        String pkg = this.getPackage(element);
-        return this.modIdByPackage(pkg);
+        return modLocator.modId(e);
     }
 
     //UTILITY END
@@ -124,8 +98,6 @@ class MetadataProcessor extends AbstractCompilationProcessor {
             this.messager().printNote("Found runtime annotations " + this.processableAnnotations);
         }
 
-        roundEnvironment.getElementsAnnotatedWith(Mod.class).forEach(this::addMod);
-
         this.runtimeElements.addAll(
                 roundEnvironment.getElementsAnnotatedWithAny(
                         this.typesFromStrings(this.processableAnnotations)
@@ -139,12 +111,12 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private void createModMetadata() {
-        this.modClasses.forEach(id -> this.modMetadata.computeIfAbsent(id, Metadata::new));
+        this.modLocator().mods().forEach(id -> this.modMetadata.computeIfAbsent(id, Metadata::new));
     }
 
     private void associateElements() {
         for (Element element : this.runtimeElements) {
-            String modId = this.modIdForElement(element);
+            String modId = this.modIdByPackage(element);
             if (modId == null) {
                 continue;
             }
@@ -158,8 +130,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
             Scope scope = entry.getKey();
             for (Element element : entry.getValue()) {
                 String name = ((TypeElement) element).getQualifiedName().toString();
-                String pkg = ((PackageElement) element.getEnclosingElement()).getQualifiedName().toString();
-                String modId = this.modIdByPackage(pkg);
+                String modId = this.modIdByPackage(element);
                 if (modId == null) {
                     this.messager().printWarning("Got runtime processor [" + name + "], but failed to compute the owning mod");
                     continue;
@@ -171,7 +142,7 @@ class MetadataProcessor extends AbstractCompilationProcessor {
     }
 
     private void addProcessorsToMetadata() {
-        for (String mod : modClasses) {
+        for (String mod : this.modLocator().mods()) {
             Metadata metadata = this.getOrCreateMetadata(mod);
             SetMultimap<Scope, String> processors = this.modRuntimeProcessorsPerScope.get(mod);
             for (Entry<Scope, Collection<String>> perScopeProcessors : processors.asMap().entrySet()) {
