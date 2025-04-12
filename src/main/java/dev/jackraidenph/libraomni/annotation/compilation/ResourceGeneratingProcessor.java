@@ -1,8 +1,5 @@
 package dev.jackraidenph.libraomni.annotation.compilation;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -13,7 +10,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
@@ -59,13 +55,13 @@ abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor 
 
         super.finish(roundEnvironment);
 
-        Set<TransientResource> createdFiles = this.output(roundEnvironment);
+        Set<Resource> createdFiles = this.output(roundEnvironment);
 
         if (createdFiles.isEmpty()) {
             messager.printNote("No files were created during the run of " + this.getClass().getSimpleName());
         } else {
             StringJoiner fileNames = new StringJoiner(", ", "[", "]");
-            for (TransientResource resource : createdFiles) {
+            for (Resource resource : createdFiles) {
 
                 try {
                     this.createResource(
@@ -86,7 +82,7 @@ abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor 
         }
     }
 
-    public Set<TransientResource> output(RoundEnvironment roundEnvironment) {
+    public Set<Resource> output(RoundEnvironment roundEnvironment) {
         return Set.of();
     }
 
@@ -110,43 +106,4 @@ abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor 
         return fileObject;
     }
 
-    public record TransientResource(String name, String extension, byte[] bytes) {
-        private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-
-        public TransientResource(String name, String extension, String stringContents) {
-            this(name, extension, stringContents.getBytes(StandardCharsets.UTF_8));
-        }
-
-        public static TransientResource json(String name, String jsonString) {
-            return new TransientResource(name, "json", jsonString);
-        }
-
-        public static TransientResource json(String name, Object jsonObject) {
-            return json(name, GSON.toJson(jsonObject));
-        }
-
-        public static TransientResource png(String name, byte[] contents) {
-            return new TransientResource(name, "png", contents);
-        }
-
-        public static TransientResource fullName(String nameWithExtension, byte[] contents) {
-            int dotIndex = nameWithExtension.lastIndexOf(".");
-            if (dotIndex < 0) {
-                throw new IllegalArgumentException("Full file name must contain its extension");
-            }
-
-            String extension = nameWithExtension.substring(dotIndex + 1);
-            String name = nameWithExtension.substring(0, dotIndex);
-
-            return new TransientResource(name, extension, contents);
-        }
-
-        public static TransientResource fullName(String nameWithExtension, String contents) {
-            return fullName(nameWithExtension, contents.getBytes(StandardCharsets.UTF_8));
-        }
-
-        public String fullName() {
-            return this.name() + "." + this.extension();
-        }
-    }
 }
