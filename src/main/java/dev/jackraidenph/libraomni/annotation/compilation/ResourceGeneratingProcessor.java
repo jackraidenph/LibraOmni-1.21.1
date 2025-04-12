@@ -90,13 +90,17 @@ abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor 
         return Set.of();
     }
 
+    public String outputLocation() {
+        return this.getRoot();
+    }
+
     public final FileObject createResource(String fileName, InputStream contents) throws IOException {
         Filer filer = this.getFiler();
 
         FileObject fileObject = filer.createResource(
                 StandardLocation.SOURCE_OUTPUT,
                 "",
-                this.getRoot() + fileName
+                this.outputLocation() + fileName
         );
 
         try (OutputStream fileObjectWrite = fileObject.openOutputStream()) {
