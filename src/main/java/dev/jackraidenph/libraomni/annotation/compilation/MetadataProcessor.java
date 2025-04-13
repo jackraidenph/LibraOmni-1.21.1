@@ -8,7 +8,7 @@ import dev.jackraidenph.libraomni.annotation.compilation.CompilationProcessorsMa
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
-import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
+import dev.jackraidenph.libraomni.util.data.MetadataFileReader;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -159,7 +159,7 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
             }
 
             String modId = data.getModId();
-            Resource resource = Resource.json(MetadataFileManager.FILE_ROOT, data.fileRoot(), data);
+            Resource resource = Resource.json(MetadataFileReader.FILE_ROOT, data.fileRoot(), data);
             Metadata metadata = this.getOrCreateMetadata(modId);
             metadata.setElementDataPath(resource.path());
             dataResources.add(resource);
@@ -171,7 +171,7 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
     private Set<Resource> serializeMetadata() {
         Set<Resource> dataResources = new HashSet<>();
         for (Metadata metadata : this.modMetadata.values()) {
-            Resource resource = Resource.json(MetadataFileManager.FILE_ROOT, Metadata.fileRoot(), metadata);
+            Resource resource = Resource.json(MetadataFileReader.FILE_ROOT, Metadata.fileRoot(), metadata);
             dataResources.add(resource);
         }
         return dataResources;

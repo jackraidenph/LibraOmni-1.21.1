@@ -6,8 +6,7 @@ import dev.jackraidenph.libraomni.util.context.ModContext;
 import dev.jackraidenph.libraomni.util.context.ModContextManager;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
-import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
-import dev.jackraidenph.libraomni.util.data.MetadataFileManager.Reader;
+import dev.jackraidenph.libraomni.util.data.MetadataFileReader;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -51,7 +50,7 @@ public enum RuntimeProcessorsManager {
     }
 
     private void registerMods() {
-        Reader reader = MetadataFileManager.getReader();
+        MetadataFileReader reader = MetadataFileReader.INSTANCE;
         ModContextManager contextManager = ModContextManager.INSTANCE;
 
         Set<Metadata> modsData = reader.findModsWithElementData();
@@ -65,7 +64,7 @@ public enum RuntimeProcessorsManager {
     }
 
     private void registerAnnotatedProcessors() {
-        Reader reader = MetadataFileManager.getReader();
+        MetadataFileReader reader = MetadataFileReader.INSTANCE;
         for (Metadata metadata : reader.readAllModData()) {
             for (Scope scope : Scope.values()) {
                 for (String runtimeProcessorClass : metadata.getRuntimeProcessors(scope)) {
@@ -114,7 +113,7 @@ public enum RuntimeProcessorsManager {
             return elementDataMap.get(modId).getElements();
         }
 
-        ElementData elementData = MetadataFileManager.getReader().readElementData(modId);
+        ElementData elementData = MetadataFileReader.INSTANCE.readElementData(modId);
         if (elementData != null) {
             this.elementDataMap.put(modId, elementData);
             return elementData.getElements();
