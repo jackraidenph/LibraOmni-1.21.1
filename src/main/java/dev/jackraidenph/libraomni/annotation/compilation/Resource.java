@@ -10,45 +10,47 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public record Resource(String directory, String name, String extension, byte[] bytes) {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Gson GSON = new GsonBuilder()
+            .setPrettyPrinting()
+            .setLenient()
+            .disableHtmlEscaping()
+            .create();
 
     public Resource(String path, String name, String extension, String stringContents) {
         this(path, name, extension, stringContents.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static Resource json(String path, String name, Object jsonObject) {
-        return utf8(path + name + ".json", GSON.toJson(jsonObject));
+    private static String assetDir(String modId) {
+        return "assets/" + modId + "/";
     }
 
-    public static Resource png(String path, String name, byte[] contents) {
-        return new Resource(path, name, "png", contents);
+    private static String dataDir(String modId) {
+        return "data/" + modId + "/";
     }
 
-    public static Resource png(String path, String name, RenderedImage image) {
+    public static Resource json(String directory, String name, Object jsonObject) {
+        return utf8(directory, name, "json", GSON.toJson(jsonObject));
+    }
+
+    public static Resource png(String directory, String name, byte[] contents) {
+        return new Resource(directory, name, "png", contents);
+    }
+
+    public static Resource png(String directory, String name, RenderedImage image) {
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             ImageIO.write(image, "png", os);
-            return new Resource(path, name, "png", os.toByteArray());
+            return new Resource(directory, name, "png", os.toByteArray());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Resource binary(String path, byte[] contents) {
-        int dotIndex = path.lastIndexOf(".");
-        int slashIndex = path.lastIndexOf("/");
-        if (dotIndex < 0 || slashIndex < 0) {
-            throw new IllegalArgumentException("Malformed path, must be of pattern: path0/.../name.extension");
-        }
-
-        String extension = path.substring(dotIndex + 1);
-        String name = path.substring(slashIndex + 1, dotIndex);
-        String directory = path.substring(0, slashIndex + 1);
-
-        return new Resource(directory, name, extension, contents);
+    public static Resource binary(String directory, String name, String extension, byte[] bytes) {
+        return new Resource(directory, name, extension, bytes);
     }
 
-    public static Resource utf8(String path, String contents) {
-        return binary(path, contents.getBytes(StandardCharsets.UTF_8));
+    public static Resource utf8(String directory, String name, String extension, String utf8String) {
+        return binary(directory, name, extension, utf8String.getBytes(StandardCharsets.UTF_8));
     }
 
     public String baseName() {
