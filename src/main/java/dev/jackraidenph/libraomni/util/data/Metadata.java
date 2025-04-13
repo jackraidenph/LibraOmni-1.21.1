@@ -2,12 +2,8 @@ package dev.jackraidenph.libraomni.util.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,7 +11,7 @@ import java.util.Set;
 
 public class Metadata {
 
-    private static final Gson METADATA_GSON = new GsonBuilder()
+    private static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .disableHtmlEscaping()
             .create();
@@ -49,20 +45,8 @@ public class Metadata {
         this.getRuntimeProcessors(scope).add(qualifiedName);
     }
 
-    private static final String FILE_NAME_SUFFIX = "metadata";
-
-    public static String fileRoot() {
-        return LibraOmni.MODID + "." + FILE_NAME_SUFFIX;
-    }
-
-    public void output(OutputStream outputStream) throws IOException {
-        String str = METADATA_GSON.toJson(this);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        outputStream.write(bytes);
-    }
-
-    public static Metadata deserialize(String str) {
-        return METADATA_GSON.fromJson(str, Metadata.class);
+    public static Metadata fromJson(String json) {
+        return GSON.fromJson(json, Metadata.class);
     }
 
 }

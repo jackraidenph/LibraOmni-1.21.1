@@ -159,7 +159,7 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
             }
 
             String modId = data.getModId();
-            Resource resource = Resource.json(MetadataFileReader.FILE_ROOT, data.fileRoot(), data);
+            Resource resource = Resource.json(MetadataFileReader.DIRECTORY, MetadataFileReader.elementDataFileRoot(modId), data);
             Metadata metadata = this.getOrCreateMetadata(modId);
             metadata.setElementDataPath(resource.path());
             dataResources.add(resource);
@@ -171,7 +171,7 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
     private Set<Resource> serializeMetadata() {
         Set<Resource> dataResources = new HashSet<>();
         for (Metadata metadata : this.modMetadata.values()) {
-            Resource resource = Resource.json(MetadataFileReader.FILE_ROOT, Metadata.fileRoot(), metadata);
+            Resource resource = Resource.json(MetadataFileReader.DIRECTORY, MetadataFileReader.metadataFileRoot(), metadata);
             dataResources.add(resource);
         }
         return dataResources;

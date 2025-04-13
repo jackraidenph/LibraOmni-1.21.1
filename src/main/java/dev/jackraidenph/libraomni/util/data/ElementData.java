@@ -22,8 +22,6 @@ public class ElementData {
             .setPrettyPrinting()
             .create();
 
-    private static final String FILE_NAME_SUFFIX = "elements";
-
     private final Set<String> classes = new HashSet<>();
     private final Set<VariableData> fields = new HashSet<>();
     private final Set<ExecutableData> methods = new HashSet<>();
@@ -41,23 +39,6 @@ public class ElementData {
 
     public boolean isEmpty() {
         return classes.isEmpty() && fields.isEmpty() && methods.isEmpty() && constructors.isEmpty();
-    }
-
-    public void output(OutputStream outputStream) throws IOException {
-        outputStream.write(serialize());
-    }
-
-    public byte[] serialize() {
-        String str = GSON.toJson(this);
-        return str.getBytes(StandardCharsets.UTF_8);
-    }
-
-    public static ElementData fromJson(String str) {
-        return GSON.fromJson(str, ElementData.class);
-    }
-
-    public String fileRoot() {
-        return this.getModId() + "." + FILE_NAME_SUFFIX;
     }
 
     public void addElement(Element element) {
@@ -124,4 +105,7 @@ public class ElementData {
         return elements;
     }
 
+    public static ElementData fromJson(String str) {
+        return GSON.fromJson(str, ElementData.class);
+    }
 }

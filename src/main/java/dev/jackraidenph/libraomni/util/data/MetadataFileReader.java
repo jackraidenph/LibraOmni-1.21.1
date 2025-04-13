@@ -3,12 +3,8 @@ package dev.jackraidenph.libraomni.util.data;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.util.ResourceUtilities;
 
-import javax.annotation.processing.Filer;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,9 +16,36 @@ public enum MetadataFileReader {
 
     INSTANCE;
 
-    public static final String FILE_ROOT = "META-INF/" + LibraOmni.MODID + "/";
+    public static final String DIRECTORY = "META-INF/" + LibraOmni.MODID + "/";
+
+    private static final String METADATA_FILE_ROOT = LibraOmni.MODID + ".metadata";
+    private static final String ELEMENT_DATA_FILE_PREFIX = "elements";
 
     private final Map<String, Metadata> modMetadataCache = new HashMap<>();
+
+    public static String metadataFileRoot() {
+        return METADATA_FILE_ROOT;
+    }
+
+    public static String metadataFileName() {
+        return metadataFileRoot() + ".json";
+    }
+
+    public static String metadataFilePath() {
+        return DIRECTORY + metadataFileName();
+    }
+
+    public static String elementDataFileRoot(String modId) {
+        return modId + "." + ELEMENT_DATA_FILE_PREFIX;
+    }
+
+    public static String elementDataFileName(String modId) {
+        return elementDataFileRoot(modId) + ".json";
+    }
+
+    public static String elementDataFilePath(String modId) {
+        return DIRECTORY + elementDataFileName(modId);
+    }
 
     public Metadata readModData(String modId) {
         if (this.modMetadataCache.containsKey(modId)) {
@@ -51,8 +74,8 @@ public enum MetadataFileReader {
     }
 
     public Set<Metadata> readAllModData() {
-        return ResourceUtilities.getResourcesAsStrings(MetadataFileReader.FILE_ROOT + Metadata.fileRoot() + ".json")
-                .map(Metadata::deserialize)
+        return ResourceUtilities.getResourcesAsStrings(metadataFilePath())
+                .map(Metadata::fromJson)
                 .filter(Objects::nonNull)
                 .peek(metadata -> this.modMetadataCache.put(metadata.getModId(), metadata))
                 .collect(Collectors.toSet());
