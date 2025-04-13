@@ -146,7 +146,7 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
             for (Entry<Scope, Collection<String>> perScopeProcessors : processors.asMap().entrySet()) {
                 Scope scope = perScopeProcessors.getKey();
                 Collection<String> scopeProcessors = perScopeProcessors.getValue();
-                metadata.getRuntimeProcessors(scope).addAll(scopeProcessors);
+                metadata.addRuntimeProcessors(scope, scopeProcessors);
             }
         }
     }

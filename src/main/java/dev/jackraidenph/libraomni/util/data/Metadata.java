@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Metadata {
 
@@ -34,15 +31,20 @@ public class Metadata {
     }
 
     public Set<String> getRuntimeProcessors(Scope scope) {
-        return runtimeProcessors.computeIfAbsent(scope, k -> new HashSet<>());
+        Set<String> processors = this.runtimeProcessors.get(scope);
+        return processors == null ? Set.of() : Collections.unmodifiableSet(processors);
     }
 
     public void setElementDataPath(String path) {
         this.elementDataPath = path;
     }
 
-    public void addRuntimeProcessorClass(Scope scope, String qualifiedName) {
-        this.getRuntimeProcessors(scope).add(qualifiedName);
+    public void addRuntimeProcessors(Scope scope, String... qualifiedNames) {
+        this.addRuntimeProcessors(scope, Arrays.asList(qualifiedNames));
+    }
+
+    public void addRuntimeProcessors(Scope scope, Collection<String> qualifiedNames) {
+        this.runtimeProcessors.computeIfAbsent(scope, k -> new HashSet<>()).addAll(qualifiedNames);
     }
 
     public static Metadata fromJson(String json) {
