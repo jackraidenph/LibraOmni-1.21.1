@@ -38,10 +38,7 @@ abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor 
                 try {
                     this.createResource(resource);
                 } catch (IOException ioException) {
-                    messager.printError(ioException.getLocalizedMessage());
-                    messager.printError(
-                            "IOException caught trying to create resource [" + resource.path() + "]"
-                    );
+                    messager.printWarning("IOException caught while trying to create resource [" + resource.path() + "]:\n" + ioException.getLocalizedMessage());
                     continue;
                 }
 
