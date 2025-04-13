@@ -13,7 +13,7 @@ import java.util.StringJoiner;
 
 abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor {
 
-    public ResourceGeneratingProcessor(ProcessingEnvironment processingEnvironment, String root) {
+    public ResourceGeneratingProcessor(ProcessingEnvironment processingEnvironment) {
         super(processingEnvironment);
     }
 
