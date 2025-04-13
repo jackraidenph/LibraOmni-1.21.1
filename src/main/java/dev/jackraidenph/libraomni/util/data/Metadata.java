@@ -51,8 +51,8 @@ public class Metadata {
 
     private static final String FILE_NAME_SUFFIX = "metadata";
 
-    public static String fileName() {
-        return LibraOmni.MODID + "." + FILE_NAME_SUFFIX + ".json";
+    public static String fileRoot() {
+        return LibraOmni.MODID + "." + FILE_NAME_SUFFIX;
     }
 
     public void output(OutputStream outputStream) throws IOException {

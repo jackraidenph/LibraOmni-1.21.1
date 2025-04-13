@@ -2,28 +2,26 @@ package dev.jackraidenph.libraomni.annotation.compilation;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import dev.jackraidenph.libraomni.annotation.*;
 import dev.jackraidenph.libraomni.annotation.compilation.CompilationProcessorsManager.ModLocator;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileManager;
-import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
-import javax.tools.FileObject;
-import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-class MetadataProcessor extends AbstractCompilationProcessor {
+class MetadataProcessor extends ResourceGeneratingProcessor {
     private final Map<String, Metadata> modMetadata = new HashMap<>();
     private final Map<String, SetMultimap<Scope, String>> modRuntimeProcessorsPerScope = new HashMap<>();
     private final Map<String, ElementData> modElementData = new HashMap<>();
@@ -153,52 +151,42 @@ class MetadataProcessor extends AbstractCompilationProcessor {
         }
     }
 
-    private void serializeElementData() {
-        MetadataFileManager.Writer writer = MetadataFileManager.newWriter(this.filer());
-
+    private Set<Resource> serializeElementData() {
+        Set<Resource> dataResources = new HashSet<>();
         for (ElementData data : modElementData.values()) {
             if (data.isEmpty()) {
                 continue;
             }
 
-            try {
-                String modId = data.getModId();
-                FileObject file = writer.writeElementData(data);
-                this.messager().printNote(
-                        "Created elements data for [" + data.getModId() + "]: " + FilenameUtils.getName(file.getName())
-                );
-
-                Metadata metadata = this.getOrCreateMetadata(modId);
-                metadata.setElementDataPath(MetadataFileManager.Writer.elementDataResource(data));
-            } catch (IOException ioException) {
-                throw new RuntimeException(ioException);
-            }
+            String modId = data.getModId();
+            Resource resource = Resource.json(MetadataFileManager.FILE_ROOT, data.fileRoot(), data);
+            Metadata metadata = this.getOrCreateMetadata(modId);
+            metadata.setElementDataPath(resource.path());
+            dataResources.add(resource);
         }
+
+        return dataResources;
     }
 
-    private void serializeMetadata() {
-        MetadataFileManager.Writer writer = MetadataFileManager.newWriter(this.filer());
-
+    private Set<Resource> serializeMetadata() {
+        Set<Resource> dataResources = new HashSet<>();
         for (Metadata metadata : this.modMetadata.values()) {
-            try {
-                FileObject file = writer.writeMetadata(metadata);
-                this.messager().printNote(
-                        "Created metadata for [" + metadata.getModId() + "]: " + FilenameUtils.getName(file.getName())
-                );
-            } catch (IOException ioException) {
-                throw new RuntimeException(ioException);
-            }
+            Resource resource = Resource.json(MetadataFileManager.FILE_ROOT, Metadata.fileRoot(), metadata);
+            dataResources.add(resource);
         }
+        return dataResources;
     }
 
     @Override
-    public void finish(RoundEnvironment roundEnvironment) {
+    public Set<Resource> output(RoundEnvironment roundEnvironment) {
         this.createModMetadata();
         this.associateElements();
         this.addRuntimeProcessors();
         this.addProcessorsToMetadata();
-        this.serializeElementData();
-        this.serializeMetadata();
+        return Sets.union(
+                this.serializeElementData(),
+                this.serializeMetadata()
+        );
     }
 
     //METADATA PIPELINE END

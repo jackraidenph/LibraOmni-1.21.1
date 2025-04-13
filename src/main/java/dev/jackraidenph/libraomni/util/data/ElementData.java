@@ -44,17 +44,20 @@ public class ElementData {
     }
 
     public void output(OutputStream outputStream) throws IOException {
+        outputStream.write(serialize());
+    }
+
+    public byte[] serialize() {
         String str = GSON.toJson(this);
-        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        outputStream.write(bytes);
+        return str.getBytes(StandardCharsets.UTF_8);
     }
 
     public static ElementData fromJson(String str) {
         return GSON.fromJson(str, ElementData.class);
     }
 
-    public String fileName() {
-        return this.getModId() + "." + FILE_NAME_SUFFIX + ".json";
+    public String fileRoot() {
+        return this.getModId() + "." + FILE_NAME_SUFFIX;
     }
 
     public void addElement(Element element) {

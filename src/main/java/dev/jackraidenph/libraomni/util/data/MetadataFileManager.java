@@ -73,7 +73,7 @@ public class MetadataFileManager {
         }
 
         public Set<Metadata> readAllModData() {
-            return ResourceUtilities.getResourcesAsStrings(MetadataFileManager.FILE_ROOT + Metadata.fileName())
+            return ResourceUtilities.getResourcesAsStrings(MetadataFileManager.FILE_ROOT + Metadata.fileRoot() + ".json")
                     .map(Metadata::deserialize)
                     .filter(Objects::nonNull)
                     .peek(metadata -> this.modMetadataCache.put(metadata.getModId(), metadata))
@@ -144,11 +144,11 @@ public class MetadataFileManager {
         }
 
         public static String elementDataResource(ElementData elementData) {
-            return FILE_ROOT + elementData.fileName();
+            return FILE_ROOT + elementData.fileRoot();
         }
 
         public static String metadataResource() {
-            return FILE_ROOT + Metadata.fileName();
+            return FILE_ROOT + Metadata.fileRoot();
         }
     }
 }
