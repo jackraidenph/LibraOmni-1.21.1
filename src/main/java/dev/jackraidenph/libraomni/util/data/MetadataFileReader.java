@@ -1,16 +1,17 @@
 package dev.jackraidenph.libraomni.util.data;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.util.ResourceUtilities;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public enum MetadataFileReader {
 
@@ -74,7 +75,7 @@ public enum MetadataFileReader {
     }
 
     public Set<Metadata> readAllModData() {
-        return ResourceUtilities.getResourcesAsStrings(metadataFilePath())
+        return getResourcesAsStrings(metadataFilePath())
                 .map(Metadata::fromJson)
                 .filter(Objects::nonNull)
                 .peek(metadata -> this.modMetadataCache.put(metadata.getModId(), metadata))
@@ -90,12 +91,38 @@ public enum MetadataFileReader {
     }
 
     private static ElementData readElementDataFromLocation(String location) {
-        try (InputStream byteInputStream = ResourceUtilities.openResourceStream(location)) {
+        try (InputStream byteInputStream = openResourceStream(location)) {
             String str = new String(byteInputStream.readAllBytes(), StandardCharsets.UTF_8);
             return ElementData.fromJson(str);
         } catch (IOException e) {
             LibraOmni.LOGGER.error("Failed to read element data from [{}]", location);
             return null;
         }
+    }
+
+    private static ClassLoader classLoader() {
+        return MetadataFileReader.class.getClassLoader();
+    }
+
+    private static InputStream openResourceStream(String resourceLocation) {
+        return classLoader().getResourceAsStream(resourceLocation);
+    }
+
+    private static Stream<URL> getResources(String resourceLocation) {
+        return MetadataFileReader.class.getClassLoader().resources(resourceLocation);
+    }
+
+    private static Stream<byte[]> getResourcesAsBytes(String resourceLocation) {
+        return getResources(resourceLocation).map(url -> {
+            try (InputStream is = url.openStream()) {
+                return is.readAllBytes();
+            } catch (IOException ioException) {
+                return null;
+            }
+        }).filter(Objects::nonNull);
+    }
+
+    private static Stream<String> getResourcesAsStrings(String resourceLocation) {
+        return getResourcesAsBytes(resourceLocation).map(bytes -> new String(bytes, StandardCharsets.UTF_8));
     }
 }
