@@ -29,43 +29,54 @@ abstract class ResourceGeneratingProcessor extends AbstractCompilationProcessor 
 
         Set<Resource> createdFiles = this.output(roundEnvironment);
 
-        if (createdFiles.isEmpty()) {
-            messager.printNote("No files were created during the run of " + this.getClass().getSimpleName());
-        } else {
-            StringJoiner fileNames = new StringJoiner(", ", "[", "]");
-            for (Resource resource : createdFiles) {
+        StringJoiner fileNames = new StringJoiner(", ", "[", "]");
+        for (Resource resource : createdFiles) {
+            if (this.resourceExists(resource)) {
+                continue;
+            }
 
-                try {
-                    this.createResource(resource);
-                } catch (IOException ioException) {
-                    messager.printWarning("IOException caught while trying to create resource [" + resource.path() + "]:\n" + ioException.getLocalizedMessage());
-                    continue;
-                }
-
+            if (this.createResource(resource)) {
                 fileNames.add(resource.path());
             }
-            messager.printNote("Files created during the run: " + fileNames);
         }
+
+        messager.printNote("Files created during the run: " + fileNames);
     }
 
     public Set<Resource> output(RoundEnvironment roundEnvironment) {
         return Set.of();
     }
 
-    public final FileObject createResource(Resource resource) throws IOException {
+    public final boolean createResource(Resource resource) {
         Filer filer = this.getFiler();
 
-        FileObject fileObject = filer.createResource(
-                StandardLocation.SOURCE_OUTPUT,
-                "",
-                resource.path()
-        );
+        try {
+            FileObject fileObject = filer.createResource(
+                    StandardLocation.SOURCE_OUTPUT,
+                    "",
+                    resource.path()
+            );
 
-        try (OutputStream fileObjectWrite = fileObject.openOutputStream()) {
-            fileObjectWrite.write(resource.bytes());
+            try (OutputStream fileObjectWrite = fileObject.openOutputStream()) {
+                fileObjectWrite.write(resource.bytes());
+            }
+        } catch (IOException ioException) {
+            messager().printError("Failed to create resource [" + resource.path() + "]:\n" + ioException.getLocalizedMessage());
+            return false;
         }
 
-        return fileObject;
+        return true;
     }
 
+    private boolean resourceExists(Resource resource) {
+        try {
+            return filer().getResource(
+                    StandardLocation.SOURCE_OUTPUT,
+                    "",
+                    resource.path()
+            ).getLastModified() > 0;
+        } catch (IOException ioException) {
+            return false;
+        }
+    }
 }
