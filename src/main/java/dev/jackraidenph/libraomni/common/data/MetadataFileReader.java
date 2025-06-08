@@ -13,9 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public enum MetadataFileReader {
-
-    INSTANCE;
+public class MetadataFileReader {
 
     public static final String DIRECTORY = "META-INF/" + LibraOmni.MODID + "/";
 
