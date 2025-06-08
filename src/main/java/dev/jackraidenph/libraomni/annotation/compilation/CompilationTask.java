@@ -6,7 +6,7 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Set;
 
-interface CompilationProcessor {
+interface CompilationTask {
 
     Collection<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
 

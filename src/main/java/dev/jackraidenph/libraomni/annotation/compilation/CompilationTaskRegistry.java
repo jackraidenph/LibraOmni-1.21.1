@@ -5,29 +5,29 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class CompilationProcessorRegistry {
+public class CompilationTaskRegistry {
 
-    private static final Set<Supplier<CompilationProcessor>> PROCESSORS_REGISTRY = new HashSet<>();
+    private static final Set<Supplier<CompilationTask>> PROCESSORS_REGISTRY = new HashSet<>();
 
     static {
         registerAll(
-                MetadataProcessor::new,
-                ValidationProcessor::new
+                CreateMetadataTask::new,
+                ValidateAnnotationsTask::new
         );
     }
 
     @SafeVarargs
-    static void registerAll(Supplier<CompilationProcessor>... suppliers) {
-        for (Supplier<CompilationProcessor> s : suppliers) {
+    static void registerAll(Supplier<CompilationTask>... suppliers) {
+        for (Supplier<CompilationTask> s : suppliers) {
             register(s);
         }
     }
 
-    static void register(Supplier<CompilationProcessor> processorSupplier) {
+    static void register(Supplier<CompilationTask> processorSupplier) {
         PROCESSORS_REGISTRY.add(processorSupplier);
     }
 
-    static Collection<CompilationProcessor> getAll(Messager messager) {
+    static Collection<CompilationTask> getAll(Messager messager) {
         return PROCESSORS_REGISTRY.stream()
                 .map(Supplier::get)
                 .peek(task -> messager.printNote("Registered " + task.getClass().getSimpleName() + " for processing"))

@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-class MetadataProcessor implements CompilationProcessor {
+class CreateMetadataTask implements CompilationTask {
     private final Map<String, Metadata> modMetadata = new HashMap<>();
     private final Map<String, SetMultimap<Scope, String>> modRuntimeProcessorsPerScope = new HashMap<>();
     private final Map<String, ElementData> modElementData = new HashMap<>();
@@ -68,7 +68,7 @@ class MetadataProcessor implements CompilationProcessor {
                 .flatMap(e -> e.getAnnotationMirrors().stream())
                 .map(am -> (TypeElement) am.getAnnotationType().asElement())
                 .filter(e -> e.getAnnotation(NeedsRuntimeProcessing.class) != null)
-                .filter(MetadataProcessor::isRuntimeAnnotation)
+                .filter(CreateMetadataTask::isRuntimeAnnotation)
                 .map(typeElement -> typeElement.getQualifiedName().toString())
                 .collect(Collectors.toSet());
     }

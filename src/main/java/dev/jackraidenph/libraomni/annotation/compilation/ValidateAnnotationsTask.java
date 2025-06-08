@@ -12,7 +12,7 @@ import javax.lang.model.util.Types;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-class ValidationProcessor implements CompilationProcessor {
+class ValidateAnnotationsTask implements CompilationTask {
 
     @Override
     public Set<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {

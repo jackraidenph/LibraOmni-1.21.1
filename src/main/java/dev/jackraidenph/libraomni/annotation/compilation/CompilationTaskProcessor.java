@@ -12,18 +12,18 @@ import java.io.OutputStream;
 import java.util.*;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
-public class CompilationProcessorsManager extends AbstractProcessor {
+public class CompilationTaskProcessor extends AbstractProcessor {
 
-    private final Set<CompilationProcessor> processors = new HashSet<>();
+    private final Set<CompilationTask> processors = new HashSet<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
     private int round = 0;
 
-    protected CompilationProcessorsManager() {
+    protected CompilationTaskProcessor() {
         this.registerProcessors(processingEnv);
     }
 
     private void registerProcessors(ProcessingEnvironment environment) {
-        this.processors.addAll(CompilationProcessorRegistry.getAll(environment.getMessager()));
+        this.processors.addAll(CompilationTaskRegistry.getAll(environment.getMessager()));
     }
 
     @Override
@@ -39,14 +39,14 @@ public class CompilationProcessorsManager extends AbstractProcessor {
 
         Set<Resource> createdResources = new HashSet<>();
 
-        for (CompilationProcessor compilationProcessor : this.processors) {
+        for (CompilationTask compilationTask : this.processors) {
             final String op = finishing ? "Processing" : "Finishing";
 
-            messager.printNote(op + " [" + compilationProcessor.getClass().getSimpleName() + "]");
+            messager.printNote(op + " [" + compilationTask.getClass().getSimpleName() + "]");
 
             Collection<Resource> output = !finishing
-                    ? compilationProcessor.processRound(modIdGetter, roundEnvironment, this.processingEnv)
-                    : compilationProcessor.finish(modIdGetter, roundEnvironment, this.processingEnv);
+                    ? compilationTask.processRound(modIdGetter, roundEnvironment, this.processingEnv)
+                    : compilationTask.finish(modIdGetter, roundEnvironment, this.processingEnv);
 
             createdResources.addAll(output);
         }
