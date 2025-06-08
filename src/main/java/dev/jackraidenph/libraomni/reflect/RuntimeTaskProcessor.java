@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.reflect;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.reflect.context.ModContext;
@@ -20,18 +22,34 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public enum RuntimeTaskProcessor {
-
-    INSTANCE;
+public class RuntimeTaskProcessor {
 
     private final Map<String, ElementData> elementDataMap = new HashMap<>();
-    private final TaskHolder taskHolder = new TaskHolder();
+    private final Multimap<Scope, RuntimeTask> taskHolder = ArrayListMultimap.create();
     private final Set<ModContext> modsToProcess = new HashSet<>();
+
+    private final ModContextManager modContextManager;
 
     private boolean setup = false;
 
+    public RuntimeTaskProcessor(ModContextManager modContextManager) {
+        this.modContextManager = modContextManager;
+    }
+
     private void initContextRegisters() {
-        ModContextManager.INSTANCE.contexts().forEach(ModContext::initRegisters);
+        modContextManager.contexts().forEach(ModContext::initRegisters);
+    }
+
+    public void registerTask(Scope scope, RuntimeTask task) {
+        if (setup) {
+            throw new IllegalStateException("Processor was already set up");
+        }
+
+        Collection<RuntimeTask> tasksForScope = taskHolder.get(scope);
+
+        if(!tasksForScope.contains(task)) {
+            tasksForScope.add(task);
+        }
     }
 
     public void setup(IEventBus libraOmniEventBus) {
@@ -40,7 +58,7 @@ public enum RuntimeTaskProcessor {
             return;
         }
 
-        this.registerAnnotatedProcessors();
+        this.registerAnnotatedTasks();
 
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueConstruct);
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueCommon);
@@ -51,19 +69,18 @@ public enum RuntimeTaskProcessor {
 
     private void registerMods() {
         MetadataFileReader reader = MetadataFileReader.INSTANCE;
-        ModContextManager contextManager = ModContextManager.INSTANCE;
 
         Set<Metadata> modsData = reader.findModsWithElementData();
         for (Metadata metadata : modsData) {
             String modId = metadata.getModId();
-            ModContext context = contextManager.existsForMod(modId)
-                    ? contextManager.getContext(modId)
-                    : contextManager.createContext(modId);
+            ModContext context = modContextManager.existsForMod(modId)
+                    ? modContextManager.getContext(modId)
+                    : modContextManager.createContext(modId);
             this.registerMod(context);
         }
     }
 
-    private void registerAnnotatedProcessors() {
+    private void registerAnnotatedTasks() {
         MetadataFileReader reader = MetadataFileReader.INSTANCE;
         for (Metadata metadata : reader.readAllModData()) {
             for (Scope scope : Scope.values()) {
@@ -72,7 +89,7 @@ public enum RuntimeTaskProcessor {
                         Class<? extends RuntimeTask> clazz = Class.forName(runtimeProcessorClass).asSubclass(RuntimeTask.class);
                         Constructor<? extends RuntimeTask> constructor = clazz.getDeclaredConstructor();
                         RuntimeTask runtimeTask = constructor.newInstance();
-                        this.registerProcessor(scope, runtimeTask);
+                        this.registerTask(scope, runtimeTask);
                     } catch (ClassNotFoundException classNotFoundException) {
                         LibraOmni.LOGGER.error("Failed to instantiate {}, the class does not exist!", runtimeProcessorClass);
                     } catch (ClassCastException classCastException) {
@@ -145,14 +162,8 @@ public enum RuntimeTaskProcessor {
         this.modsToProcess.add(modContext);
     }
 
-    public void registerProcessor(Scope scope, RuntimeTask runTimeTask) {
-        if (!taskHolder.tasksForScope(scope).contains(runTimeTask)) {
-            taskHolder.addTask(scope, runTimeTask);
-        }
-    }
-
     public void processAll(Scope scope) {
-        List<RuntimeTask> tasks = taskHolder.tasksForScope(scope);
+        Collection<RuntimeTask> tasks = taskHolder.get(scope);
         if (tasks.isEmpty()) {
             return;
         }
@@ -173,22 +184,6 @@ public enum RuntimeTaskProcessor {
 
                 runtimeTask.process(modContext, elements);
             }
-        }
-    }
-
-    private static class TaskHolder {
-        private final Map<Scope, List<RuntimeTask>> tasksPerScope = new HashMap<>();
-
-        private List<RuntimeTask> getOrCreateList(Scope scope) {
-            return tasksPerScope.computeIfAbsent(scope, s -> new ArrayList<>());
-        }
-
-        public void addTask(Scope scope, RuntimeTask runtimeTask) {
-            getOrCreateList(scope).add(runtimeTask);
-        }
-
-        public List<RuntimeTask> tasksForScope(Scope scope) {
-            return Collections.unmodifiableList(getOrCreateList(scope));
         }
     }
 }

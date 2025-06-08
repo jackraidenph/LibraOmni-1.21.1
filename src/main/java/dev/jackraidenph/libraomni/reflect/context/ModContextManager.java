@@ -6,9 +6,7 @@ import net.neoforged.fml.ModList;
 
 import java.util.*;
 
-public enum ModContextManager {
-
-    INSTANCE;
+public class ModContextManager {
 
     private final Map<String, ModContext> contextMap = new HashMap<>();
 
