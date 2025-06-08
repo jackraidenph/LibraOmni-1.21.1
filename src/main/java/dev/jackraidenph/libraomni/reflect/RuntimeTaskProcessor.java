@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.reflect.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.reflect.context.ModContext;
 import dev.jackraidenph.libraomni.reflect.context.ModContextManager;
 import dev.jackraidenph.libraomni.common.data.ElementData;
@@ -20,12 +20,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public enum RuntimeProcessorsManager {
+public enum RuntimeTaskProcessor {
 
     INSTANCE;
 
     private final Map<String, ElementData> elementDataMap = new HashMap<>();
-    private final Map<Scope, List<RuntimeProcessor>> processors = new HashMap<>();
+    private final Map<Scope, List<RuntimeTask>> processors = new HashMap<>();
     private final Set<ModContext> modsToProcess = new HashSet<>();
 
     private boolean setup = false;
@@ -69,10 +69,10 @@ public enum RuntimeProcessorsManager {
             for (Scope scope : Scope.values()) {
                 for (String runtimeProcessorClass : metadata.getRuntimeProcessors(scope)) {
                     try {
-                        Class<? extends RuntimeProcessor> clazz = Class.forName(runtimeProcessorClass).asSubclass(RuntimeProcessor.class);
-                        Constructor<? extends RuntimeProcessor> constructor = clazz.getDeclaredConstructor();
-                        RuntimeProcessor runtimeProcessor = constructor.newInstance();
-                        this.registerProcessor(scope, runtimeProcessor);
+                        Class<? extends RuntimeTask> clazz = Class.forName(runtimeProcessorClass).asSubclass(RuntimeTask.class);
+                        Constructor<? extends RuntimeTask> constructor = clazz.getDeclaredConstructor();
+                        RuntimeTask runtimeTask = constructor.newInstance();
+                        this.registerProcessor(scope, runtimeTask);
                     } catch (ClassNotFoundException classNotFoundException) {
                         LibraOmni.LOGGER.error("Failed to instantiate {}, the class does not exist!", runtimeProcessorClass);
                     } catch (ClassCastException classCastException) {
@@ -145,38 +145,38 @@ public enum RuntimeProcessorsManager {
         this.modsToProcess.add(modContext);
     }
 
-    private Set<RuntimeProcessor> allProcessors() {
+    private Set<RuntimeTask> allProcessors() {
         return this.processors.values().stream().flatMap(List::stream).collect(Collectors.toSet());
     }
 
-    public void registerProcessor(Scope scope, RuntimeProcessor runTimeProcessor) {
-        if (this.allProcessors().contains(runTimeProcessor)) {
+    public void registerProcessor(Scope scope, RuntimeTask runTimeTask) {
+        if (this.allProcessors().contains(runTimeTask)) {
             throw new IllegalArgumentException("Runtime processor already registered");
         }
-        this.processors.computeIfAbsent(scope, s -> new ArrayList<>()).add(runTimeProcessor);
+        this.processors.computeIfAbsent(scope, s -> new ArrayList<>()).add(runTimeTask);
     }
 
     public void processAll(Scope scope) {
-        List<RuntimeProcessor> processors = this.processors.get(scope);
+        List<RuntimeTask> processors = this.processors.get(scope);
         if (processors == null || processors.isEmpty()) {
             return;
         }
 
         for (ModContext modContext : this.modsToProcess) {
-            for (RuntimeProcessor runtimeProcessor : processors) {
+            for (RuntimeTask runtimeTask : processors) {
                 Set<AnnotatedElement> elements = this.elementsAnnotatedWith(
                         modContext.modId(),
-                        runtimeProcessor.getSupportedAnnotations()
+                        runtimeTask.getSupportedAnnotations()
                 );
 
                 LibraOmni.LOGGER.info(
                         "Processing mod id [{}] with [{}] in {}",
                         modContext.modId(),
-                        runtimeProcessor.getClass().getSimpleName(),
+                        runtimeTask.getClass().getSimpleName(),
                         scope
                 );
 
-                runtimeProcessor.process(modContext, elements);
+                runtimeTask.process(modContext, elements);
             }
         }
     }

@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.common.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.jackraidenph.libraomni.reflect.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 
 import java.util.*;
 

@@ -6,7 +6,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
-public interface RuntimeProcessor {
+public interface RuntimeTask {
 
     void process(
             ModContext modContext,

@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.reflect.RuntimeProcessorRegistry;
-import dev.jackraidenph.libraomni.reflect.RuntimeProcessorsManager;
+import dev.jackraidenph.libraomni.reflect.RuntimeTasksRegistry;
+import dev.jackraidenph.libraomni.reflect.RuntimeTaskProcessor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -15,8 +15,8 @@ public class LibraOmni {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
-        RuntimeProcessorsManager runtimeProcessorsManager = RuntimeProcessorsManager.INSTANCE;
-        RuntimeProcessorRegistry.init();
-        runtimeProcessorsManager.setup(modEventBus);
+        RuntimeTaskProcessor runtimeTaskProcessor = RuntimeTaskProcessor.INSTANCE;
+        RuntimeTasksRegistry.init();
+        runtimeTaskProcessor.setup(modEventBus);
     }
 }

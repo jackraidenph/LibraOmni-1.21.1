@@ -12,7 +12,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
-public class RegisteredAnnotationProcessor implements RuntimeProcessor {
+public class RegisterObjectTask implements RuntimeTask {
 
     @Override
     public void process(ModContext modContext, Set<AnnotatedElement> elements) {
