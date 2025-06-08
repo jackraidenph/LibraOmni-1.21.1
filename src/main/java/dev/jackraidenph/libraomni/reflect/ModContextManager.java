@@ -10,6 +10,10 @@ public class ModContextManager {
 
     private final Map<String, ModContext> contextMap = new HashMap<>();
 
+    public ModContext getOrCreate(String modId) {
+        return existsForMod(modId) ? getContext(modId) : createContext(modId);
+    }
+
     public ModContext getContext(String modId) {
         if (!this.contextMap.containsKey(modId)) {
             throw new IllegalStateException("No context found for [" + modId + "]");

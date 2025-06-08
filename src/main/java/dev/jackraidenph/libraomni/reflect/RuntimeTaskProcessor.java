@@ -65,14 +65,8 @@ public class RuntimeTaskProcessor {
     }
 
     private void registerMods() {
-        MetadataFileReader reader = MetadataFileReader.INSTANCE;
-
-        Set<Metadata> modsData = reader.findModsWithElementData();
-        for (Metadata metadata : modsData) {
-            String modId = metadata.getModId();
-            ModContext context = modContextManager.existsForMod(modId)
-                    ? modContextManager.getContext(modId)
-                    : modContextManager.createContext(modId);
+        for (Metadata metadata : MetadataFileReader.INSTANCE.findModsWithElementData()) {
+            ModContext context = modContextManager.getOrCreate(metadata.getModId());
             this.registerMod(context);
         }
     }
