@@ -7,7 +7,7 @@ import dev.jackraidenph.libraomni.annotation.*;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.common.data.ElementData;
 import dev.jackraidenph.libraomni.common.data.Metadata;
-import dev.jackraidenph.libraomni.common.data.MetadataFileReader;
+import dev.jackraidenph.libraomni.common.data.MetadataReader;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -153,8 +153,8 @@ class CreateMetadataTask implements CompilationTask {
             String modId = data.getModId();
             Resource resource = Resource
                     .json(data)
-                    .directory(MetadataFileReader.DIRECTORY)
-                    .name(MetadataFileReader.elementDataFileRoot(modId))
+                    .directory(MetadataReader.DIRECTORY)
+                    .name(MetadataReader.elementDataFileRoot(modId))
                     .build();
             Metadata metadata = this.getOrCreateMetadata(modId);
             metadata.setElementDataPath(resource.getPath());
@@ -169,8 +169,8 @@ class CreateMetadataTask implements CompilationTask {
         for (Metadata metadata : this.modMetadata.values()) {
             Resource resource = Resource
                     .json(metadata)
-                    .directory(MetadataFileReader.DIRECTORY)
-                    .name(MetadataFileReader.metadataFileRoot())
+                    .directory(MetadataReader.DIRECTORY)
+                    .name(MetadataReader.metadataFileRoot())
                     .build();
             dataResources.add(resource);
         }

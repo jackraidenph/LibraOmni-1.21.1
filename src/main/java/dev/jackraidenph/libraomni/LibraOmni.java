@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.common.data.MetadataFileReader;
+import dev.jackraidenph.libraomni.common.data.MetadataReader;
 import dev.jackraidenph.libraomni.reflect.RegisterObjectTask;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.reflect.RuntimeTaskProcessor;
@@ -19,9 +19,9 @@ public class LibraOmni {
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         ModContextManager modContextManager = new ModContextManager();
-        MetadataFileReader metadataFileReader = new MetadataFileReader();
+        MetadataReader metadataReader = new MetadataReader();
 
-        RuntimeTaskProcessor.with(modContextManager, metadataFileReader)
+        RuntimeTaskProcessor.with(modContextManager, metadataReader)
                 .registerTask(Scope.CONSTRUCT, new RegisterObjectTask())
                 .setup(modEventBus);
     }

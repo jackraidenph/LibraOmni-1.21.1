@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MetadataFileReader {
+public class MetadataReader {
 
     public static final String DIRECTORY = "META-INF/" + LibraOmni.MODID + "/";
 
@@ -99,7 +99,7 @@ public class MetadataFileReader {
     }
 
     private static ClassLoader classLoader() {
-        return MetadataFileReader.class.getClassLoader();
+        return MetadataReader.class.getClassLoader();
     }
 
     private static InputStream openResourceStream(String resourceLocation) {
@@ -107,7 +107,7 @@ public class MetadataFileReader {
     }
 
     private static Stream<URL> getResources(String resourceLocation) {
-        return MetadataFileReader.class.getClassLoader().resources(resourceLocation);
+        return MetadataReader.class.getClassLoader().resources(resourceLocation);
     }
 
     private static Stream<byte[]> getResourcesAsBytes(String resourceLocation) {

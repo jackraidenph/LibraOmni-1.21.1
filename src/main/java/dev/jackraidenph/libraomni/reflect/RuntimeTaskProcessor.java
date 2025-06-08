@@ -7,7 +7,7 @@ import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.common.data.ElementData;
 import dev.jackraidenph.libraomni.common.data.Metadata;
-import dev.jackraidenph.libraomni.common.data.MetadataFileReader;
+import dev.jackraidenph.libraomni.common.data.MetadataReader;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -26,13 +26,13 @@ public class RuntimeTaskProcessor {
     private final Set<ModContext> modsToProcess = new HashSet<>();
 
     private final ModContextManager modContextManager;
-    private final MetadataFileReader metadataFileReader;
+    private final MetadataReader metadataReader;
 
     private boolean setup = false;
 
-    private RuntimeTaskProcessor(ModContextManager modContextManager, MetadataFileReader reader) {
+    private RuntimeTaskProcessor(ModContextManager modContextManager, MetadataReader reader) {
         this.modContextManager = modContextManager;
-        this.metadataFileReader = reader;
+        this.metadataReader = reader;
     }
 
     private void initContextRegisters() {
@@ -66,14 +66,14 @@ public class RuntimeTaskProcessor {
     }
 
     private void registerMods() {
-        for (Metadata metadata : metadataFileReader.findModsWithElementData()) {
+        for (Metadata metadata : metadataReader.findModsWithElementData()) {
             ModContext context = modContextManager.getOrCreate(metadata.getModId());
             this.registerMod(context);
         }
     }
 
     private void registerAnnotatedTasks() {
-        metadataFileReader.readAllModData().forEach(this::processMetadata);
+        metadataReader.readAllModData().forEach(this::processMetadata);
     }
 
     private void processMetadata(Metadata metadata) {
@@ -124,7 +124,7 @@ public class RuntimeTaskProcessor {
             return elementDataMap.get(modId).getElements();
         }
 
-        ElementData elementData = metadataFileReader.readElementData(modId);
+        ElementData elementData = metadataReader.readElementData(modId);
         if (elementData != null) {
             this.elementDataMap.put(modId, elementData);
             return elementData.getElements();
@@ -170,7 +170,7 @@ public class RuntimeTaskProcessor {
         }
     }
 
-    public static RuntimeTaskProcessorConfigurator with(ModContextManager modContextManager, MetadataFileReader metadataReader) {
+    public static RuntimeTaskProcessorConfigurator with(ModContextManager modContextManager, MetadataReader metadataReader) {
         return new RuntimeTaskProcessorConfigurator(new RuntimeTaskProcessor(modContextManager, metadataReader));
     }
 
