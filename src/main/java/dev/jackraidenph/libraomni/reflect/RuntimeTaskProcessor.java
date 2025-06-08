@@ -170,10 +170,10 @@ public enum RuntimeTaskProcessor {
                 );
 
                 LibraOmni.LOGGER.info(
-                        "Processing mod id [{}] with [{}] in {}",
-                        modContext.modId(),
+                        "({}) Invoking {} for {}",
+                        scope,
                         runtimeTask.getClass().getSimpleName(),
-                        scope
+                        modContext.modId()
                 );
 
                 runtimeTask.process(modContext, elements);
