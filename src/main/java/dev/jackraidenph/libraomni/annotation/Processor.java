@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.annotation;
 
-import dev.jackraidenph.libraomni.annotation.compilation.validation.RuntimeTaskValidator;
-import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.compilation.validation.RuntimeTaskValidator;
+import dev.jackraidenph.libraomni.runtime.RuntimeProcessor.Scope;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

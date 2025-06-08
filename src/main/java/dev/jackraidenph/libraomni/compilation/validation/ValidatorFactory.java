@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compilation.validation;
+package dev.jackraidenph.libraomni.compilation.validation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

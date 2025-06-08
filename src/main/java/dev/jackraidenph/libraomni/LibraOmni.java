@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessorRegistry;
-import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessorsManager;
+import dev.jackraidenph.libraomni.runtime.RuntimeProcessorRegistry;
+import dev.jackraidenph.libraomni.runtime.RuntimeProcessorsManager;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;

@@ -1,10 +1,10 @@
-package dev.jackraidenph.libraomni.annotation.compilation;
+package dev.jackraidenph.libraomni.compilation;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import dev.jackraidenph.libraomni.annotation.*;
-import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.common.data.ElementData;
 import dev.jackraidenph.libraomni.common.data.Metadata;
 import dev.jackraidenph.libraomni.common.data.MetadataFileReader;

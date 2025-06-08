@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.runtime.context;
+package dev.jackraidenph.libraomni.runtime.context;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import net.minecraft.world.item.Item;

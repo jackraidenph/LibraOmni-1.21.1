@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compilation;
+package dev.jackraidenph.libraomni.compilation;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

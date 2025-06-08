@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compilation;
+package dev.jackraidenph.libraomni.compilation;
 
 import javax.annotation.processing.Messager;
 import java.util.*;

@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation;
 
-import dev.jackraidenph.libraomni.annotation.compilation.validation.Validator;
+import dev.jackraidenph.libraomni.compilation.validation.Validator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

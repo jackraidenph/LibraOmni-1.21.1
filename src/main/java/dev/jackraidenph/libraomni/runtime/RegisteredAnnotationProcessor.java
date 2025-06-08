@@ -1,9 +1,9 @@
-package dev.jackraidenph.libraomni.annotation.runtime;
+package dev.jackraidenph.libraomni.runtime;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.StringUtilities;
-import dev.jackraidenph.libraomni.annotation.runtime.context.ModContext;
+import dev.jackraidenph.libraomni.runtime.context.ModContext;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.annotation.Annotation;
