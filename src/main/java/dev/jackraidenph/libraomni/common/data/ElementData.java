@@ -1,16 +1,13 @@
-package dev.jackraidenph.libraomni.util.data;
+package dev.jackraidenph.libraomni.common.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import javax.lang.model.element.*;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;

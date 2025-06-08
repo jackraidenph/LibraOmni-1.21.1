@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.util;
+package dev.jackraidenph.libraomni.common;
 
 public class StringUtilities {
     public static String snakeCase(String string) {

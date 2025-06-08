@@ -5,9 +5,9 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import dev.jackraidenph.libraomni.annotation.*;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.util.data.ElementData;
-import dev.jackraidenph.libraomni.util.data.Metadata;
-import dev.jackraidenph.libraomni.util.data.MetadataFileReader;
+import dev.jackraidenph.libraomni.common.data.ElementData;
+import dev.jackraidenph.libraomni.common.data.Metadata;
+import dev.jackraidenph.libraomni.common.data.MetadataFileReader;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;

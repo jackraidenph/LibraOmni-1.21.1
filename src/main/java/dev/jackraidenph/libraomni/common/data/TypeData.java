@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.util.data;
+package dev.jackraidenph.libraomni.common.data;
 
 import javax.lang.model.element.TypeElement;
 import java.util.Map;
