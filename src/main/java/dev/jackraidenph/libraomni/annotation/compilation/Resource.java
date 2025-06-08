@@ -2,62 +2,161 @@ package dev.jackraidenph.libraomni.annotation.compilation;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 
-import javax.imageio.ImageIO;
-import java.awt.image.RenderedImage;
-import java.io.ByteArrayOutputStream;
+import java.awt.image.*;
 import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public record Resource(String directory, String name, String extension, byte[] bytes) {
-    private static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .setLenient()
-            .disableHtmlEscaping()
-            .create();
+public class Resource {
 
-    public Resource(String path, String name, String extension, String stringContents) {
-        this(path, name, extension, stringContents.getBytes(StandardCharsets.UTF_8));
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
+    private final byte[] contents;
+    private final String name;
+    private final String extension;
+    /**
+     * A path relative to resource-set
+     */
+    private final String dir;
+
+    private Resource(byte[] contents, String resourceDirectory, String name, String extension) {
+        this.contents = contents;
+        this.dir = resourceDirectory.endsWith("/") ? resourceDirectory : (resourceDirectory + "/");
+        this.name = name;
+        this.extension = extension;
     }
 
-    private static String assetDir(String modId) {
-        return "assets/" + modId + "/";
+    public byte[] getContents() {
+        return contents;
     }
 
-    private static String dataDir(String modId) {
-        return "data/" + modId + "/";
+    public String getDirectory() {
+        return dir;
     }
 
-    public static Resource json(String directory, String name, Object jsonObject) {
-        return utf8(directory, name, "json", GSON.toJson(jsonObject));
+    public String getName() {
+        return name;
     }
 
-    public static Resource png(String directory, String name, byte[] contents) {
-        return new Resource(directory, name, "png", contents);
+    public String getExtension() {
+        return extension;
     }
 
-    public static Resource png(String directory, String name, RenderedImage image) {
-        try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-            ImageIO.write(image, "png", os);
-            return new Resource(directory, name, "png", os.toByteArray());
+    public String getFileName() {
+        return getName() + "." + getExtension();
+    }
+
+    public String getPath() {
+        return getDirectory() + getFileName();
+    }
+
+    public static OutputFileBuilder raw(byte[] bytes) {
+        return new OutputFileBuilder(bytes);
+    }
+
+    public static OutputFileBuilder string(String str, Charset charset) {
+        return raw(str.getBytes(charset));
+    }
+
+    public static OutputFileBuilder string(String str) {
+        return string(str, StandardCharsets.UTF_8);
+    }
+
+    public static OutputFileBuilder text(String text) {
+        return string(text).extension("txt");
+    }
+
+    public static OutputFileBuilder text(String text, Charset charset) {
+        return string(text, charset).extension("txt");
+    }
+
+    private static boolean isValidJson(String input) {
+        try (JsonReader reader = new JsonReader(new StringReader(input))) {
+            reader.skipValue();
+            return reader.peek() == JsonToken.END_DOCUMENT;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return false;
         }
     }
 
-    public static Resource binary(String directory, String name, String extension, byte[] bytes) {
-        return new Resource(directory, name, extension, bytes);
+    public static OutputFileBuilder json(String rawJson) {
+        if (!isValidJson(rawJson)) {
+            throw new IllegalArgumentException("Malformed JSON");
+        }
+
+        return string(rawJson).json();
     }
 
-    public static Resource utf8(String directory, String name, String extension, String utf8String) {
-        return binary(directory, name, extension, utf8String.getBytes(StandardCharsets.UTF_8));
+    public static OutputFileBuilder json(Object object) {
+        //Validity check is not necessary
+        return string(GSON.toJson(object)).json();
     }
 
-    public String baseName() {
-        return this.name() + "." + this.extension();
+    public static OutputFileBuilder png(RenderedImage image) {
+        return image(image).png();
     }
 
-    public String path() {
-        return this.directory() + this.name() + "." + this.extension();
+    public static OutputFileBuilder png(Raster raster) {
+        return raster(raster).png();
     }
+
+    public static OutputFileBuilder raster(Raster raster) {
+        DataBuffer dataBuffer = raster.getDataBuffer();
+        if (dataBuffer.getDataType() != DataBuffer.TYPE_BYTE) {
+            throw new UnsupportedOperationException("Failed to get raw byte contents for non-byte image buffer type");
+        }
+        return raw(((DataBufferByte) dataBuffer).getData());
+    }
+
+    public static OutputFileBuilder image(RenderedImage bufferedImage) {
+        return raster(bufferedImage.getData());
+    }
+
+    public static class OutputFileBuilder {
+
+        private final byte[] fileContents;
+        /**
+         * A path relative to resource-set
+         */
+        private String filePath;
+        private String fileName;
+        private String fileExtension;
+
+        public OutputFileBuilder(byte[] fileContents) {
+            this.fileContents = fileContents;
+        }
+
+        public OutputFileBuilder directory(String path) {
+            this.filePath = path;
+            return this;
+        }
+
+        public OutputFileBuilder name(String name) {
+            this.fileName = name;
+            return this;
+        }
+
+        public OutputFileBuilder extension(String extension) {
+            this.fileExtension = extension;
+            return this;
+        }
+
+        public OutputFileBuilder json() {
+            return extension("json");
+        }
+
+        public OutputFileBuilder png() {
+            return extension("png");
+        }
+
+        public Resource build() {
+            return new Resource(fileContents, filePath, fileName, fileExtension);
+        }
+
+    }
+
 }
