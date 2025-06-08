@@ -18,9 +18,9 @@ public class LibraOmni {
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         ModContextManager modContextManager = new ModContextManager();
-        RuntimeTaskProcessor runtimeTaskProcessor = new RuntimeTaskProcessor(modContextManager);
 
-        runtimeTaskProcessor.registerTask(Scope.CONSTRUCT, new RegisterObjectTask());
-        runtimeTaskProcessor.setup(modEventBus);
+        RuntimeTaskProcessor.withContextManager(modContextManager)
+                .registerTask(Scope.CONSTRUCT, new RegisterObjectTask())
+                .setup(modEventBus);
     }
 }

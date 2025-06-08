@@ -175,4 +175,27 @@ public class RuntimeTaskProcessor {
             }
         }
     }
+
+    public static RuntimeTaskProcessorConfigurator withContextManager(ModContextManager modContextManager) {
+        return new RuntimeTaskProcessorConfigurator(new RuntimeTaskProcessor(modContextManager));
+    }
+
+    public static class RuntimeTaskProcessorConfigurator {
+
+        private final RuntimeTaskProcessor taskProcessor;
+
+        public RuntimeTaskProcessorConfigurator(RuntimeTaskProcessor taskProcessor) {
+            this.taskProcessor = taskProcessor;
+        }
+
+        public RuntimeTaskProcessorConfigurator registerTask(Scope scope, RuntimeTask runtimeTask) {
+            taskProcessor.registerTask(scope, runtimeTask);
+            return this;
+        }
+
+        public RuntimeTaskProcessor setup(IEventBus eventBus) {
+            taskProcessor.setup(eventBus);
+            return taskProcessor;
+        }
+    }
 }
