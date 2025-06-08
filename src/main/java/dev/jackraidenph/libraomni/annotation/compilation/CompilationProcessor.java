@@ -1,7 +1,5 @@
 package dev.jackraidenph.libraomni.annotation.compilation;
 
-import dev.jackraidenph.libraomni.annotation.compilation.CompilationProcessorsManager.ModLocator;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import java.lang.annotation.Annotation;
@@ -10,9 +8,9 @@ import java.util.Set;
 
 interface CompilationProcessor {
 
-    Collection<Resource> processRound(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
+    Collection<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
 
-    default Collection<Resource> finish(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    default Collection<Resource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         return Set.of();
     }
 

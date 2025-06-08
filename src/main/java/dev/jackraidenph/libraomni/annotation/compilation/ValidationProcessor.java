@@ -1,7 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.compilation;
 
 import dev.jackraidenph.libraomni.annotation.Validated;
-import dev.jackraidenph.libraomni.annotation.compilation.CompilationProcessorsManager.ModLocator;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 class ValidationProcessor implements CompilationProcessor {
 
     @Override
-    public Set<Resource> processRound(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public Set<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         Set<TypeElement> validatedAnnotations = roundEnv
                 .getRootElements()
                 .stream()

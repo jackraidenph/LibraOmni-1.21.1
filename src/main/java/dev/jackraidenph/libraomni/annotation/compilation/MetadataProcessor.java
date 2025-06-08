@@ -4,7 +4,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import dev.jackraidenph.libraomni.annotation.*;
-import dev.jackraidenph.libraomni.annotation.compilation.CompilationProcessorsManager.ModLocator;
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor.Scope;
 import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
@@ -39,11 +38,11 @@ class MetadataProcessor implements CompilationProcessor {
         return this.modMetadata.computeIfAbsent(modId, Metadata::new);
     }
 
-    private String modIdByPackage(ModLocator modLocator, Element e) {
+    private String modIdByPackage(ModIdGetter modLocator, Element e) {
         if (modLocator == null) {
             return null;
         }
-        return modLocator.modId(e);
+        return modLocator.forElement(e);
     }
 
     //UTILITY END
@@ -79,7 +78,7 @@ class MetadataProcessor implements CompilationProcessor {
     }
 
     @Override
-    public Collection<Resource> processRound(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public Collection<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         Set<String> runtimeAnnotations = this.findRuntimeAnnotations(roundEnv);
 
         if (!runtimeAnnotations.isEmpty()) {
@@ -101,11 +100,11 @@ class MetadataProcessor implements CompilationProcessor {
         return Set.of();
     }
 
-    private void createModMetadata(ModLocator modLocator) {
+    private void createModMetadata(ModIdGetter modLocator) {
         modLocator.mods().forEach(id -> this.modMetadata.computeIfAbsent(id, Metadata::new));
     }
 
-    private void associateElements(ModLocator modLocator) {
+    private void associateElements(ModIdGetter modLocator) {
         for (Element element : this.runtimeElements) {
             String modId = this.modIdByPackage(modLocator, element);
             if (modId == null) {
@@ -116,7 +115,7 @@ class MetadataProcessor implements CompilationProcessor {
         }
     }
 
-    private void addRuntimeProcessors(ModLocator modLocator, Messager messager) {
+    private void addRuntimeProcessors(ModIdGetter modLocator, Messager messager) {
         for (Entry<Scope, Collection<Element>> entry : this.runtimeProcessorElements.asMap().entrySet()) {
             Scope scope = entry.getKey();
             for (Element element : entry.getValue()) {
@@ -132,7 +131,7 @@ class MetadataProcessor implements CompilationProcessor {
         }
     }
 
-    private void addProcessorsToMetadata(ModLocator modLocator) {
+    private void addProcessorsToMetadata(ModIdGetter modLocator) {
         for (String mod : modLocator.mods()) {
             Metadata metadata = this.getOrCreateMetadata(mod);
             SetMultimap<Scope, String> processors = this.modRuntimeProcessorsPerScope.get(mod);
@@ -179,7 +178,7 @@ class MetadataProcessor implements CompilationProcessor {
     }
 
     @Override
-    public Set<Resource> finish(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public Set<Resource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         this.createModMetadata(modLocator);
         this.associateElements(modLocator);
         this.addRuntimeProcessors(modLocator, processingEnv.getMessager());

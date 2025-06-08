@@ -4,32 +4,31 @@ import net.neoforged.fml.common.Mod;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.Map.Entry;
 
+@SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class CompilationProcessorsManager extends AbstractProcessor {
 
     private final Set<CompilationProcessor> processors = new HashSet<>();
-    private ModLocator modLocator = null;
+    private final ModIdGetter modIdGetter = new ModIdGetter();
     private int round = 0;
 
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
+    protected CompilationProcessorsManager() {
         this.registerProcessors(processingEnv);
-        super.init(processingEnv);
-        this.modLocator = new ModLocator(processingEnv);
+    }
+
+    private void registerProcessors(ProcessingEnvironment environment) {
+        this.processors.addAll(CompilationProcessorRegistry.getAll(environment.getMessager()));
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        this.modLocator.updateMap(roundEnvironment);
+        this.modIdGetter.findMods(roundEnvironment, this.processingEnv.getMessager());
 
         Messager messager = this.processingEnv.getMessager();
         boolean finishing = roundEnvironment.processingOver();
@@ -46,8 +45,8 @@ public class CompilationProcessorsManager extends AbstractProcessor {
             messager.printNote(op + " [" + compilationProcessor.getClass().getSimpleName() + "]");
 
             Collection<Resource> output = !finishing
-                    ? compilationProcessor.processRound(modLocator, roundEnvironment, this.processingEnv)
-                    : compilationProcessor.finish(modLocator, roundEnvironment, this.processingEnv);
+                    ? compilationProcessor.processRound(modIdGetter, roundEnvironment, this.processingEnv)
+                    : compilationProcessor.finish(modIdGetter, roundEnvironment, this.processingEnv);
 
             createdResources.addAll(output);
         }
@@ -69,10 +68,6 @@ public class CompilationProcessorsManager extends AbstractProcessor {
 
             saveResourceToDisk(resource);
         }
-    }
-
-    private void registerProcessors(ProcessingEnvironment environment) {
-        this.processors.addAll(CompilationProcessorRegistry.getAll(environment.getMessager()));
     }
 
     public final boolean saveResourceToDisk(Resource resource) {
@@ -113,52 +108,5 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         return Set.of(
                 Mod.class.getName()
         );
-    }
-
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.RELEASE_21;
-    }
-
-    protected static class ModLocator {
-        private final NavigableMap<String, String> rootToModId = new TreeMap<>();
-        private final ProcessingEnvironment environment;
-
-        ModLocator(ProcessingEnvironment processingEnvironment) {
-            this.environment = processingEnvironment;
-        }
-
-        private Elements elementsUtils() {
-            return this.environment.getElementUtils();
-        }
-
-        private void updateMap(RoundEnvironment roundEnvironment) {
-            roundEnvironment.getElementsAnnotatedWith(Mod.class)
-                    .forEach(e -> {
-                        TypeElement modClass = (TypeElement) e;
-                        Mod modAnnotation = modClass.getAnnotation(Mod.class);
-                        String modId = modAnnotation.value();
-                        if (modId == null) {
-                            return;
-                        }
-                        String pkg = this.elementsUtils().getPackageOf(e).getQualifiedName().toString();
-                        this.environment.getMessager().printNote("Locator found mod [" + modId + "] at [" + pkg + "]");
-                        rootToModId.put(pkg, modId);
-                    });
-        }
-
-        public String modId(String pkg) {
-            Entry<String, String> entry = rootToModId.floorEntry(pkg);
-            return entry == null ? null : entry.getValue();
-        }
-
-        public String modId(Element element) {
-            String pkg = elementsUtils().getPackageOf(element).toString();
-            return modId(pkg);
-        }
-
-        public Collection<String> mods() {
-            return this.rootToModId.values();
-        }
     }
 }
