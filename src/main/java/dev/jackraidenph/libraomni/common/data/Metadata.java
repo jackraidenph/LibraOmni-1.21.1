@@ -30,7 +30,7 @@ public class Metadata {
         return elementDataPath;
     }
 
-    public Set<String> getRuntimeProcessors(Scope scope) {
+    public Set<String> runtimeTasksForScope(Scope scope) {
         Set<String> processors = this.runtimeProcessors.get(scope);
         return processors == null ? Set.of() : Collections.unmodifiableSet(processors);
     }
