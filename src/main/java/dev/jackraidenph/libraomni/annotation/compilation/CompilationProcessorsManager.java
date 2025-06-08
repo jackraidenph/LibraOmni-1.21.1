@@ -52,6 +52,10 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         }
 
         if (finishing) {
+            if (!createdResources.isEmpty()) {
+                messager.printNote("Saving resources " + createdResources);
+            }
+
             saveAllResourcesToDisk(createdResources);
         }
 
