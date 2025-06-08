@@ -15,9 +15,9 @@ import java.util.stream.Stream;
 
 public class MetadataReader {
 
-    public static final String DIRECTORY = "META-INF/" + LibraOmni.MODID + "/";
+    public static final String DIRECTORY = "META-INF/" + LibraOmni.MOD_ID + "/";
 
-    private static final String METADATA_FILE_ROOT = LibraOmni.MODID + ".metadata";
+    private static final String METADATA_FILE_ROOT = LibraOmni.MOD_ID + ".metadata";
     private static final String ELEMENT_DATA_FILE_PREFIX = "elements";
 
     private final Map<String, Metadata> modMetadataCache = new HashMap<>();

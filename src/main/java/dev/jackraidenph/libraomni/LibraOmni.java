@@ -11,10 +11,10 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 
-@Mod(LibraOmni.MODID)
+@Mod(LibraOmni.MOD_ID)
 public class LibraOmni {
 
-    public static final String MODID = "libraomni";
+    public static final String MOD_ID = "libraomni";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
