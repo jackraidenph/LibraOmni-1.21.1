@@ -25,7 +25,7 @@ public enum RuntimeTaskProcessor {
     INSTANCE;
 
     private final Map<String, ElementData> elementDataMap = new HashMap<>();
-    private final Map<Scope, List<RuntimeTask>> tasksPerScope = new HashMap<>();
+    private final TaskHolder taskHolder = new TaskHolder();
     private final Set<ModContext> modsToProcess = new HashSet<>();
 
     private boolean setup = false;
@@ -146,20 +146,19 @@ public enum RuntimeTaskProcessor {
     }
 
     public void registerProcessor(Scope scope, RuntimeTask runTimeTask) {
-        List<RuntimeTask> tasks = this.tasksPerScope.computeIfAbsent(scope, s -> new ArrayList<>());
-        if (!tasks.contains(runTimeTask)) {
-            tasks.add(runTimeTask);
+        if (!taskHolder.tasksForScope(scope).contains(runTimeTask)) {
+            taskHolder.addTask(scope, runTimeTask);
         }
     }
 
     public void processAll(Scope scope) {
-        List<RuntimeTask> processors = this.tasksPerScope.get(scope);
-        if (processors == null || processors.isEmpty()) {
+        List<RuntimeTask> tasks = taskHolder.tasksForScope(scope);
+        if (tasks.isEmpty()) {
             return;
         }
 
         for (ModContext modContext : this.modsToProcess) {
-            for (RuntimeTask runtimeTask : processors) {
+            for (RuntimeTask runtimeTask : tasks) {
                 Set<AnnotatedElement> elements = this.elementsAnnotatedWith(
                         modContext.modId(),
                         runtimeTask.getSupportedAnnotations()
@@ -174,6 +173,22 @@ public enum RuntimeTaskProcessor {
 
                 runtimeTask.process(modContext, elements);
             }
+        }
+    }
+
+    private static class TaskHolder {
+        private final Map<Scope, List<RuntimeTask>> tasksPerScope = new HashMap<>();
+
+        private List<RuntimeTask> getOrCreateList(Scope scope) {
+            return tasksPerScope.computeIfAbsent(scope, s -> new ArrayList<>());
+        }
+
+        public void addTask(Scope scope, RuntimeTask runtimeTask) {
+            getOrCreateList(scope).add(runtimeTask);
+        }
+
+        public List<RuntimeTask> tasksForScope(Scope scope) {
+            return Collections.unmodifiableList(getOrCreateList(scope));
         }
     }
 }
