@@ -10,6 +10,7 @@ import dev.jackraidenph.libraomni.util.data.ElementData;
 import dev.jackraidenph.libraomni.util.data.Metadata;
 import dev.jackraidenph.libraomni.util.data.MetadataFileReader;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -21,7 +22,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-class MetadataProcessor extends ResourceGeneratingProcessor {
+class MetadataProcessor implements CompilationProcessor {
     private final Map<String, Metadata> modMetadata = new HashMap<>();
     private final Map<String, SetMultimap<Scope, String>> modRuntimeProcessorsPerScope = new HashMap<>();
     private final Map<String, ElementData> modElementData = new HashMap<>();
@@ -32,22 +33,13 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
 
     private final Set<String> processableAnnotations = new HashSet<>();
 
-    protected MetadataProcessor(ProcessingEnvironment processingEnvironment) {
-        super(processingEnvironment);
-    }
-
     //UTILITY START
 
     private Metadata getOrCreateMetadata(String modId) {
         return this.modMetadata.computeIfAbsent(modId, Metadata::new);
     }
 
-    private ModLocator modLocator() {
-        return CompilationProcessorsManager.runningModLocator();
-    }
-
-    private String modIdByPackage(Element e) {
-        ModLocator modLocator = this.modLocator();
+    private String modIdByPackage(ModLocator modLocator, Element e) {
         if (modLocator == null) {
             return null;
         }
@@ -82,39 +74,40 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
                 .collect(Collectors.toSet());
     }
 
-    private TypeElement[] typesFromStrings(Set<String> names) {
-        Elements elements = this.processingEnvironment().getElementUtils();
+    private TypeElement[] typesFromStrings(Set<String> names, Elements elements) {
         return names.stream().map(elements::getTypeElement).toArray(TypeElement[]::new);
     }
 
     @Override
-    public void processRound(RoundEnvironment roundEnvironment) {
-        Set<String> runtimeAnnotations = this.findRuntimeAnnotations(roundEnvironment);
+    public Collection<Resource> processRound(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+        Set<String> runtimeAnnotations = this.findRuntimeAnnotations(roundEnv);
 
         if (!runtimeAnnotations.isEmpty()) {
             this.processableAnnotations.addAll(runtimeAnnotations);
-            this.messager().printNote("Found runtime annotations " + this.processableAnnotations);
+            processingEnv.getMessager().printNote("Found runtime annotations " + this.processableAnnotations);
         }
 
         this.runtimeElements.addAll(
-                roundEnvironment.getElementsAnnotatedWithAny(
-                        this.typesFromStrings(this.processableAnnotations)
+                roundEnv.getElementsAnnotatedWithAny(
+                        this.typesFromStrings(this.processableAnnotations, processingEnv.getElementUtils())
                 )
         );
 
-        for (Element e : roundEnvironment.getElementsAnnotatedWith(Processor.class)) {
+        for (Element e : roundEnv.getElementsAnnotatedWith(Processor.class)) {
             Processor annotation = e.getAnnotation(Processor.class);
             this.runtimeProcessorElements.get(annotation.value()).add(e);
         }
+
+        return Set.of();
     }
 
-    private void createModMetadata() {
-        this.modLocator().mods().forEach(id -> this.modMetadata.computeIfAbsent(id, Metadata::new));
+    private void createModMetadata(ModLocator modLocator) {
+        modLocator.mods().forEach(id -> this.modMetadata.computeIfAbsent(id, Metadata::new));
     }
 
-    private void associateElements() {
+    private void associateElements(ModLocator modLocator) {
         for (Element element : this.runtimeElements) {
-            String modId = this.modIdByPackage(element);
+            String modId = this.modIdByPackage(modLocator, element);
             if (modId == null) {
                 continue;
             }
@@ -123,14 +116,14 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
         }
     }
 
-    private void addRuntimeProcessors() {
+    private void addRuntimeProcessors(ModLocator modLocator, Messager messager) {
         for (Entry<Scope, Collection<Element>> entry : this.runtimeProcessorElements.asMap().entrySet()) {
             Scope scope = entry.getKey();
             for (Element element : entry.getValue()) {
                 String name = ((TypeElement) element).getQualifiedName().toString();
-                String modId = this.modIdByPackage(element);
+                String modId = this.modIdByPackage(modLocator, element);
                 if (modId == null) {
-                    this.messager().printWarning("Got runtime processor [" + name + "], but failed to compute the owning mod");
+                    messager.printWarning("Got runtime processor [" + name + "], but failed to compute the owning mod");
                     continue;
                 }
 
@@ -139,8 +132,8 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
         }
     }
 
-    private void addProcessorsToMetadata() {
-        for (String mod : this.modLocator().mods()) {
+    private void addProcessorsToMetadata(ModLocator modLocator) {
+        for (String mod : modLocator.mods()) {
             Metadata metadata = this.getOrCreateMetadata(mod);
             SetMultimap<Scope, String> processors = this.modRuntimeProcessorsPerScope.get(mod);
             for (Entry<Scope, Collection<String>> perScopeProcessors : processors.asMap().entrySet()) {
@@ -186,11 +179,11 @@ class MetadataProcessor extends ResourceGeneratingProcessor {
     }
 
     @Override
-    public Set<Resource> output(RoundEnvironment roundEnvironment) {
-        this.createModMetadata();
-        this.associateElements();
-        this.addRuntimeProcessors();
-        this.addProcessorsToMetadata();
+    public Set<Resource> finish(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+        this.createModMetadata(modLocator);
+        this.associateElements(modLocator);
+        this.addRuntimeProcessors(modLocator, processingEnv.getMessager());
+        this.addProcessorsToMetadata(modLocator);
         return Sets.union(
                 this.serializeElementData(),
                 this.serializeMetadata()

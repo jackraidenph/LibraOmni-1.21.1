@@ -1,42 +1,36 @@
 package dev.jackraidenph.libraomni.annotation.compilation;
 
-import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.Messager;
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class CompilationProcessorRegistry {
 
-    private static final Set<Function<ProcessingEnvironment, CompilationProcessor>> PROCESSORS_REGISTRY = new HashSet<>();
+    private static final Set<Supplier<CompilationProcessor>> PROCESSORS_REGISTRY = new HashSet<>();
 
     static {
-        registerAll(Set.of(
+        registerAll(
                 MetadataProcessor::new,
                 ValidationProcessor::new
-        ));
+        );
     }
 
-    private static void registerAll(Set<Function<ProcessingEnvironment, CompilationProcessor>> suppliers) {
-        for (Function<ProcessingEnvironment, CompilationProcessor> s : suppliers) {
+    @SafeVarargs
+    static void registerAll(Supplier<CompilationProcessor>... suppliers) {
+        for (Supplier<CompilationProcessor> s : suppliers) {
             register(s);
         }
     }
 
-    private static void register(Function<ProcessingEnvironment, CompilationProcessor> processorSupplier) {
-        Function<ProcessingEnvironment, CompilationProcessor> logCompose = processorSupplier.andThen(
-                compilationProcessor -> {
-                    compilationProcessor.processingEnvironment().getMessager().printNote(
-                            "Registered " + compilationProcessor.getClass().getSimpleName() + " for compilation processing"
-                    );
-                    return compilationProcessor;
-                }
-        );
-        PROCESSORS_REGISTRY.add(logCompose);
+    static void register(Supplier<CompilationProcessor> processorSupplier) {
+        PROCESSORS_REGISTRY.add(processorSupplier);
     }
 
-    static Set<CompilationProcessor> instantiate(ProcessingEnvironment environment) {
+    static Collection<CompilationProcessor> getAll(Messager messager) {
         return PROCESSORS_REGISTRY.stream()
-                .map(f -> f.apply(environment))
+                .map(Supplier::get)
+                .peek(task -> messager.printNote("Registered " + task.getClass().getSimpleName() + " for processing"))
                 .collect(Collectors.toSet());
     }
 }

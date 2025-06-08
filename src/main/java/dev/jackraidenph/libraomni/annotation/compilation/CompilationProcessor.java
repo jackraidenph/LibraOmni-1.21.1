@@ -1,17 +1,23 @@
 package dev.jackraidenph.libraomni.annotation.compilation;
 
+import dev.jackraidenph.libraomni.annotation.compilation.CompilationProcessorsManager.ModLocator;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.Set;
 
 interface CompilationProcessor {
 
-    void processRound(RoundEnvironment roundEnvironment);
+    Collection<Resource> processRound(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
 
-    void finish(RoundEnvironment roundEnvironment);
+    default Collection<Resource> finish(ModLocator modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+        return Set.of();
+    }
 
-    Set<Class<? extends Annotation>> supportedAnnotations();
-
-    ProcessingEnvironment processingEnvironment();
+    //Every captured annotation is processed if empty
+    default Set<Class<? extends Annotation>> supportedAnnotations() {
+        return Set.of();
+    }
 }

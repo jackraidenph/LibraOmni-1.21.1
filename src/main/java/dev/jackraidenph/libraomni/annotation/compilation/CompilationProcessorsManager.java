@@ -2,12 +2,15 @@ package dev.jackraidenph.libraomni.annotation.compilation;
 
 import net.neoforged.fml.common.Mod;
 
-import javax.annotation.Nullable;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -15,7 +18,6 @@ public class CompilationProcessorsManager extends AbstractProcessor {
 
     private final Set<CompilationProcessor> processors = new HashSet<>();
     private ModLocator modLocator = null;
-    private static CompilationProcessorsManager INSTANCE = null;
     private int round = 0;
 
     @Override
@@ -23,27 +25,6 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         this.registerProcessors(processingEnv);
         super.init(processingEnv);
         this.modLocator = new ModLocator(processingEnv);
-
-        INSTANCE = this;
-    }
-
-    @Nullable
-    protected ModLocator modLocator() {
-        return this.modLocator;
-    }
-
-    @Nullable
-    protected static CompilationProcessorsManager runningInstance() {
-        return INSTANCE;
-    }
-
-    @Nullable
-    protected static ModLocator runningModLocator() {
-        CompilationProcessorsManager manager = runningInstance();
-        if (manager == null) {
-            return null;
-        }
-        return manager.modLocator();
     }
 
     @Override
@@ -51,22 +32,43 @@ public class CompilationProcessorsManager extends AbstractProcessor {
         this.modLocator.updateMap(roundEnvironment);
 
         Messager messager = this.processingEnv.getMessager();
+        boolean finishing = roundEnvironment.processingOver();
+
+        if (!finishing) {
+            messager.printNote("Processing round " + round);
+        }
+
+        Set<Resource> createdResources = new HashSet<>();
 
         for (CompilationProcessor compilationProcessor : this.processors) {
-            if (roundEnvironment.processingOver()) {
-                messager.printNote("Processing over, finishing [" + compilationProcessor.getClass().getSimpleName() + "]...");
-                compilationProcessor.finish(roundEnvironment);
-                messager.printNote("Processing successfully finished with [" + compilationProcessor.getClass().getSimpleName() + "]");
-                continue;
-            }
+            final String op = finishing ? "Processing" : "Finishing";
 
-            messager.printNote("Processing round " + this.round + " with [" + compilationProcessor.getClass().getSimpleName() + "]...");
-            compilationProcessor.processRound(roundEnvironment);
-            messager.printNote("Round " + this.round + " successfully processed with [" + compilationProcessor.getClass().getSimpleName() + "]");
+            messager.printNote(op + " [" + compilationProcessor.getClass().getSimpleName() + "]");
+
+            Collection<Resource> output = !finishing
+                    ? compilationProcessor.processRound(modLocator, roundEnvironment, this.processingEnv)
+                    : compilationProcessor.finish(modLocator, roundEnvironment, this.processingEnv);
+
+            createdResources.addAll(output);
+        }
+
+        if (finishing) {
+            saveAllResourcesToDisk(createdResources);
         }
 
         this.round++;
         return false;
+    }
+
+    private void saveAllResourcesToDisk(Collection<Resource> resources) {
+        for (Resource resource : resources) {
+            if (resourceExists(resource)) {
+                this.processingEnv.getMessager().printWarning("Resource [" + resource.getPath() + "] already exists, skipping");
+                continue;
+            }
+
+            saveResourceToDisk(resource);
+        }
     }
 
     private void registerProcessors(ProcessingEnvironment environment) {
@@ -78,6 +80,39 @@ public class CompilationProcessorsManager extends AbstractProcessor {
             }
             this.processors.add(compilationProcessor);
             registeredTypes.add(type);
+        }
+    }
+
+    public final boolean saveResourceToDisk(Resource resource) {
+        Filer filer = this.processingEnv.getFiler();
+
+        try {
+            FileObject fileObject = filer.createResource(
+                    StandardLocation.SOURCE_OUTPUT,
+                    "",
+                    resource.getPath()
+            );
+
+            try (OutputStream fileObjectWrite = fileObject.openOutputStream()) {
+                fileObjectWrite.write(resource.getContents());
+            }
+        } catch (IOException ioException) {
+            this.processingEnv.getMessager().printError("Failed to create resource [" + resource.getPath() + "]:\n" + ioException.getLocalizedMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean resourceExists(Resource resource) {
+        try {
+            return this.processingEnv.getFiler().getResource(
+                    StandardLocation.SOURCE_OUTPUT,
+                    "",
+                    resource.getPath()
+            ).getLastModified() > 0;
+        } catch (IOException ioException) {
+            return false;
         }
     }
 
