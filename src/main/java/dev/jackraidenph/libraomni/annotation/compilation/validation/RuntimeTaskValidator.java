@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compilation;
+package dev.jackraidenph.libraomni.annotation.compilation.validation;
 
 import dev.jackraidenph.libraomni.annotation.runtime.RuntimeProcessor;
 

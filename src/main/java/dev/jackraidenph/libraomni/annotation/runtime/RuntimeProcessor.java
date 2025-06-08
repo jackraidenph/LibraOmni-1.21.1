@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.runtime;
 
-import dev.jackraidenph.libraomni.util.context.ModContext;
+import dev.jackraidenph.libraomni.annotation.runtime.context.ModContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;

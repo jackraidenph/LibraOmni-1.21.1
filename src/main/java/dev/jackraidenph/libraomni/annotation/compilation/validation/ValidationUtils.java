@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.compilation;
+package dev.jackraidenph.libraomni.annotation.compilation.validation;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;

@@ -1,9 +1,9 @@
-package dev.jackraidenph.libraomni.annotation.compilation;
+package dev.jackraidenph.libraomni.annotation.compilation.validation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-enum ValidatorFactory {
+public enum ValidatorFactory {
     INSTANCE;
 
     ValidatorFactory() {
