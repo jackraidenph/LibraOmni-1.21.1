@@ -1,6 +1,6 @@
-package dev.jackraidenph.libraomni.runtime;
+package dev.jackraidenph.libraomni.reflect;
 
-import dev.jackraidenph.libraomni.runtime.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.reflect.RuntimeProcessor.Scope;
 
 import java.util.*;
 import java.util.function.Supplier;

@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.validation;
 
-import dev.jackraidenph.libraomni.runtime.RuntimeProcessor;
+import dev.jackraidenph.libraomni.reflect.RuntimeProcessor;
 
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;

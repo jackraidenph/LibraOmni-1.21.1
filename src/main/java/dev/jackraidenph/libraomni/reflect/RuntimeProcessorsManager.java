@@ -1,9 +1,9 @@
-package dev.jackraidenph.libraomni.runtime;
+package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.runtime.RuntimeProcessor.Scope;
-import dev.jackraidenph.libraomni.runtime.context.ModContext;
-import dev.jackraidenph.libraomni.runtime.context.ModContextManager;
+import dev.jackraidenph.libraomni.reflect.RuntimeProcessor.Scope;
+import dev.jackraidenph.libraomni.reflect.context.ModContext;
+import dev.jackraidenph.libraomni.reflect.context.ModContextManager;
 import dev.jackraidenph.libraomni.common.data.ElementData;
 import dev.jackraidenph.libraomni.common.data.Metadata;
 import dev.jackraidenph.libraomni.common.data.MetadataFileReader;
