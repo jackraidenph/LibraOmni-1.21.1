@@ -42,7 +42,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
         Set<Resource> createdResources = new HashSet<>();
 
         for (CompilationTask compilationTask : this.processors) {
-            final String op = finishing ? "Processing" : "Finishing";
+            final String op = finishing ? "Finishing" : "Processing";
 
             messager.printNote(op + " [" + compilationTask.getClass().getSimpleName() + "]");
 
