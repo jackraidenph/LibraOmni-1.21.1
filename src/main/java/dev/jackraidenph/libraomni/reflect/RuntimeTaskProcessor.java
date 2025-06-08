@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.reflect;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.common.data.ElementData;
 import dev.jackraidenph.libraomni.common.data.Metadata;
@@ -15,8 +16,6 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,7 +29,7 @@ public class RuntimeTaskProcessor {
 
     private boolean setup = false;
 
-    public RuntimeTaskProcessor(ModContextManager modContextManager) {
+    private RuntimeTaskProcessor(ModContextManager modContextManager) {
         this.modContextManager = modContextManager;
     }
 
@@ -45,7 +44,7 @@ public class RuntimeTaskProcessor {
 
         Collection<RuntimeTask> tasksForScope = taskHolder.get(scope);
 
-        if(!tasksForScope.contains(task)) {
+        if (!tasksForScope.contains(task)) {
             tasksForScope.add(task);
         }
     }
@@ -82,21 +81,18 @@ public class RuntimeTaskProcessor {
         MetadataFileReader reader = MetadataFileReader.INSTANCE;
         for (Metadata metadata : reader.readAllModData()) {
             for (Scope scope : Scope.values()) {
-                for (String runtimeProcessorClass : metadata.getRuntimeProcessors(scope)) {
-                    try {
-                        Class<? extends RuntimeTask> clazz = Class.forName(runtimeProcessorClass).asSubclass(RuntimeTask.class);
-                        Constructor<? extends RuntimeTask> constructor = clazz.getDeclaredConstructor();
-                        RuntimeTask runtimeTask = constructor.newInstance();
-                        this.registerTask(scope, runtimeTask);
-                    } catch (ClassNotFoundException classNotFoundException) {
-                        LibraOmni.LOGGER.error("Failed to instantiate {}, the class does not exist!", runtimeProcessorClass);
-                    } catch (ClassCastException classCastException) {
-                        throw new IllegalArgumentException(runtimeProcessorClass + " does not implement RuntimeProcessor");
-                    } catch (NoSuchMethodException noConstructor) {
-                        throw new IllegalStateException("No empty constructor found for " + runtimeProcessorClass);
-                    } catch (InvocationTargetException | IllegalAccessException | InstantiationException e) {
-                        throw new RuntimeException(e);
+                for (String taskName : metadata.runtimeTasksForScope(scope)) {
+                    Class<? extends RuntimeTask> clazz = SafeReflectionUtil.forNameSubclass(taskName, RuntimeTask.class);
+                    if (clazz == null) {
+                        LibraOmni.LOGGER.error("Failed to get task class for name [{}]", taskName);
+                        continue;
                     }
+                    RuntimeTask runtimeTask = SafeReflectionUtil.tryConstruct(clazz);
+                    if (runtimeTask == null) {
+                        LibraOmni.LOGGER.error("Failed to get construct task for name [{}]", taskName);
+                        continue;
+                    }
+                    this.registerTask(scope, runtimeTask);
                 }
             }
         }
@@ -173,12 +169,7 @@ public class RuntimeTaskProcessor {
                         runtimeTask.getSupportedAnnotations()
                 );
 
-                LibraOmni.LOGGER.info(
-                        "({}) Invoking {} for {}",
-                        scope,
-                        runtimeTask.getClass().getSimpleName(),
-                        modContext.modId()
-                );
+                LibraOmni.LOGGER.info("({}) Invoking {} for {}", scope, runtimeTask.getClass().getSimpleName(), modContext.modId());
 
                 runtimeTask.process(modContext, elements);
             }
