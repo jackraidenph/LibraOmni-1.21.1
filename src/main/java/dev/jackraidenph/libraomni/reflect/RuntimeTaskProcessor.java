@@ -39,7 +39,7 @@ public class RuntimeTaskProcessor {
 
     public void registerTask(Scope scope, RuntimeTask task) {
         if (setup) {
-            throw new IllegalStateException("Processor was already set up");
+            throw new IllegalStateException("Already set up");
         }
 
         Collection<RuntimeTask> tasksForScope = taskHolder.get(scope);
@@ -51,8 +51,7 @@ public class RuntimeTaskProcessor {
 
     public void setup(IEventBus libraOmniEventBus) {
         if (this.setup) {
-            LibraOmni.LOGGER.error("RuntimeProcessorManager already initialized!");
-            return;
+            throw new IllegalStateException("Already set up");
         }
 
         this.registerAnnotatedTasks();
