@@ -72,15 +72,7 @@ public class CompilationProcessorsManager extends AbstractProcessor {
     }
 
     private void registerProcessors(ProcessingEnvironment environment) {
-        Set<Class<? extends CompilationProcessor>> registeredTypes = new HashSet<>();
-        for (CompilationProcessor compilationProcessor : CompilationProcessorRegistry.instantiate(environment)) {
-            Class<? extends CompilationProcessor> type = compilationProcessor.getClass();
-            if (registeredTypes.contains(type)) {
-                throw new IllegalArgumentException("Duplicate processor type");
-            }
-            this.processors.add(compilationProcessor);
-            registeredTypes.add(type);
-        }
+        this.processors.addAll(CompilationProcessorRegistry.getAll(environment.getMessager()));
     }
 
     public final boolean saveResourceToDisk(Resource resource) {
