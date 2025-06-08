@@ -25,7 +25,7 @@ public enum RuntimeTaskProcessor {
     INSTANCE;
 
     private final Map<String, ElementData> elementDataMap = new HashMap<>();
-    private final Map<Scope, List<RuntimeTask>> processors = new HashMap<>();
+    private final Map<Scope, List<RuntimeTask>> tasksPerScope = new HashMap<>();
     private final Set<ModContext> modsToProcess = new HashSet<>();
 
     private boolean setup = false;
@@ -145,19 +145,15 @@ public enum RuntimeTaskProcessor {
         this.modsToProcess.add(modContext);
     }
 
-    private Set<RuntimeTask> allProcessors() {
-        return this.processors.values().stream().flatMap(List::stream).collect(Collectors.toSet());
-    }
-
     public void registerProcessor(Scope scope, RuntimeTask runTimeTask) {
-        if (this.allProcessors().contains(runTimeTask)) {
-            throw new IllegalArgumentException("Runtime processor already registered");
+        List<RuntimeTask> tasks = this.tasksPerScope.computeIfAbsent(scope, s -> new ArrayList<>());
+        if (!tasks.contains(runTimeTask)) {
+            tasks.add(runTimeTask);
         }
-        this.processors.computeIfAbsent(scope, s -> new ArrayList<>()).add(runTimeTask);
     }
 
     public void processAll(Scope scope) {
-        List<RuntimeTask> processors = this.processors.get(scope);
+        List<RuntimeTask> processors = this.tasksPerScope.get(scope);
         if (processors == null || processors.isEmpty()) {
             return;
         }
