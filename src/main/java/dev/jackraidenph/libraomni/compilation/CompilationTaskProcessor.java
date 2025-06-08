@@ -18,11 +18,13 @@ public class CompilationTaskProcessor extends AbstractProcessor {
     private final ModIdGetter modIdGetter = new ModIdGetter();
     private int round = 0;
 
-    protected CompilationTaskProcessor() {
-        this.registerProcessors(processingEnv);
+    @Override
+    public synchronized void init(ProcessingEnvironment processingEnv) {
+        super.init(processingEnv);
+        this.registerTasks(this.processingEnv);
     }
 
-    private void registerProcessors(ProcessingEnvironment environment) {
+    private void registerTasks(ProcessingEnvironment environment) {
         this.processors.addAll(CompilationTaskRegistry.getAll(environment.getMessager()));
     }
 
