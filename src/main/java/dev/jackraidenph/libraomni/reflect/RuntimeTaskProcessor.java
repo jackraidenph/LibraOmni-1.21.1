@@ -78,23 +78,28 @@ public class RuntimeTaskProcessor {
     }
 
     private void registerAnnotatedTasks() {
-        MetadataFileReader reader = MetadataFileReader.INSTANCE;
-        for (Metadata metadata : reader.readAllModData()) {
-            for (Scope scope : Scope.values()) {
-                for (String taskName : metadata.runtimeTasksForScope(scope)) {
-                    Class<? extends RuntimeTask> clazz = SafeReflectionUtil.forNameSubclass(taskName, RuntimeTask.class);
-                    if (clazz == null) {
-                        LibraOmni.LOGGER.error("Failed to get task class for name [{}]", taskName);
-                        continue;
-                    }
-                    RuntimeTask runtimeTask = SafeReflectionUtil.tryConstruct(clazz);
-                    if (runtimeTask == null) {
-                        LibraOmni.LOGGER.error("Failed to get construct task for name [{}]", taskName);
-                        continue;
-                    }
-                    this.registerTask(scope, runtimeTask);
-                }
+        MetadataFileReader.INSTANCE.readAllModData().forEach(this::processMetadata);
+    }
+
+    private void processMetadata(Metadata metadata) {
+        for (Scope scope : Scope.values()) {
+            tryRegisterTasksByAnnotation(metadata, scope);
+        }
+    }
+
+    private void tryRegisterTasksByAnnotation(Metadata metadata, Scope scope) {
+        for (String taskName : metadata.runtimeTasksForScope(scope)) {
+            Class<? extends RuntimeTask> clazz = SafeReflectionUtil.forNameSubclass(taskName, RuntimeTask.class);
+            if (clazz == null) {
+                LibraOmni.LOGGER.error("Failed to get task class for name [{}]", taskName);
+                continue;
             }
+            RuntimeTask runtimeTask = SafeReflectionUtil.tryConstruct(clazz);
+            if (runtimeTask == null) {
+                LibraOmni.LOGGER.error("Failed to get construct task for name [{}]", taskName);
+                continue;
+            }
+            this.registerTask(scope, runtimeTask);
         }
     }
 
