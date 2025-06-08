@@ -132,13 +132,7 @@ public class RuntimeTaskProcessor {
     }
 
     private static boolean anyAnnotationPresent(AnnotatedElement e, Set<Class<? extends Annotation>> annotations) {
-        for (Class<? extends Annotation> a : annotations) {
-            if (e.isAnnotationPresent(a)) {
-                return true;
-            }
-        }
-
-        return false;
+        return annotations.stream().anyMatch(e::isAnnotationPresent);
     }
 
     private Set<AnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
