@@ -1,7 +1,5 @@
 package dev.jackraidenph.libraomni.reflect;
 
-import dev.jackraidenph.libraomni.reflect.context.ModContext;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.Set;

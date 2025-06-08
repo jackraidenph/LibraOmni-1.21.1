@@ -3,7 +3,6 @@ package dev.jackraidenph.libraomni.reflect;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.StringUtilities;
-import dev.jackraidenph.libraomni.reflect.context.ModContext;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.annotation.Annotation;

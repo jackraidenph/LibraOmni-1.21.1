@@ -4,7 +4,7 @@ import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.reflect.RegisterObjectTask;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.reflect.RuntimeTaskProcessor;
-import dev.jackraidenph.libraomni.reflect.context.ModContextManager;
+import dev.jackraidenph.libraomni.reflect.ModContextManager;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.reflect.context;
+package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import net.neoforged.fml.ModContainer;

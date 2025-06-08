@@ -4,8 +4,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
-import dev.jackraidenph.libraomni.reflect.context.ModContext;
-import dev.jackraidenph.libraomni.reflect.context.ModContextManager;
 import dev.jackraidenph.libraomni.common.data.ElementData;
 import dev.jackraidenph.libraomni.common.data.Metadata;
 import dev.jackraidenph.libraomni.common.data.MetadataFileReader;
