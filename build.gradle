@@ -3,6 +3,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.neoforged.moddev' version '1.0.23'
+    id 'com.gradleup.shadow' version '9.0.0-beta15'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -28,9 +29,11 @@ base {
     version = mod_version
 }
 
-jar {
-    destinationDirectory = file("$rootDir/artifacts")
-    archiveClassifier = '[' + date() + ']'
+['jar', 'shadowJar'].each {
+    tasks.named(it).configure {
+        destinationDirectory = file("$rootDir/artifacts")
+        archiveClassifier = '[' + date() + ']'
+    }
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -103,6 +106,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 // a dependency that will be present for runtime testing but that is
 // "optional", meaning it will not be pulled by dependents of this mod.
 configurations {
+    requiredForProcessing
     runtimeClasspath.extendsFrom localRuntime
 }
 
@@ -111,7 +115,13 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    implementation('com.google.code.gson:gson:2.8.9')
+    requiredForProcessing 'com.google.code.gson:gson:2.8.9'
+}
+
+tasks.named('shadowJar') {
+    configurations = project.configurations.named('requiredForProcessing').map { [it] }
+    enableRelocation = true
+    relocationPrefix = "shadow"
 }
 
 tasks.named('test') {
@@ -161,7 +171,9 @@ publishing {
             artifactId = project.mod_id
             version = project.mod_version
 
-            from components.java
+            artifact(shadowJar) {
+                classifier = ""
+            }
         }
     }
 }
