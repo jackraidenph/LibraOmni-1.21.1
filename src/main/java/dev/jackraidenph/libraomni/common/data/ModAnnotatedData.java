@@ -16,10 +16,6 @@ public class ModAnnotatedData {
     private final Set<ExecutableData> methods = new HashSet<>();
     private final Set<ExecutableData> constructors = new HashSet<>();
 
-    public boolean isEmpty() {
-        return classes.isEmpty() && fields.isEmpty() && methods.isEmpty() && constructors.isEmpty();
-    }
-
     public void addElement(Element element) {
         switch (element) {
             case TypeElement typeElement -> this.addClass(typeElement);

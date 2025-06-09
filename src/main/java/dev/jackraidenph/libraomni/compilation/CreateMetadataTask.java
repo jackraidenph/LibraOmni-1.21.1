@@ -4,7 +4,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import dev.jackraidenph.libraomni.annotation.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.Processor;
-import dev.jackraidenph.libraomni.common.data.ModAnnotatedData;
 import dev.jackraidenph.libraomni.common.data.ModMetadata;
 import dev.jackraidenph.libraomni.common.data.NativeMetadata;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
@@ -22,12 +21,9 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 class CreateMetadataTask implements CompilationTask {
-    private final Map<String, ModAnnotatedData> modAnnotatedDataMap = new HashMap<>();
 
     private final Set<Element> runtimeElements = new HashSet<>();
-
-    private final SetMultimap<Scope, Element> runtimeProcessorElements = HashMultimap.create();
-
+    private final SetMultimap<Scope, Element> runtimeTasksElements = HashMultimap.create();
     private final Set<String> processableAnnotations = new HashSet<>();
 
     private final NativeMetadata nativeMetadata = new NativeMetadata();
@@ -90,7 +86,7 @@ class CreateMetadataTask implements CompilationTask {
 
         for (Element e : roundEnv.getElementsAnnotatedWith(Processor.class)) {
             Processor annotation = e.getAnnotation(Processor.class);
-            this.runtimeProcessorElements.get(annotation.value()).add(e);
+            this.runtimeTasksElements.get(annotation.value()).add(e);
         }
 
         return Set.of();
@@ -108,7 +104,7 @@ class CreateMetadataTask implements CompilationTask {
     }
 
     private void addTasksToMetadata(ModIdGetter modLocator, Messager messager) {
-        for (Entry<Scope, Collection<Element>> entry : this.runtimeProcessorElements.asMap().entrySet()) {
+        for (Entry<Scope, Collection<Element>> entry : this.runtimeTasksElements.asMap().entrySet()) {
             Scope scope = entry.getKey();
             for (Element element : entry.getValue()) {
                 String name = ((TypeElement) element).getQualifiedName().toString();
