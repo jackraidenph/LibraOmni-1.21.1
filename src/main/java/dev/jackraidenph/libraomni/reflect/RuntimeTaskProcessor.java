@@ -6,7 +6,6 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.data.ModMetadata;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
-import dev.jackraidenph.libraomni.common.data.ModAnnotatedData;
 import dev.jackraidenph.libraomni.common.data.ModMetadataReader;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
@@ -21,8 +20,7 @@ import java.util.stream.Collectors;
 
 public class RuntimeTaskProcessor {
 
-    private final Map<String, ModAnnotatedData> annotatedDataMap = new HashMap<>();
-    private final Multimap<Scope, RuntimeTask> taskHolder = ArrayListMultimap.create();
+    private final Multimap<Scope, RuntimeTask> tasksForScope = ArrayListMultimap.create();
     private final Set<ModContext> modsToProcess = new HashSet<>();
 
     private final ModContextManager modContextManager;
@@ -44,10 +42,10 @@ public class RuntimeTaskProcessor {
             throw new IllegalStateException("Already set up");
         }
 
-        Collection<RuntimeTask> tasksForScope = taskHolder.get(scope);
+        Collection<RuntimeTask> tasks = this.tasksForScope.get(scope);
 
-        if (!tasksForScope.contains(task)) {
-            tasksForScope.add(task);
+        if (!tasks.contains(task)) {
+            tasks.add(task);
         }
     }
 
@@ -65,25 +63,25 @@ public class RuntimeTaskProcessor {
         this.setup = true;
     }
 
-    private void registerMods() {
-        for (ModMetadata modMetadata : modMetadataReader.findModsWithAnnotatedData()) {
-            ModContext context = modContextManager.getOrCreate(modMetadata.getModId());
+    private void createContextsFromMetadata() {
+        for (String mod : modMetadataReader.getAllModsWithMetadata()) {
+            ModContext context = modContextManager.getOrCreate(mod);
             this.registerMod(context);
         }
     }
 
     private void registerAnnotatedTasks() {
-        modMetadataReader.readAllModData().forEach(this::processMetadata);
+        modMetadataReader.getAllModMetadata().values().forEach(this::processMetadata);
     }
 
     private void processMetadata(ModMetadata modMetadata) {
         for (Scope scope : Scope.values()) {
-            tryRegisterTasksByAnnotation(modMetadata, scope);
+            tryRegisterTasksFromAnnotation(modMetadata, scope);
         }
     }
 
-    private void tryRegisterTasksByAnnotation(ModMetadata modMetadata, Scope scope) {
-        for (String taskName : modMetadata.runtimeTasksForScope(scope)) {
+    private void tryRegisterTasksFromAnnotation(ModMetadata modMetadata, Scope scope) {
+        for (String taskName : modMetadata.tasksForScope(scope)) {
             Class<? extends RuntimeTask> clazz = SafeReflectionUtil.forNameSubclass(taskName, RuntimeTask.class);
             if (clazz == null) {
                 LibraOmni.LOGGER.error("Failed to get task class for name [{}]", taskName);
@@ -101,7 +99,7 @@ public class RuntimeTaskProcessor {
     private void enqueueConstruct(FMLConstructModEvent constructModEvent) {
         constructModEvent.enqueueWork(
                 () -> {
-                    this.registerMods();
+                    this.createContextsFromMetadata();
                     this.initContextRegisters();
                     this.processAll(Scope.CONSTRUCT);
                 });
@@ -115,22 +113,8 @@ public class RuntimeTaskProcessor {
         clientSetupEvent.enqueueWork(() -> this.processAll(Scope.CLIENT));
     }
 
-    public boolean isSetup() {
-        return this.setup;
-    }
-
-    private Set<AnnotatedElement> readElements(String modId) {
-        if (annotatedDataMap.containsKey(modId)) {
-            return annotatedDataMap.get(modId).getElements();
-        }
-
-        ModAnnotatedData modAnnotatedData = modMetadataReader.readAnnotatedData(modId);
-        if (modAnnotatedData != null) {
-            this.annotatedDataMap.put(modId, modAnnotatedData);
-            return modAnnotatedData.getElements();
-        }
-
-        return Set.of();
+    private Set<AnnotatedElement> getElements(String modId) {
+        return modMetadataReader.getModMetadata(modId).getAnnotatedData().getElements();
     }
 
     private static boolean anyAnnotationPresent(AnnotatedElement e, Set<Class<? extends Annotation>> annotations) {
@@ -141,7 +125,7 @@ public class RuntimeTaskProcessor {
         if (annotations.isEmpty()) {
             return Set.of();
         }
-        return this.readElements(modId).stream()
+        return this.getElements(modId).stream()
                 .filter(e -> anyAnnotationPresent(e, annotations))
                 .collect(Collectors.toSet());
     }
@@ -151,7 +135,7 @@ public class RuntimeTaskProcessor {
     }
 
     public void processAll(Scope scope) {
-        Collection<RuntimeTask> tasks = taskHolder.get(scope);
+        Collection<RuntimeTask> tasks = tasksForScope.get(scope);
         if (tasks.isEmpty()) {
             return;
         }

@@ -18,8 +18,10 @@ public class LibraOmni {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
-        ModContextManager modContextManager = new ModContextManager();
         ModMetadataReader modMetadataReader = new ModMetadataReader();
+        modMetadataReader.init();
+
+        ModContextManager modContextManager = new ModContextManager();
 
         RuntimeTaskProcessor.with(modContextManager, modMetadataReader)
                 .registerTask(Scope.CONSTRUCT, new RegisterObjectTask())

@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.common.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.jackraidenph.libraomni.common.CommonGson;
 
 import javax.lang.model.element.*;
 import java.lang.reflect.AnnotatedElement;
@@ -14,25 +15,10 @@ import java.util.stream.Collectors;
 
 public class ModAnnotatedData {
 
-    private static final Gson GSON = new GsonBuilder()
-            .disableHtmlEscaping()
-            .setPrettyPrinting()
-            .create();
-
     private final Set<String> classes = new HashSet<>();
     private final Set<VariableData> fields = new HashSet<>();
     private final Set<ExecutableData> methods = new HashSet<>();
     private final Set<ExecutableData> constructors = new HashSet<>();
-
-    private final String modId;
-
-    public ModAnnotatedData(String modId) {
-        this.modId = modId;
-    }
-
-    public String getModId() {
-        return modId;
-    }
 
     public boolean isEmpty() {
         return classes.isEmpty() && fields.isEmpty() && methods.isEmpty() && constructors.isEmpty();
@@ -50,13 +36,7 @@ public class ModAnnotatedData {
                 }
 
             }
-            default -> throw new IllegalArgumentException("Not supported");
-        }
-    }
-
-    public void addElements(Element... elements) {
-        for (Element e : elements) {
-            this.addElement(e);
+            default -> throw new UnsupportedOperationException("Not supported");
         }
     }
 
@@ -100,9 +80,5 @@ public class ModAnnotatedData {
         elements.addAll(this.getConstructors());
 
         return elements;
-    }
-
-    public static ModAnnotatedData fromJson(String str) {
-        return GSON.fromJson(str, ModAnnotatedData.class);
     }
 }

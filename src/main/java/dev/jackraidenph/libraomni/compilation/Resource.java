@@ -1,9 +1,8 @@
 package dev.jackraidenph.libraomni.compilation;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+import dev.jackraidenph.libraomni.common.CommonGson;
 
 import java.awt.image.*;
 import java.io.IOException;
@@ -12,8 +11,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class Resource {
-
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private final byte[] contents;
     private final String name;
@@ -93,7 +90,7 @@ public class Resource {
 
     public static OutputFileBuilder json(Object object) {
         //Validity check is not necessary
-        return string(GSON.toJson(object)).json();
+        return string(CommonGson.DEFAULT.toJson(object)).json();
     }
 
     public static OutputFileBuilder png(RenderedImage image) {
@@ -114,6 +111,11 @@ public class Resource {
 
     public static OutputFileBuilder image(RenderedImage bufferedImage) {
         return raster(bufferedImage.getData());
+    }
+
+    @Override
+    public String toString() {
+        return getPath();
     }
 
     public static class OutputFileBuilder {

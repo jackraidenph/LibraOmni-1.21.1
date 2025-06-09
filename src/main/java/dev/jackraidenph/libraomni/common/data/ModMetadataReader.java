@@ -1,101 +1,49 @@
 package dev.jackraidenph.libraomni.common.data;
 
-import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.common.CommonGson;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
 
 public class ModMetadataReader {
 
-    public static final String DIRECTORY = "META-INF/" + LibraOmni.MOD_ID + "/";
+    private NativeMetadata nativeMetadata = null;
+    private boolean init = false;
 
-    private static final String METADATA_FILE_ROOT = LibraOmni.MOD_ID + ".metadata";
-    private static final String ELEMENT_DATA_FILE_PREFIX = "elements";
-
-    private final Map<String, ModMetadata> modMetadataCache = new HashMap<>();
-
-    public static String metadataFileRoot() {
-        return METADATA_FILE_ROOT;
+    public void init() {
+        try (InputStream inputStream = openResourceStream(NativeMetadata.PATH)) {
+            String nativeMetadataJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            this.nativeMetadata = CommonGson.DEFAULT.fromJson(nativeMetadataJson, NativeMetadata.class);
+            init = true;
+        } catch (IOException ioException) {
+            throw new RuntimeException(ioException);
+        }
     }
 
-    public static String metadataFileName() {
-        return metadataFileRoot() + ".json";
-    }
-
-    public static String metadataFilePath() {
-        return DIRECTORY + metadataFileName();
-    }
-
-    public static String annotatedDataFileRoot(String modId) {
-        return modId + "." + ELEMENT_DATA_FILE_PREFIX;
-    }
-
-    public static String annotatedDataFileName(String modId) {
-        return annotatedDataFileRoot(modId) + ".json";
-    }
-
-    public static String annotatedDataFilePath(String modId) {
-        return DIRECTORY + annotatedDataFileName(modId);
-    }
-
-    public ModMetadata readModData(String modId) {
-        if (this.modMetadataCache.containsKey(modId)) {
-            return this.modMetadataCache.get(modId);
+    private Map<String, ModMetadata> modMetadataMap() {
+        if (!init) {
+            throw new IllegalStateException("Reader was not initialized");
         }
 
-        return this.readAllModData()
-                .stream()
-                .filter(modData -> modData.getModId().equals(modId))
-                .findFirst()
-                .orElse(null);
+        return this.nativeMetadata.getModMetadataMap();
     }
 
-    public Set<ModMetadata> findModsWithAnnotatedData() {
-        if (!this.modMetadataCache.isEmpty()) {
-            return this.modMetadataCache.values()
-                    .stream()
-                    .filter(modData -> modData.getAnnotatedData() != null)
-                    .collect(Collectors.toSet());
+    public ModMetadata getModMetadata(String modId) {
+        if (!init) {
+            throw new IllegalStateException("Reader was not initialized");
         }
 
-        return this.readAllModData()
-                .stream()
-                .filter(modData -> modData.getAnnotatedData() != null)
-                .collect(Collectors.toSet());
+        return modMetadataMap().get(modId);
     }
 
-    public Set<ModMetadata> readAllModData() {
-        return getResourcesAsStrings(metadataFilePath())
-                .map(ModMetadata::fromJson)
-                .filter(Objects::nonNull)
-                .peek(modMetadata -> this.modMetadataCache.put(modMetadata.getModId(), modMetadata))
-                .collect(Collectors.toSet());
+    public Map<String, ModMetadata> getAllModMetadata() {
+        return Collections.unmodifiableMap(modMetadataMap());
     }
 
-    public ModAnnotatedData readAnnotatedData(String modId) {
-        ModMetadata modMetadata = this.readModData(modId);
-        if (modMetadata != null) {
-            return modMetadata.getAnnotatedData();
-        }
-        return null;
-    }
-
-    private static ModAnnotatedData readFromLocation(String location) {
-        try (InputStream byteInputStream = openResourceStream(location)) {
-            String str = new String(byteInputStream.readAllBytes(), StandardCharsets.UTF_8);
-            return ModAnnotatedData.fromJson(str);
-        } catch (IOException e) {
-            LibraOmni.LOGGER.error("Failed to read element data from [{}]", location);
-            return null;
-        }
+    public Collection<String> getAllModsWithMetadata() {
+        return modMetadataMap().keySet();
     }
 
     private static ClassLoader classLoader() {
@@ -104,23 +52,5 @@ public class ModMetadataReader {
 
     private static InputStream openResourceStream(String resourceLocation) {
         return classLoader().getResourceAsStream(resourceLocation);
-    }
-
-    private static Stream<URL> getResources(String resourceLocation) {
-        return ModMetadataReader.class.getClassLoader().resources(resourceLocation);
-    }
-
-    private static Stream<byte[]> getResourcesAsBytes(String resourceLocation) {
-        return getResources(resourceLocation).map(url -> {
-            try (InputStream is = url.openStream()) {
-                return is.readAllBytes();
-            } catch (IOException ioException) {
-                return null;
-            }
-        }).filter(Objects::nonNull);
-    }
-
-    private static Stream<String> getResourcesAsStrings(String resourceLocation) {
-        return getResourcesAsBytes(resourceLocation).map(bytes -> new String(bytes, StandardCharsets.UTF_8));
     }
 }
