@@ -4,10 +4,10 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import dev.jackraidenph.libraomni.annotation.*;
+import dev.jackraidenph.libraomni.common.data.ModMetadata;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
-import dev.jackraidenph.libraomni.common.data.ElementData;
-import dev.jackraidenph.libraomni.common.data.Metadata;
-import dev.jackraidenph.libraomni.common.data.MetadataReader;
+import dev.jackraidenph.libraomni.common.data.ModAnnotatedData;
+import dev.jackraidenph.libraomni.common.data.ModMetadataReader;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -22,9 +22,9 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 class CreateMetadataTask implements CompilationTask {
-    private final Map<String, Metadata> modMetadata = new HashMap<>();
+    private final Map<String, ModMetadata> modMetadata = new HashMap<>();
     private final Map<String, SetMultimap<Scope, String>> modRuntimeProcessorsPerScope = new HashMap<>();
-    private final Map<String, ElementData> modElementData = new HashMap<>();
+    private final Map<String, ModAnnotatedData> modAnnotatedDataMap = new HashMap<>();
 
     private final Set<Element> runtimeElements = new HashSet<>();
 
@@ -34,8 +34,8 @@ class CreateMetadataTask implements CompilationTask {
 
     //UTILITY START
 
-    private Metadata getOrCreateMetadata(String modId) {
-        return this.modMetadata.computeIfAbsent(modId, Metadata::new);
+    private ModMetadata getOrCreateMetadata(String modId) {
+        return this.modMetadata.computeIfAbsent(modId, ModMetadata::new);
     }
 
     private String modIdByPackage(ModIdGetter modLocator, Element e) {
@@ -101,7 +101,7 @@ class CreateMetadataTask implements CompilationTask {
     }
 
     private void createModMetadata(ModIdGetter modLocator) {
-        modLocator.mods().forEach(id -> this.modMetadata.computeIfAbsent(id, Metadata::new));
+        modLocator.mods().forEach(id -> this.modMetadata.computeIfAbsent(id, ModMetadata::new));
     }
 
     private void associateElements(ModIdGetter modLocator) {
@@ -111,7 +111,7 @@ class CreateMetadataTask implements CompilationTask {
                 continue;
             }
 
-            this.modElementData.computeIfAbsent(modId, ElementData::new).addElement(element);
+            this.modAnnotatedDataMap.computeIfAbsent(modId, ModAnnotatedData::new).addElement(element);
         }
     }
 
@@ -133,32 +133,26 @@ class CreateMetadataTask implements CompilationTask {
 
     private void addProcessorsToMetadata(ModIdGetter modLocator) {
         for (String mod : modLocator.mods()) {
-            Metadata metadata = this.getOrCreateMetadata(mod);
+            ModMetadata modMetadata = this.getOrCreateMetadata(mod);
             SetMultimap<Scope, String> processors = this.modRuntimeProcessorsPerScope.get(mod);
             for (Entry<Scope, Collection<String>> perScopeProcessors : processors.asMap().entrySet()) {
                 Scope scope = perScopeProcessors.getKey();
                 Collection<String> scopeProcessors = perScopeProcessors.getValue();
-                metadata.addRuntimeProcessors(scope, scopeProcessors);
+                modMetadata.addRuntimeTasks(scope, scopeProcessors);
             }
         }
     }
 
-    private Set<Resource> serializeElementData() {
+    private Set<Resource> serialize() {
         Set<Resource> dataResources = new HashSet<>();
-        for (ElementData data : modElementData.values()) {
+        for (ModAnnotatedData data : modAnnotatedDataMap.values()) {
             if (data.isEmpty()) {
                 continue;
             }
 
             String modId = data.getModId();
-            Resource resource = Resource
-                    .json(data)
-                    .directory(MetadataReader.DIRECTORY)
-                    .name(MetadataReader.elementDataFileRoot(modId))
-                    .build();
-            Metadata metadata = this.getOrCreateMetadata(modId);
-            metadata.setElementDataPath(resource.getPath());
-            dataResources.add(resource);
+            ModMetadata modMetadata = this.getOrCreateMetadata(modId);
+            modMetadata.setAnnotatedData(data);
         }
 
         return dataResources;
@@ -166,11 +160,11 @@ class CreateMetadataTask implements CompilationTask {
 
     private Set<Resource> serializeMetadata() {
         Set<Resource> dataResources = new HashSet<>();
-        for (Metadata metadata : this.modMetadata.values()) {
+        for (ModMetadata modMetadata : this.modMetadata.values()) {
             Resource resource = Resource
-                    .json(metadata)
-                    .directory(MetadataReader.DIRECTORY)
-                    .name(MetadataReader.metadataFileRoot())
+                    .json(modMetadata)
+                    .directory(ModMetadataReader.DIRECTORY)
+                    .name(ModMetadataReader.metadataFileRoot())
                     .build();
             dataResources.add(resource);
         }
@@ -184,7 +178,7 @@ class CreateMetadataTask implements CompilationTask {
         this.addRuntimeProcessors(modLocator, processingEnv.getMessager());
         this.addProcessorsToMetadata(modLocator);
         return Sets.union(
-                this.serializeElementData(),
+                this.serialize(),
                 this.serializeMetadata()
         );
     }

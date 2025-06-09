@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ElementData {
+public class ModAnnotatedData {
 
     private static final Gson GSON = new GsonBuilder()
             .disableHtmlEscaping()
@@ -26,7 +26,7 @@ public class ElementData {
 
     private final String modId;
 
-    public ElementData(String modId) {
+    public ModAnnotatedData(String modId) {
         this.modId = modId;
     }
 
@@ -102,7 +102,7 @@ public class ElementData {
         return elements;
     }
 
-    public static ElementData fromJson(String str) {
-        return GSON.fromJson(str, ElementData.class);
+    public static ModAnnotatedData fromJson(String str) {
+        return GSON.fromJson(str, ModAnnotatedData.class);
     }
 }
