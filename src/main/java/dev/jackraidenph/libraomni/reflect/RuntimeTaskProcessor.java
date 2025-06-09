@@ -5,8 +5,8 @@ import com.google.common.collect.Multimap;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.data.ModMetadata;
-import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.common.data.ModMetadataReader;
+import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -15,7 +15,9 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RuntimeTaskProcessor {

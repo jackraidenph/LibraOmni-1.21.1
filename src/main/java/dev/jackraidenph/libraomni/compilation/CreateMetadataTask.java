@@ -2,11 +2,12 @@ package dev.jackraidenph.libraomni.compilation;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import dev.jackraidenph.libraomni.annotation.*;
+import dev.jackraidenph.libraomni.annotation.NeedsRuntimeProcessing;
+import dev.jackraidenph.libraomni.annotation.Processor;
+import dev.jackraidenph.libraomni.common.data.ModAnnotatedData;
 import dev.jackraidenph.libraomni.common.data.ModMetadata;
 import dev.jackraidenph.libraomni.common.data.NativeMetadata;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
-import dev.jackraidenph.libraomni.common.data.ModAnnotatedData;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;

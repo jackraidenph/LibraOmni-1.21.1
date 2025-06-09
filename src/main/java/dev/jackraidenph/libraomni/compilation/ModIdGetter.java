@@ -8,8 +8,10 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-import java.util.*;
+import java.util.Collection;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 class ModIdGetter {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();

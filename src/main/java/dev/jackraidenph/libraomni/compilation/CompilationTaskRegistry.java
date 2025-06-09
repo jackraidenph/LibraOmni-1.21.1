@@ -1,7 +1,9 @@
 package dev.jackraidenph.libraomni.compilation;
 
 import javax.annotation.processing.Messager;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 

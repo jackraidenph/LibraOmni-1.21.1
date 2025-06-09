@@ -1,9 +1,5 @@
 package dev.jackraidenph.libraomni.common.data;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import dev.jackraidenph.libraomni.common.CommonGson;
-
 import javax.lang.model.element.*;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;

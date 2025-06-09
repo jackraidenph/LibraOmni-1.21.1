@@ -9,7 +9,9 @@ import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class CompilationTaskProcessor extends AbstractProcessor {

@@ -4,7 +4,10 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import dev.jackraidenph.libraomni.common.CommonGson;
 
-import java.awt.image.*;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
+import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
