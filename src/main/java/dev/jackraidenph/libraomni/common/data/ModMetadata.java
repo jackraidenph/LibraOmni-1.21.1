@@ -1,11 +1,14 @@
 package dev.jackraidenph.libraomni.common.data;
 
+import com.google.gson.annotations.SerializedName;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 
 import java.util.*;
 
 public class ModMetadata {
-    private ModAnnotatedData annotatedData = new ModAnnotatedData();
+    @SerializedName("data")
+    private final ModAnnotatedData annotatedData = new ModAnnotatedData();
+    @SerializedName("tasks")
     private final Map<Scope, Set<String>> runtimeTasks = new HashMap<>();
 
     public ModAnnotatedData getAnnotatedData() {
@@ -16,16 +19,7 @@ public class ModMetadata {
         return Collections.unmodifiableSet(this.runtimeTasks.getOrDefault(scope, Set.of()));
     }
 
-    public void setAnnotatedData(ModAnnotatedData data) {
-        this.annotatedData = data;
-    }
-
     public void addRuntimeTask(Scope scope, String taskClassName) {
         this.runtimeTasks.computeIfAbsent(scope, k -> new HashSet<>()).add(taskClassName);
-    }
-
-    @Override
-    public String toString() {
-        return super.toString();
     }
 }

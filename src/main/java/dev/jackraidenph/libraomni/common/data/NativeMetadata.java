@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.common.data;
 
+import com.google.gson.annotations.SerializedName;
 import dev.jackraidenph.libraomni.LibraOmni;
 
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.Map;
 
 public class NativeMetadata {
 
+    @SerializedName("mods")
     private final Map<String, ModMetadata> modMetadata = new HashMap<>();
 
     public static final String DIRECTORY = "META-INF/" + LibraOmni.MOD_ID + "/";
