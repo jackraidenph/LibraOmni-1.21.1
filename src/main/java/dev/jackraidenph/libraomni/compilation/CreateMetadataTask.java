@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation;
 
 import dev.jackraidenph.libraomni.annotation.NeedsRuntimeProcessing;
-import dev.jackraidenph.libraomni.annotation.Processor;
+import dev.jackraidenph.libraomni.annotation.RuntimeTask;
 import dev.jackraidenph.libraomni.common.data.NativeMetadata;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 
@@ -65,8 +65,8 @@ class CreateMetadataTask implements CompilationTask {
         }
 
         //Process user-defined runtime tasks
-        for (Element e : roundEnv.getElementsAnnotatedWith(Processor.class)) {
-            Processor taskAnnotation = e.getAnnotation(Processor.class);
+        for (Element e : roundEnv.getElementsAnnotatedWith(RuntimeTask.class)) {
+            RuntimeTask taskAnnotation = e.getAnnotation(RuntimeTask.class);
             Scope scope = taskAnnotation.value();
             String name = ((TypeElement) e).getQualifiedName().toString();
             String modId = modLocator.forElement(e);

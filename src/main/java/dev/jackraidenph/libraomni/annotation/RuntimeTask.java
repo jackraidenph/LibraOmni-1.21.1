@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation;
 
-import dev.jackraidenph.libraomni.compilation.validation.RuntimeTaskValidator;
+import dev.jackraidenph.libraomni.compilation.validation.RuntimeTaskRegisteringValidator;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 
 import java.lang.annotation.ElementType;
@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-@Validated(RuntimeTaskValidator.class)
-public @interface Processor {
+@Validated(RuntimeTaskRegisteringValidator.class)
+public @interface RuntimeTask {
     Scope value();
 }

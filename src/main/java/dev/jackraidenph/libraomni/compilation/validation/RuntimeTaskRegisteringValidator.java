@@ -5,7 +5,7 @@ import dev.jackraidenph.libraomni.reflect.RuntimeTask;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;
 
-public class RuntimeTaskValidator implements Validator {
+public class RuntimeTaskRegisteringValidator implements Validator {
     @Override
     public boolean test(Element element, Messager messager) {
         String runtimeProcessorClassName = RuntimeTask.class.getName();
