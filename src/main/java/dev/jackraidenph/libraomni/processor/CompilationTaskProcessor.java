@@ -1,7 +1,5 @@
 package dev.jackraidenph.libraomni.processor;
 
-import net.neoforged.fml.common.Mod;
-
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
@@ -12,11 +10,11 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class CompilationTaskProcessor extends AbstractProcessor {
+
+    public static final String NF_MOD_ANNOTATION_CLASS_NAME = "net.neoforged.fml.common.Mod";
 
     private final Set<CompilationTask> tasks = new HashSet<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
@@ -43,7 +41,8 @@ public class CompilationTaskProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        this.modIdGetter.findMods(roundEnvironment, this.processingEnv.getMessager());
+        TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(NF_MOD_ANNOTATION_CLASS_NAME);
+        this.modIdGetter.findMods(modAnnotation, roundEnvironment, this.processingEnv.getMessager());
 
         Messager messager = this.processingEnv.getMessager();
         boolean finishing = roundEnvironment.processingOver();
@@ -124,8 +123,6 @@ public class CompilationTaskProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Set.of(
-                Mod.class.getName()
-        );
+        return Set.of(NF_MOD_ANNOTATION_CLASS_NAME);
     }
 }

@@ -1,13 +1,8 @@
 package dev.jackraidenph.libraomni.processor;
 
-import net.neoforged.fml.common.Mod;
-
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
@@ -16,12 +11,34 @@ import java.util.TreeMap;
 class ModIdGetter {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
 
-    public void findMods(RoundEnvironment roundEnvironment, Messager messager) {
-        roundEnvironment.getElementsAnnotatedWith(Mod.class)
+    private static String getModId(Element e, String annotationName, String valueName) {
+        AnnotationMirror foundMirror = null;
+
+        for (AnnotationMirror annotationMirror : e.getAnnotationMirrors()) {
+            TypeElement annotationElement = (TypeElement) annotationMirror.getAnnotationType().asElement();
+            if (annotationElement.getQualifiedName().contentEquals(annotationName)) {
+                foundMirror = annotationMirror;
+            }
+        }
+
+        if (foundMirror == null) {
+            return null;
+        }
+
+        ExecutableElement executableElement = foundMirror.getElementValues()
+                .keySet()
+                .stream()
+                .filter(executable -> executable.getSimpleName().contentEquals(valueName))
+                .findFirst()
+                .orElse(null);
+
+        return String.valueOf(foundMirror.getElementValues().get(executableElement).getValue());
+    }
+
+    public void findMods(TypeElement modAnnotationType, RoundEnvironment roundEnvironment, Messager messager) {
+        roundEnvironment.getElementsAnnotatedWith(modAnnotationType)
                 .forEach(e -> {
-                    TypeElement modClass = (TypeElement) e;
-                    Mod modAnnotation = modClass.getAnnotation(Mod.class);
-                    String modId = modAnnotation.value();
+                    String modId = getModId(e, CompilationTaskProcessor.NF_MOD_ANNOTATION_CLASS_NAME, "value");
                     if (modId == null) {
                         return;
                     }
