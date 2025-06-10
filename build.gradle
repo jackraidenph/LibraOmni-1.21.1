@@ -115,7 +115,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    requiredForProcessing 'com.google.code.gson:gson:2.8.9'
+    requiredForProcessing 'com.google.code.gson:gson:2.13.1'
 }
 
 tasks.named('shadowJar') {
