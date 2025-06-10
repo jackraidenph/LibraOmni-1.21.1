@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.compilation;
 
 import dev.jackraidenph.libraomni.annotation.Validated;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.validation.Validator;
-import dev.jackraidenph.libraomni.compilation.validation.ValidatorFactory;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -53,7 +53,18 @@ class ValidateAnnotationsTask implements CompilationTask {
             TypeMirror typeMirror = mirroredTypeException.getTypeMirror();
             Element element = types.asElement(typeMirror);
             TypeElement typeElement = (TypeElement) element;
-            return ValidatorFactory.INSTANCE.create(typeElement.getQualifiedName().toString());
+
+            String validatorClassName = typeElement.getQualifiedName().toString();
+            Class<? extends Validator> validatorClass = SafeReflectionUtil.forNameSubclass(validatorClassName, Validator.class);
+            if (validatorClass == null) {
+                throw new IllegalStateException("No validator class found for name [" + validatorClassName + "]");
+            }
+
+            Validator validator = SafeReflectionUtil.tryConstruct(validatorClass);
+            if (validator == null) {
+                throw new IllegalStateException("Failed to construct Validator for [" + validatorClassName + "]");
+            }
+            return validator;
         }
 
         return null;
