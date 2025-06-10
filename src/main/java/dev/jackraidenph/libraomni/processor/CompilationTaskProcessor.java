@@ -12,22 +12,33 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class CompilationTaskProcessor extends AbstractProcessor {
 
-    private final Set<CompilationTask> processors = new HashSet<>();
+    private final Set<CompilationTask> tasks = new HashSet<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
     private int round = 0;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        this.registerTasks(this.processingEnv);
+
+        registerTask(new CreateMetadataTask());
+        registerTask(new ValidateAnnotationsTask());
     }
 
-    private void registerTasks(ProcessingEnvironment environment) {
-        this.processors.addAll(CompilationTaskRegistry.getAll(environment.getMessager()));
+    private void registerTask(CompilationTask task) {
+        if (this.tasks.stream().map(Object::getClass).anyMatch(clazz -> clazz.equals(task.getClass()))) {
+            return;
+        }
+
+        this.tasks.add(task);
+        if (processingEnv != null) {
+            processingEnv.getMessager().printNote("Registered [" + task.getClass().getSimpleName() + "] for processing");
+        }
     }
 
     @Override
@@ -43,7 +54,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
 
         Set<Resource> createdResources = new HashSet<>();
 
-        for (CompilationTask compilationTask : this.processors) {
+        for (CompilationTask compilationTask : this.tasks) {
             final String op = finishing ? "Finishing" : "Processing";
 
             messager.printNote(op + " [" + compilationTask.getClass().getSimpleName() + "]");
