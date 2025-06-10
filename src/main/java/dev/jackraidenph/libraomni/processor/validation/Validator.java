@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.compilation.validation;
+package dev.jackraidenph.libraomni.processor.validation;
 
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Element;

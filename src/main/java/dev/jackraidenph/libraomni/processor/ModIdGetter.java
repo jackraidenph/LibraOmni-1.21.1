@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.compilation;
+package dev.jackraidenph.libraomni.processor;
 
 import net.neoforged.fml.common.Mod;
 

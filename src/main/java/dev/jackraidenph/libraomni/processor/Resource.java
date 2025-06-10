@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.compilation;
+package dev.jackraidenph.libraomni.processor;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;

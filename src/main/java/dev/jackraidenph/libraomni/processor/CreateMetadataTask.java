@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.compilation;
+package dev.jackraidenph.libraomni.processor;
 
 import dev.jackraidenph.libraomni.annotation.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.RuntimeTask;

@@ -1,8 +1,8 @@
-package dev.jackraidenph.libraomni.compilation;
+package dev.jackraidenph.libraomni.processor;
 
 import dev.jackraidenph.libraomni.annotation.Validated;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.compilation.validation.Validator;
+import dev.jackraidenph.libraomni.processor.validation.Validator;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
