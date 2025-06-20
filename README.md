@@ -8,10 +8,10 @@
 
 <details>
   
-  <summary><h2>[~] Compile Time Annotation Processing</h2></summary>
+  <summary><h3>[~] Compile Time Annotation Processing</h3></summary>
   
   <details>
-  <summary><h3>Techincal</h3></summary>
+  <summary><h4>Techincal</h4></summary>
     [+] Main processor class handling the logic<br/>
     [+] Mod entrypoint discovery<br/>
     [+] Deciding which class belongs to which mod<br/>
@@ -34,10 +34,10 @@
 
 <details>
   
-  <summary><h2>[~] Runtime Annotation Processing</h2></summary>
+  <summary><h3>[~] Runtime Annotation Processing</h3></summary>
   
   <details>
-  <summary><h3>Techincal</h3></summary>
+  <summary><h4>Techincal</h4></summary>
     [+] Main processor class handling the logic<br/>
     [+] Metadata discovery and reading<br/>
     [+] Mod context<br/>
@@ -53,3 +53,7 @@
   [-] Proper configuration<br/>
 
 </details>
+
+<h3>[-] Texture handling (Layering, baking, dynamic textures, shader post-processing, etc.)</h3>
+<h3>[-] OBB Handling and physics</h3>
+<h3>[?] Animation system</h3>
