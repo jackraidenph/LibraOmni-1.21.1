@@ -1,6 +1,6 @@
 <h1>Libra Omni, a library mod made for convenience</h1>
 
-<h2>Features:</h2>
+<h3>Features:</h3>
 [+]  Implemented<br/>
 [~]  Work In Progress<br/>
 [-]  Planned, not started<br/>
@@ -56,4 +56,5 @@
 
 <h3>[-] Texture handling (Layering, baking, dynamic textures, shader post-processing, etc.)</h3>
 <h3>[-] OBB Handling and physics</h3>
+<h3>[-] State-Machine API</h3>
 <h3>[?] Animation system</h3>
