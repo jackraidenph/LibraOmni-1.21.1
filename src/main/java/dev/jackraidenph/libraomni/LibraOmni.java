@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni;
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.common.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.reflect.ModContextManager;
-import dev.jackraidenph.libraomni.reflect.RegisterObjectTask;
+import dev.jackraidenph.libraomni.reflect.RegisterObjectsTask;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import dev.jackraidenph.libraomni.reflect.RuntimeTaskProcessor;
 import net.neoforged.bus.api.IEventBus;
@@ -24,7 +24,7 @@ public class LibraOmni {
         ModContextManager modContextManager = new ModContextManager();
 
         RuntimeTaskProcessor.with(modContextManager, modMetadataReader)
-                .registerTask(Scope.CONSTRUCT, new RegisterObjectTask())
+                .registerTask(Scope.CONSTRUCT, new RegisterObjectsTask())
                 .setup(modEventBus);
     }
 }

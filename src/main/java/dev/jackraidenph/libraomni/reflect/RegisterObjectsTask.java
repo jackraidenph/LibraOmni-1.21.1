@@ -11,7 +11,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
-public class RegisterObjectTask implements RuntimeTask {
+public class RegisterObjectsTask implements RuntimeTask {
 
     @Override
     public void process(ModContext modContext, Set<TransitiveAnnotatedElement> elements) {
