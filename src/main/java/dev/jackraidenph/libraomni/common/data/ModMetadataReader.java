@@ -11,13 +11,13 @@ import java.util.Map;
 
 public class ModMetadataReader {
 
-    private NativeMetadata nativeMetadata = null;
+    private LibraOmniMetadata libraOmniMetadata = null;
     private boolean init = false;
 
     public void init() {
-        try (InputStream inputStream = openResourceStream(NativeMetadata.PATH)) {
+        try (InputStream inputStream = openResourceStream(LibraOmniMetadata.PATH)) {
             String nativeMetadataJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            this.nativeMetadata = CommonGson.DEFAULT.fromJson(nativeMetadataJson, NativeMetadata.class);
+            this.libraOmniMetadata = CommonGson.DEFAULT.fromJson(nativeMetadataJson, LibraOmniMetadata.class);
             init = true;
         } catch (IOException ioException) {
             throw new RuntimeException(ioException);
@@ -29,7 +29,7 @@ public class ModMetadataReader {
             throw new IllegalStateException("Reader was not initialized");
         }
 
-        return this.nativeMetadata.getModMetadataMap();
+        return this.libraOmniMetadata.getModMetadataMap();
     }
 
     public ModMetadata getModMetadata(String modId) {

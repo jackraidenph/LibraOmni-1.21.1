@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NativeMetadata {
+public class LibraOmniMetadata {
 
     @SerializedName("mods")
     private final Map<String, ModMetadata> modMetadata = new HashMap<>();
