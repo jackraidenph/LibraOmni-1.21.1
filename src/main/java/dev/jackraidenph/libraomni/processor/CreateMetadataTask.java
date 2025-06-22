@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.processor;
 
+import dev.jackraidenph.libraomni.annotation.Composite;
 import dev.jackraidenph.libraomni.annotation.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.RegisteredRuntimeTask;
 import dev.jackraidenph.libraomni.common.data.NativeMetadata;
@@ -7,10 +8,15 @@ import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.AnnotatedConstruct;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.*;
 
 class CreateMetadataTask implements CompilationTask {
@@ -26,8 +32,41 @@ class CreateMetadataTask implements CompilationTask {
         return retention.value().equals(RetentionPolicy.RUNTIME);
     }
 
+    private static boolean isNotService(AnnotationMirror annotationMirror) {
+        return mirrorIsNot(annotationMirror, Composite.class) && mirrorIsNot(annotationMirror, Target.class) && mirrorIsNot(annotationMirror, Retention.class);
+    }
+
+    private static boolean mirrorIsNot(AnnotationMirror mirror, Class<? extends Annotation> annotation) {
+        return !((TypeElement) mirror.getAnnotationType().asElement()).getQualifiedName().contentEquals(annotation.getName());
+    }
+
+    private static boolean needsRuntimeProcessing(AnnotatedConstruct annotated) {
+        NeedsRuntimeProcessing needsProcessingDirect = annotated.getAnnotation(NeedsRuntimeProcessing.class);
+        if (needsProcessingDirect != null) {
+            return true;
+        }
+
+        Composite composite = annotated.getAnnotation(Composite.class);
+
+        if (composite != null) {
+            boolean recursiveNeedsProcessing = false;
+            for (AnnotationMirror annotationMirror : annotated.getAnnotationMirrors()) {
+                if (isNotService(annotationMirror)) {
+                    recursiveNeedsProcessing = needsRuntimeProcessing(annotationMirror.getAnnotationType().asElement());
+                    if (recursiveNeedsProcessing) {
+                        return true;
+                    }
+                }
+            }
+            return recursiveNeedsProcessing;
+        }
+
+        return false;
+    }
+
     //Find custom annotations that need to be processed at runtime
     private TypeElement[] findRuntimeAnnotations(RoundEnvironment roundEnvironment) {
+        //See if the need to be processed in runtime
         return roundEnvironment
                 //Get ALL round elements
                 .getRootElements()
@@ -38,8 +77,7 @@ class CreateMetadataTask implements CompilationTask {
                 .map(am -> (TypeElement) am.getAnnotationType().asElement())
                 //Reject duplicates
                 .distinct()
-                //See if the need to be processed in runtime
-                .filter(e -> e.getAnnotation(NeedsRuntimeProcessing.class) != null)
+                .filter(CreateMetadataTask::needsRuntimeProcessing)
                 //Check if the annotation actually has RUNTIME retention
                 .filter(CreateMetadataTask::isRuntimeAnnotation)
                 //Collect to array for later use in RoundEnvironment#getElementsAnnotatedWithAny
@@ -56,6 +94,10 @@ class CreateMetadataTask implements CompilationTask {
 
         Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWithAny(runtimeAnnotations);
         for (Element e : annotatedElements) {
+            if (e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
+                continue;
+            }
+
             String modId = modLocator.forElement(e);
             if (modId == null) {
                 continue;
