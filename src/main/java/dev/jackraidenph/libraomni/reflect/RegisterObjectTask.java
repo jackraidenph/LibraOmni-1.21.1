@@ -3,10 +3,10 @@ package dev.jackraidenph.libraomni.reflect;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.common.data.TransitiveAnnotatedElement;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
@@ -14,17 +14,15 @@ import java.util.Set;
 public class RegisterObjectTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<AnnotatedElement> elements) {
-        for (AnnotatedElement annotatedElement : elements) {
-            if (annotatedElement instanceof Class<?> clazz) {
-                this.tryRegisterClass(modContext, clazz);
+    public void process(ModContext modContext, Set<TransitiveAnnotatedElement> elements) {
+        for (TransitiveAnnotatedElement composite : elements) {
+            if (composite.getAnnotatedElement() instanceof Class<?> clazz) {
+                this.tryRegisterViaClass(modContext, clazz, composite.getAnnotation(Registered.class));
             }
         }
     }
 
-    private <T> void tryRegisterClass(ModContext modContext, Class<T> clazz) {
-        Registered registered = clazz.getAnnotation(Registered.class);
-
+    private <T> void tryRegisterViaClass(ModContext modContext, Class<T> clazz, Registered registered) {
         if (registered == null) {
             return;
         }

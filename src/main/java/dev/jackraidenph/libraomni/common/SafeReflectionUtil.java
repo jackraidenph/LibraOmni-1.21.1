@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.common;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.annotation.ElementType;
+import java.lang.reflect.*;
 
 /**
  * Instead of throwing, methods return null.
@@ -47,4 +47,21 @@ public class SafeReflectionUtil {
         return typesArray;
     }
 
+    public static ElementType getElementType(AnnotatedElement element) {
+        if (element == null) {
+            return null;
+        }
+
+        return switch (element) {
+            case Class<?> clazz -> clazz.isAnnotation() ? ElementType.ANNOTATION_TYPE : ElementType.TYPE;
+            case Method ignored -> ElementType.METHOD;
+            case Field ignored -> ElementType.FIELD;
+            case Constructor<?> ignored -> ElementType.CONSTRUCTOR;
+            case Parameter ignored -> ElementType.PARAMETER;
+            case Package ignored -> ElementType.PACKAGE;
+            case Module ignored -> ElementType.MODULE;
+            case RecordComponent ignored -> ElementType.RECORD_COMPONENT;
+            default -> null;
+        };
+    }
 }

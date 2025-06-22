@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.common.data.ModMetadata;
 import dev.jackraidenph.libraomni.common.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
@@ -115,6 +116,10 @@ public class RuntimeTaskProcessor {
         clientSetupEvent.enqueueWork(() -> this.processAll(Scope.CLIENT));
     }
 
+    private Set<TransitiveAnnotatedElement> getTransitiveAnnotatedElements(String modId) {
+        return getElements(modId).stream().map(TransitiveAnnotatedElement::new).collect(Collectors.toSet());
+    }
+
     private Set<AnnotatedElement> getElements(String modId) {
         return modMetadataReader.getModMetadata(modId).getAnnotatedData().getElements();
     }
@@ -123,11 +128,11 @@ public class RuntimeTaskProcessor {
         return annotations.stream().anyMatch(e::isAnnotationPresent);
     }
 
-    private Set<AnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
+    private Set<TransitiveAnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
         if (annotations.isEmpty()) {
             return Set.of();
         }
-        return this.getElements(modId).stream()
+        return this.getTransitiveAnnotatedElements(modId).stream()
                 .filter(e -> anyAnnotationPresent(e, annotations))
                 .collect(Collectors.toSet());
     }
@@ -144,7 +149,7 @@ public class RuntimeTaskProcessor {
 
         for (ModContext modContext : this.modsToProcess) {
             for (RuntimeTask runtimeTask : tasks) {
-                Set<AnnotatedElement> elements = this.elementsAnnotatedWith(
+                Set<TransitiveAnnotatedElement> elements = this.elementsAnnotatedWith(
                         modContext.modId(),
                         runtimeTask.getSupportedAnnotations()
                 );

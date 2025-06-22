@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.processor;
 
+import net.minecraft.world.level.block.Blocks;
+
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
