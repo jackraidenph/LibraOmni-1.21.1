@@ -164,6 +164,10 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
@@ -173,6 +177,10 @@ publishing {
 
             artifact(shadowJar) {
                 classifier = ""
+            }
+
+            artifact(sourceJar) {
+                classifier "sources"
             }
         }
     }
