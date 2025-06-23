@@ -18,7 +18,7 @@
     [+] Subtasks for the processor<br/>
     [+] Outputting resources<br/>
     [+] Creating metadata files for further runtime processing<br/>
-    [~] Transitive annotations<br/>
+    [+] Transitive annotations<br/>
     
   ---
     
@@ -43,7 +43,7 @@
     [+] Mod context<br/>
     [+] Runtime tasks<br/>
     [+] Runtime task discovery for custom tasks<br/>
-    [~] Handling annotations<br/>
+    [+] Handling transitive annotations<br/>
     
   ---
     
