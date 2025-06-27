@@ -4,9 +4,7 @@ import dev.jackraidenph.libraomni.math.graph.iterator.BreadthFirstIterator;
 import dev.jackraidenph.libraomni.math.graph.iterator.DepthFirstIterator;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public interface IndexedGraph<T> extends Iterable<T> {
@@ -96,6 +94,15 @@ public interface IndexedGraph<T> extends Iterable<T> {
     boolean isAcyclic();
 
     boolean hasCycles();
+
+    default boolean isDisconnected() {
+        int visited = 0;
+        for (T t : this) {
+            visited++;
+        }
+
+        return visited != getNodeIndices().size();
+    }
 
     @NotNull
     @Override
