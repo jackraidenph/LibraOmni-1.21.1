@@ -5,14 +5,16 @@ import com.google.gson.*;
 import javax.lang.model.element.ElementKind;
 import java.lang.reflect.Type;
 
-public class GsonTypeAdapter {
+public class GsonTypeAdapters {
+
+    public static final String ANNOTATED_DATA_KIND_FIELD = "kind";
 
     public static class AnnotatedReflectionDataSerializer implements JsonSerializer<AnnotatedReflectionData<?>> {
 
         public JsonElement serialize(AnnotatedReflectionData src, Type member, JsonSerializationContext context) {
             JsonElement element = context.serialize(src);
             JsonObject jsonObject = element.getAsJsonObject();
-            jsonObject.add("kind", new JsonPrimitive(src.kind().toString()));
+            jsonObject.add(ANNOTATED_DATA_KIND_FIELD, new JsonPrimitive(src.kind().toString()));
             return jsonObject;
         }
     }
@@ -20,7 +22,7 @@ public class GsonTypeAdapter {
     public static class AnnotatedReflectionDataDeserializer implements JsonDeserializer<AnnotatedReflectionData<?>> {
         @Override
         public AnnotatedReflectionData<?> deserialize(JsonElement json, Type member, JsonDeserializationContext context) {
-            String kindStr = json.getAsJsonObject().get("kind").getAsString();
+            String kindStr = json.getAsJsonObject().get(ANNOTATED_DATA_KIND_FIELD).getAsString();
             ElementKind elementKind = ElementKind.valueOf(kindStr);
 
             return switch (elementKind) {
