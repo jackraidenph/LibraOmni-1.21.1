@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.common.data;
 
+import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.CommonGson;
 
 import java.io.IOException;
@@ -16,8 +17,14 @@ public class ModMetadataReader {
 
     public void init() {
         try (InputStream inputStream = openResourceStream(LibraOmniMetadata.PATH)) {
-            String nativeMetadataJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            this.libraOmniMetadata = CommonGson.DEFAULT.fromJson(nativeMetadataJson, LibraOmniMetadata.class);
+            if (inputStream != null) {
+                String nativeMetadataJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                this.libraOmniMetadata = CommonGson.DEFAULT.fromJson(nativeMetadataJson, LibraOmniMetadata.class);
+            } else {
+                LibraOmni.LOGGER.error("Failed to fetch metadata file");
+                this.libraOmniMetadata = new LibraOmniMetadata();
+            }
+
             init = true;
         } catch (IOException ioException) {
             throw new RuntimeException(ioException);
