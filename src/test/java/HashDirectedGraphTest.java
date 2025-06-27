@@ -21,7 +21,7 @@ public class HashDirectedGraphTest {
     public void testAddNode() {
         boolean added = graph.addNode(0, "Test1");
         assertTrue(added);
-        assertEquals(graph.getNode(0), "Test1");
+        assertEquals("Test1", graph.getNode(0));
     }
 
     @Test
