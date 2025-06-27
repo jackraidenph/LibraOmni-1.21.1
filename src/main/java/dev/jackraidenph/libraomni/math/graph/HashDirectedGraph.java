@@ -5,7 +5,7 @@ import dev.jackraidenph.libraomni.math.graph.iterator.BreadthFirstIterator;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class HashDirectedGraph<T> implements Graph<T> {
+public class HashDirectedGraph<T> implements IndexedGraph<T> {
     private final Map<Integer, Set<Integer>> adjacencySetsMap;
     private final Map<Integer, T> indexToNode;
     private final Map<T, Integer> nodeToIndex;

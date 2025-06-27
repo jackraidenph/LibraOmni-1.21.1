@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.math.graph.iterator;
 
-import dev.jackraidenph.libraomni.math.graph.Graph;
+import dev.jackraidenph.libraomni.math.graph.IndexedGraph;
 
 import java.util.*;
 
@@ -13,13 +13,13 @@ public class BreadthFirstIterator<T> implements Iterator<T> {
     private int currentWidth = 0;
     Queue<Integer> depthQueue = new LinkedList<>();
 
-    private final Graph<T> graph;
+    private final IndexedGraph<T> graph;
 
-    public BreadthFirstIterator(Graph<T> graph) {
+    public BreadthFirstIterator(IndexedGraph<T> graph) {
         this(graph, graph.getStartingIndex());
     }
 
-    public BreadthFirstIterator(Graph<T> graph, int startingIndex) {
+    public BreadthFirstIterator(IndexedGraph<T> graph, int startingIndex) {
         this.graph = graph;
         if (this.getGraph().hasIndex(startingIndex)) {
             this.queue.add(startingIndex);
@@ -30,7 +30,7 @@ public class BreadthFirstIterator<T> implements Iterator<T> {
         }
     }
 
-    public Graph<T> getGraph() {
+    public IndexedGraph<T> getGraph() {
         return this.graph;
     }
 

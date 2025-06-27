@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public interface Graph<T> extends Iterable<T> {
+public interface IndexedGraph<T> extends Iterable<T> {
     Collection<Integer> getNodeIndices();
 
     Collection<T> getNodes();

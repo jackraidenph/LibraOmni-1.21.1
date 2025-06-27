@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.math.graph.iterator;
 
-import dev.jackraidenph.libraomni.math.graph.Graph;
+import dev.jackraidenph.libraomni.math.graph.IndexedGraph;
 
 import java.util.*;
 
@@ -11,13 +11,13 @@ public class DepthFirstIterator<T> implements Iterator<T> {
     private final Set<Integer> visited = new HashSet<>();
     private final Stack<Iterator<Integer>> stack = new Stack<>();
     private int next;
-    private final Graph<T> graph;
+    private final IndexedGraph<T> graph;
 
-    public DepthFirstIterator(Graph<T> graph) {
+    public DepthFirstIterator(IndexedGraph<T> graph) {
         this(graph, graph.getStartingIndex());
     }
 
-    public DepthFirstIterator(Graph<T> graph, int startingIndex) {
+    public DepthFirstIterator(IndexedGraph<T> graph, int startingIndex) {
         this.graph = graph;
         if (this.graph.hasIndex(startingIndex)) {
             this.stack.push(this.graph.getAdjacentIndices(startingIndex).iterator());
