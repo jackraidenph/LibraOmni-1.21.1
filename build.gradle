@@ -150,7 +150,7 @@ sourceSets.main.resources.srcDir generateModMetadata
 
 sourceSets {
     main {
-        ext.refMap = "mixins.libraomni.refmap.json"
+        ext.refMap = "mixins.${mod_id}.refmap.json"
     }
 }
 
