@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common.data;
+package dev.jackraidenph.libraomni.data;
 
 import com.google.gson.annotations.SerializedName;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;

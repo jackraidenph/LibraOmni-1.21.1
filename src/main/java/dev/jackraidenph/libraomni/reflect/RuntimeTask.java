@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.reflect;
 
-import dev.jackraidenph.libraomni.common.data.TransitiveAnnotatedElement;
+import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;

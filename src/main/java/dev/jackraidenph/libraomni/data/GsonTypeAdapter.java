@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common.data;
+package dev.jackraidenph.libraomni.data;
 
 import com.google.gson.*;
 

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common.data;
+package dev.jackraidenph.libraomni.data;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.CommonGson;

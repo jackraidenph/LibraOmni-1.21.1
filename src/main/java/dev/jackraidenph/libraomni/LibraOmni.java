@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.common.data.ModMetadataReader;
+import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.reflect.ModContextManager;
 import dev.jackraidenph.libraomni.reflect.RegisterObjectsTask;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;

@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.reflect;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.StringUtilities;
-import dev.jackraidenph.libraomni.common.data.TransitiveAnnotatedElement;
+import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.annotation.Annotation;

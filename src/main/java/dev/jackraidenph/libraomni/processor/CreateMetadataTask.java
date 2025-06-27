@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.processor;
 import dev.jackraidenph.libraomni.annotation.Composite;
 import dev.jackraidenph.libraomni.annotation.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.RegisteredRuntimeTask;
-import dev.jackraidenph.libraomni.common.data.LibraOmniMetadata;
+import dev.jackraidenph.libraomni.data.LibraOmniMetadata;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 
 import javax.annotation.processing.ProcessingEnvironment;

@@ -1,16 +1,15 @@
-package dev.jackraidenph.libraomni.common.data;
+package dev.jackraidenph.libraomni.data;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import java.util.List;
 
-public record MethodData(String name, ClassData parent, ClassData... paramTypes) implements AnnotatedReflectionData<Method> {
-    public MethodData(ExecutableElement element) {
+public record ConstructorData(ClassData parent, ClassData... paramTypes) implements AnnotatedReflectionData<Constructor<?>> {
+    public ConstructorData(ExecutableElement element) {
         this(
-                element.getSimpleName().toString(),
                 new ClassData((TypeElement) element.getEnclosingElement()),
                 paramsFromElement(element)
         );
@@ -41,9 +40,9 @@ public record MethodData(String name, ClassData parent, ClassData... paramTypes)
     }
 
     @Override
-    public Method construct() {
+    public Constructor<?> construct() {
         try {
-            return this.parent().construct().getDeclaredMethod(this.name(), paramsFromData(this.paramTypes));
+            return this.parent().construct().getDeclaredConstructor(paramsFromData(this.paramTypes));
         } catch (NoSuchMethodException e) {
             throw new IllegalStateException(e);
         }

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common.data;
+package dev.jackraidenph.libraomni.data;
 
 import javax.lang.model.element.ElementKind;
 import java.lang.reflect.AnnotatedElement;
