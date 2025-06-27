@@ -91,6 +91,12 @@ public interface IndexedGraph<T> extends Iterable<T> {
 
     Map<Integer, ? extends Collection<Integer>> getEdges();
 
+    boolean isDirected();
+
+    boolean isAcyclic();
+
+    boolean hasCycles();
+
     @NotNull
     @Override
     default BreadthFirstIterator<T> iterator() {

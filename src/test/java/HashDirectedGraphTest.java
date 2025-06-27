@@ -182,4 +182,37 @@ public class HashDirectedGraphTest {
 
         assertEquals(List.of("3", "4", "6", "5"), subgraphNodes);
     }
+
+    @Test
+    public void testHasCycles() {
+        graph.addNode(0, "0");
+        graph.addNode(1, "1");
+        graph.addNode(2, "2");
+        graph.addNode(3, "3");
+        graph.addNode(4, "4");
+
+        graph.addEdge(0, 1);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(3, 4);
+        graph.addEdge(4, 1);
+
+        assertTrue(graph.hasCycles());
+    }
+
+    @Test
+    public void testHasNoCycles() {
+        graph.addNode(0, "0");
+        graph.addNode(1, "1");
+        graph.addNode(2, "2");
+        graph.addNode(3, "3");
+        graph.addNode(4, "4");
+
+        graph.addEdge(0, 1);
+        graph.addEdge(1, 2);
+        graph.addEdge(2, 3);
+        graph.addEdge(3, 4);
+
+        assertFalse(graph.hasCycles());
+    }
 }

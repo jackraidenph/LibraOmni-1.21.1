@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.math.graph;
 
 import dev.jackraidenph.libraomni.math.graph.iterator.BreadthFirstIterator;
+import dev.jackraidenph.libraomni.math.graph.iterator.DepthFirstIterator;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -151,6 +152,34 @@ public class HashDirectedGraph<T> implements IndexedGraph<T> {
         }
 
         return reversal;
+    }
+
+    @Override
+    public boolean isDirected() {
+        return true;
+    }
+
+    @Override
+    public boolean isAcyclic() {
+        return false;
+    }
+
+    private boolean hasCycleStartingFrom(int startingIndex) {
+        DepthFirstIterator<T> dfi = new DepthFirstIterator<>(this, startingIndex);
+
+        while (dfi.hasNext()) {
+            dfi.next();
+            if (dfi.stoppedOnCycle()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean hasCycles() {
+        return hasCycleStartingFrom(getStartingIndex());
     }
 
     @Override

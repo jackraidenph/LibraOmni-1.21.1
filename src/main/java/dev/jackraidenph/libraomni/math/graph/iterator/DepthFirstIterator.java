@@ -8,10 +8,11 @@ public class DepthFirstIterator<T> implements Iterator<T> {
 
     private static final int NO_ELEMENTS_FLAG = -2;
 
-    private final Set<Integer> visited = new HashSet<>();
+    private final Set<Integer> visited;
     private final Stack<Iterator<Integer>> stack = new Stack<>();
     private int next;
     private final IndexedGraph<T> graph;
+    private boolean stoppedOnCycle = false;
 
     public DepthFirstIterator(IndexedGraph<T> graph) {
         this(graph, graph.getStartingIndex());
@@ -19,6 +20,7 @@ public class DepthFirstIterator<T> implements Iterator<T> {
 
     public DepthFirstIterator(IndexedGraph<T> graph, int startingIndex) {
         this.graph = graph;
+        this.visited = new HashSet<>(graph.getNodeIndices().size());
         if (this.graph.hasIndex(startingIndex)) {
             this.stack.push(this.graph.getAdjacentIndices(startingIndex).iterator());
             this.next = startingIndex;
@@ -64,8 +66,17 @@ public class DepthFirstIterator<T> implements Iterator<T> {
             }
 
             this.next = neighbors.next();
+
+            boolean cycle = this.visited.contains(this.next);
+            if (cycle) {
+                stoppedOnCycle = true;
+            }
         } while (this.visited.contains(this.next));
 
         this.stack.push(this.graph.getAdjacentIndices(this.next).iterator());
+    }
+
+    public boolean stoppedOnCycle() {
+        return stoppedOnCycle;
     }
 }
