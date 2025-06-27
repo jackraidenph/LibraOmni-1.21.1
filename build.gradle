@@ -111,21 +111,18 @@ configurations {
 }
 
 dependencies {
-    testImplementation(platform('org.junit:junit-bom:5.11.4'))
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     requiredForProcessing 'com.google.code.gson:gson:2.13.1'
+}
+
+test {
+    useJUnitPlatform()
 }
 
 tasks.named('shadowJar') {
     configurations = project.configurations.named('requiredForProcessing').map { [it] }
     enableRelocation = true
     relocationPrefix = "shadow"
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
