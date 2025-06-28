@@ -175,10 +175,6 @@ publishing {
             artifact(shadowJar) {
                 classifier = ""
             }
-
-            artifact(sourceJar) {
-                classifier "sources"
-            }
         }
     }
 }
