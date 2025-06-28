@@ -1,12 +1,12 @@
 package dev.jackraidenph.libraomni.reflect;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.data.ModMetadata;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
+import dev.jackraidenph.libraomni.math.graph.HashDirectedGraph;
+import dev.jackraidenph.libraomni.math.graph.IndexedGraph;
 import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
@@ -16,14 +16,12 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RuntimeTaskProcessor {
 
-    private final Multimap<Scope, RuntimeTask> tasksForScope = ArrayListMultimap.create();
+    private final Map<Scope, Map<Class<? extends RuntimeTask>, RuntimeTask>> tasksForScope = new HashMap<>();
     private final Set<ModContext> modsToProcess = new HashSet<>();
 
     private final ModContextManager modContextManager;
@@ -45,10 +43,11 @@ public class RuntimeTaskProcessor {
             throw new IllegalStateException("Already set up");
         }
 
-        Collection<RuntimeTask> tasks = this.tasksForScope.get(scope);
+        Collection<Class<? extends RuntimeTask>> taskTypes = this.tasksForScope.computeIfAbsent(scope, k -> new HashMap<>()).keySet();
 
-        if (!tasks.contains(task)) {
-            tasks.add(task);
+        Class<? extends RuntimeTask> clazz = task.getClass();
+        if (!taskTypes.contains(clazz)) {
+            tasksForScope.get(scope).put(clazz, task);
         }
     }
 
@@ -104,16 +103,16 @@ public class RuntimeTaskProcessor {
                 () -> {
                     this.createContextsFromMetadata();
                     this.initContextRegisters();
-                    this.processAll(Scope.CONSTRUCT);
+                    this.processAllModsForScope(Scope.CONSTRUCT);
                 });
     }
 
     private void enqueueCommon(FMLCommonSetupEvent commonSetupEvent) {
-        commonSetupEvent.enqueueWork(() -> this.processAll(Scope.COMMON));
+        commonSetupEvent.enqueueWork(() -> this.processAllModsForScope(Scope.COMMON));
     }
 
     private void enqueueClient(FMLClientSetupEvent clientSetupEvent) {
-        clientSetupEvent.enqueueWork(() -> this.processAll(Scope.CLIENT));
+        clientSetupEvent.enqueueWork(() -> this.processAllModsForScope(Scope.CLIENT));
     }
 
     private Set<TransitiveAnnotatedElement> getTransitiveAnnotatedElements(String modId) {
@@ -141,23 +140,86 @@ public class RuntimeTaskProcessor {
         this.modsToProcess.add(modContext);
     }
 
-    public void processAll(Scope scope) {
-        Collection<RuntimeTask> tasks = tasksForScope.get(scope);
-        if (tasks.isEmpty()) {
+    private IndexedGraph<RuntimeTask> buildTaskGraphForScope(Scope scope) {
+        IndexedGraph<RuntimeTask> taskGraph = new HashDirectedGraph<>();
+        Map<Class<? extends RuntimeTask>, RuntimeTask> tasks = tasksForScope.get(scope);
+
+        if (tasks == null || tasks.isEmpty()) {
+            return taskGraph;
+        }
+
+        taskGraph.addNode(0, null);
+
+        int idx = 0;
+        for (RuntimeTask task : tasks.values()) {
+            taskGraph.addNode(++idx, task);
+            taskGraph.addEdge(0, idx);
+            for (Class<? extends RuntimeTask> requiredType : task.dependsOn()) {
+                RuntimeTask requiredTask = tasks.get(requiredType);
+                if (requiredTask == null) {
+                    LibraOmni.LOGGER.error("Failed to fetch required task of type {}", requiredType);
+                    throw new IllegalStateException();
+                }
+
+                if (taskGraph.getNodeIndex(requiredTask) < 0) {
+                    taskGraph.addNode(++idx, requiredTask);
+                } else {
+                    taskGraph.removeEdge(0, requiredTask);
+                }
+
+                taskGraph.addEdge(task, requiredTask);
+                if (taskGraph.hasCycles()) {
+                    throw new IllegalStateException("Cyclic dependency %s -[depends]-> %s".formatted(
+                            task.getClass().getSimpleName(),
+                            requiredTask.getClass().getSimpleName()
+                    ));
+                }
+            }
+        }
+
+
+        return taskGraph;
+    }
+
+    public void processAllModsForScope(Scope scope) {
+        IndexedGraph<RuntimeTask> taskGraph = buildTaskGraphForScope(scope);
+        if (taskGraph.getNodes().isEmpty()) {
             return;
         }
 
-        for (ModContext modContext : this.modsToProcess) {
-            for (RuntimeTask runtimeTask : tasks) {
-                Set<TransitiveAnnotatedElement> elements = this.elementsAnnotatedWith(
-                        modContext.modId(),
-                        runtimeTask.getSupportedAnnotations()
-                );
+        LibraOmni.LOGGER.info("Task graph created for {}", scope);
 
-                LibraOmni.LOGGER.info("({}) Invoking {} for {}", scope, runtimeTask.getClass().getSimpleName(), modContext.modId());
-
-                runtimeTask.process(modContext, elements);
+        Stack<RuntimeTask> executionStack = new Stack<>();
+        Iterator<RuntimeTask> bfi = taskGraph.breadthFirstIterator();
+        while (bfi.hasNext()) {
+            RuntimeTask task = bfi.next();
+            if (task != null) {
+                executionStack.push(task);
             }
+        }
+
+        for (ModContext modContext : this.modsToProcess) {
+            Stack<RuntimeTask> stackCopy = new Stack<>();
+            stackCopy.addAll(executionStack);
+            processModForScope(modContext, scope, stackCopy);
+        }
+    }
+
+    private void processModForScope(ModContext modContext, Scope scope, Stack<RuntimeTask> taskStack) {
+        while (!taskStack.empty()) {
+            RuntimeTask runtimeTask = taskStack.pop();
+            if (runtimeTask == null) {
+                continue;
+            }
+
+            Set<TransitiveAnnotatedElement> elements = this.elementsAnnotatedWith(
+                    modContext.modId(),
+                    runtimeTask.getSupportedAnnotations()
+            );
+
+            LibraOmni.LOGGER.info("({}) Invoking {} for {}", scope, runtimeTask.getClass().getSimpleName(), modContext.modId());
+
+            runtimeTask.process(modContext, elements);
         }
     }
 

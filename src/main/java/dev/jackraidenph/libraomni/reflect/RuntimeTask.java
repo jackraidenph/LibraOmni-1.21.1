@@ -12,7 +12,13 @@ public interface RuntimeTask {
             Set<TransitiveAnnotatedElement> elements
     );
 
-    Set<Class<? extends Annotation>> getSupportedAnnotations();
+    default Set<Class<? extends Annotation>> getSupportedAnnotations() {
+        return Set.of();
+    }
+
+    default Set<Class<? extends RuntimeTask>> dependsOn() {
+        return Set.of();
+    }
 
     enum Scope {
         CONSTRUCT,
