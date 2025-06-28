@@ -39,7 +39,7 @@ public class HashDirectedGraph<T> implements IndexedGraph<T> {
             throw new IllegalArgumentException("Index must be non-negative");
         }
 
-        if (node == null) {
+        if (!allowNullNodes() && node == null) {
             throw new IllegalArgumentException("Node must not be null");
         }
 
@@ -48,6 +48,11 @@ public class HashDirectedGraph<T> implements IndexedGraph<T> {
         }
 
         this.indexToNode.put(index, node);
+        Integer prevIndex = nodeToIndex.get(node);
+        if (prevIndex != null && !prevIndex.equals(index)) {
+            indexToNode.remove(prevIndex);
+            adjacencySetsMap.remove(index);
+        }
         this.nodeToIndex.put(node, index);
         this.adjacencySetsMap.put(index, new HashSet<>());
         return true;
@@ -102,12 +107,21 @@ public class HashDirectedGraph<T> implements IndexedGraph<T> {
         return true;
     }
 
-    public boolean setStartingIndex(int startingIndex) {
+    public void setStartingIndex(int startingIndex) {
         if (startingIndex < 0) {
             throw new IllegalArgumentException("Index must be non-negative");
         }
 
         this.startingIndex = startingIndex;
+    }
+
+    @Override
+    public boolean allowSelfLoops() {
+        return true;
+    }
+
+    @Override
+    public boolean allowNullNodes() {
         return true;
     }
 

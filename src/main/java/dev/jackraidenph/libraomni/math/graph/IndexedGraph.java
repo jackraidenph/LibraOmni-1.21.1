@@ -87,6 +87,8 @@ public interface IndexedGraph<T> extends Iterable<T> {
 
     int getStartingIndex();
 
+    void setStartingIndex(int index);
+
     Map<Integer, ? extends Collection<Integer>> getEdges();
 
     boolean isDirected();
@@ -94,6 +96,20 @@ public interface IndexedGraph<T> extends Iterable<T> {
     boolean isAcyclic();
 
     boolean hasCycles();
+
+    default boolean hasSelfLoops() {
+        for (int idx : getNodeIndices()) {
+            if (getAdjacentIndices(idx).contains(idx)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    boolean allowSelfLoops();
+
+    boolean allowNullNodes();
 
     default boolean isDisconnected() {
         int visited = 0;
