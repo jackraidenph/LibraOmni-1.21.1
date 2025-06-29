@@ -1,9 +1,10 @@
 package dev.jackraidenph.libraomni.reflect;
 
+import com.google.common.collect.Streams;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.data.ModMetadata;
+import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.math.graph.HashDirectedGraph;
 import dev.jackraidenph.libraomni.math.graph.IndexedGraph;
@@ -17,12 +18,12 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class RuntimeTaskProcessor {
 
-    private final Map<Scope, Map<Class<? extends RuntimeTask>, RuntimeTask>> tasksForScope = new HashMap<>();
-    private final Set<ModContext> modsToProcess = new HashSet<>();
+    private final Map<Class<? extends RuntimeTask>, RuntimeTask> nativeTasks = new HashMap<>();
 
     private final ModContextManager modContextManager;
     private final ModMetadataReader modMetadataReader;
@@ -38,17 +39,17 @@ public class RuntimeTaskProcessor {
         modContextManager.contexts().forEach(ModContext::initRegisters);
     }
 
-    public void registerTask(Scope scope, RuntimeTask task) {
+    public void registerTask(RuntimeTask task) {
         if (setup) {
             throw new IllegalStateException("Already set up");
         }
 
-        Collection<Class<? extends RuntimeTask>> taskTypes = this.tasksForScope.computeIfAbsent(scope, k -> new HashMap<>()).keySet();
-
         Class<? extends RuntimeTask> clazz = task.getClass();
-        if (!taskTypes.contains(clazz)) {
-            tasksForScope.get(scope).put(clazz, task);
+        if (nativeTasks.containsKey(clazz)) {
+            throw new IllegalArgumentException("Duplicate task type " + clazz.getSimpleName());
         }
+
+        nativeTasks.put(clazz, task);
     }
 
     public void setup(IEventBus libraOmniEventBus) {
@@ -56,46 +57,11 @@ public class RuntimeTaskProcessor {
             throw new IllegalStateException("Already set up");
         }
 
-        this.registerAnnotatedTasks();
-
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueConstruct);
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueCommon);
         libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueClient);
 
         this.setup = true;
-    }
-
-    private void createContextsFromMetadata() {
-        for (String mod : modMetadataReader.getAllModsWithMetadata()) {
-            ModContext context = modContextManager.getOrCreate(mod);
-            this.registerMod(context);
-        }
-    }
-
-    private void registerAnnotatedTasks() {
-        modMetadataReader.getAllModMetadata().values().forEach(this::processMetadata);
-    }
-
-    private void processMetadata(ModMetadata modMetadata) {
-        for (Scope scope : Scope.values()) {
-            tryRegisterTasksFromAnnotation(modMetadata, scope);
-        }
-    }
-
-    private void tryRegisterTasksFromAnnotation(ModMetadata modMetadata, Scope scope) {
-        for (String taskName : modMetadata.tasksForScope(scope)) {
-            Class<? extends RuntimeTask> clazz = SafeReflectionUtil.forNameSubclass(taskName, RuntimeTask.class);
-            if (clazz == null) {
-                LibraOmni.LOGGER.error("Failed to get task class for name [{}]", taskName);
-                continue;
-            }
-            RuntimeTask runtimeTask = SafeReflectionUtil.tryConstruct(clazz);
-            if (runtimeTask == null) {
-                LibraOmni.LOGGER.error("Failed to get construct task for name [{}]", taskName);
-                continue;
-            }
-            this.registerTask(scope, runtimeTask);
-        }
     }
 
     private void enqueueConstruct(FMLConstructModEvent constructModEvent) {
@@ -115,6 +81,46 @@ public class RuntimeTaskProcessor {
         clientSetupEvent.enqueueWork(() -> this.processAllModsForScope(Scope.CLIENT));
     }
 
+    private void createContextsFromMetadata() {
+        for (String mod : modMetadataReader.getAllModsWithMetadata()) {
+            modContextManager.getOrCreate(mod);
+        }
+    }
+
+    private Map<Class<? extends RuntimeTask>, RuntimeTask> getModTasks(String modId) {
+        Map<Class<? extends RuntimeTask>, RuntimeTask> tasks = new HashMap<>();
+        ModMetadata modMetadata = modMetadataReader.getModMetadata(modId);
+        for (String taskName : modMetadata.getTasks()) {
+            Class<? extends RuntimeTask> clazz = SafeReflectionUtil.forNameSubclass(taskName, RuntimeTask.class);
+            if (clazz == null) {
+                LibraOmni.LOGGER.error("Failed to get task class for name [{}]", taskName);
+                continue;
+            }
+            RuntimeTask runtimeTask = SafeReflectionUtil.tryConstruct(clazz);
+            if (runtimeTask == null) {
+                LibraOmni.LOGGER.error("Failed to get construct task for name [{}]", taskName);
+                continue;
+            }
+
+            if (tasks.containsKey(clazz)) {
+                throw new IllegalArgumentException("Duplicate task type " + clazz.getSimpleName());
+            }
+
+            tasks.put(clazz, runtimeTask);
+        }
+
+        return tasks;
+    }
+
+    private Set<TransitiveAnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
+        if (annotations.isEmpty()) {
+            return Set.of();
+        }
+        return this.getTransitiveAnnotatedElements(modId).stream()
+                .filter(e -> anyAnnotationPresent(e, annotations))
+                .collect(Collectors.toSet());
+    }
+
     private Set<TransitiveAnnotatedElement> getTransitiveAnnotatedElements(String modId) {
         return getElements(modId).stream().map(TransitiveAnnotatedElement::new).collect(Collectors.toSet());
     }
@@ -127,35 +133,21 @@ public class RuntimeTaskProcessor {
         return annotations.stream().anyMatch(e::isAnnotationPresent);
     }
 
-    private Set<TransitiveAnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
-        if (annotations.isEmpty()) {
-            return Set.of();
-        }
-        return this.getTransitiveAnnotatedElements(modId).stream()
-                .filter(e -> anyAnnotationPresent(e, annotations))
-                .collect(Collectors.toSet());
-    }
-
-    public void registerMod(ModContext modContext) {
-        this.modsToProcess.add(modContext);
-    }
-
-    private IndexedGraph<RuntimeTask> buildTaskGraphForScope(Scope scope) {
+    private IndexedGraph<RuntimeTask> buildTaskGraph(Map<Class<? extends RuntimeTask>, RuntimeTask> tasksTable) {
         IndexedGraph<RuntimeTask> taskGraph = new HashDirectedGraph<>();
-        Map<Class<? extends RuntimeTask>, RuntimeTask> tasks = tasksForScope.get(scope);
 
-        if (tasks == null || tasks.isEmpty()) {
+        if (tasksTable == null || tasksTable.isEmpty()) {
             return taskGraph;
         }
 
         taskGraph.addNode(0, null);
 
         int idx = 0;
-        for (RuntimeTask task : tasks.values()) {
+        for (RuntimeTask task : tasksTable.values()) {
             taskGraph.addNode(++idx, task);
             taskGraph.addEdge(0, idx);
             for (Class<? extends RuntimeTask> requiredType : task.dependsOn()) {
-                RuntimeTask requiredTask = tasks.get(requiredType);
+                RuntimeTask requiredTask = tasksTable.get(requiredType);
                 if (requiredTask == null) {
                     LibraOmni.LOGGER.error("Failed to fetch required task of type {}", requiredType);
                     throw new IllegalStateException();
@@ -182,44 +174,45 @@ public class RuntimeTaskProcessor {
     }
 
     public void processAllModsForScope(Scope scope) {
-        IndexedGraph<RuntimeTask> taskGraph = buildTaskGraphForScope(scope);
-        if (taskGraph.getNodes().isEmpty()) {
-            return;
-        }
+        for (ModContext modContext : modContextManager.contexts()) {
+            Map<Class<? extends RuntimeTask>, RuntimeTask> tasksForMod = Streams.concat(
+                            nativeTasks.entrySet().stream(),
+                            getModTasks(modContext.modId()).entrySet().stream()
+                    )
+                    .filter(t -> t.getValue().getScope().equals(scope))
+                    .collect(Collectors.toUnmodifiableMap(Entry::getKey, Entry::getValue));
 
-        LibraOmni.LOGGER.info("Task graph created for {}", scope);
-
-        Stack<RuntimeTask> executionStack = new Stack<>();
-        Iterator<RuntimeTask> bfi = taskGraph.breadthFirstIterator();
-        while (bfi.hasNext()) {
-            RuntimeTask task = bfi.next();
-            if (task != null) {
-                executionStack.push(task);
-            }
-        }
-
-        for (ModContext modContext : this.modsToProcess) {
-            Stack<RuntimeTask> stackCopy = new Stack<>();
-            stackCopy.addAll(executionStack);
-            processModForScope(modContext, scope, stackCopy);
-        }
-    }
-
-    private void processModForScope(ModContext modContext, Scope scope, Stack<RuntimeTask> taskStack) {
-        while (!taskStack.empty()) {
-            RuntimeTask runtimeTask = taskStack.pop();
-            if (runtimeTask == null) {
-                continue;
+            IndexedGraph<RuntimeTask> taskGraph = buildTaskGraph(tasksForMod);
+            if (taskGraph.getNodes().isEmpty()) {
+                return;
             }
 
-            Set<TransitiveAnnotatedElement> elements = this.elementsAnnotatedWith(
-                    modContext.modId(),
-                    runtimeTask.getSupportedAnnotations()
-            );
+            LibraOmni.LOGGER.info("({}) Task graph created for mod [{}]", scope, modContext.modId());
 
-            LibraOmni.LOGGER.info("({}) Invoking {} for {}", scope, runtimeTask.getClass().getSimpleName(), modContext.modId());
+            Stack<RuntimeTask> executionStack = new Stack<>();
+            Iterator<RuntimeTask> bfi = taskGraph.breadthFirstIterator();
+            while (bfi.hasNext()) {
+                RuntimeTask task = bfi.next();
+                if (task != null) {
+                    executionStack.push(task);
+                }
+            }
 
-            runtimeTask.process(modContext, elements);
+            while (!executionStack.empty()) {
+                RuntimeTask runtimeTask = executionStack.pop();
+                if (runtimeTask == null) {
+                    continue;
+                }
+
+                Set<TransitiveAnnotatedElement> elements = this.elementsAnnotatedWith(
+                        modContext.modId(),
+                        runtimeTask.getSupportedAnnotations()
+                );
+
+                LibraOmni.LOGGER.info("({}) Invoking {} for [{}]", scope, runtimeTask.getClass().getSimpleName(), modContext.modId());
+
+                runtimeTask.process(modContext, elements);
+            }
         }
     }
 
@@ -235,8 +228,8 @@ public class RuntimeTaskProcessor {
             this.taskProcessor = taskProcessor;
         }
 
-        public RuntimeTaskProcessorConfigurator registerTask(Scope scope, RuntimeTask runtimeTask) {
-            taskProcessor.registerTask(scope, runtimeTask);
+        public RuntimeTaskProcessorConfigurator registerTask(RuntimeTask runtimeTask) {
+            taskProcessor.registerTask(runtimeTask);
             return this;
         }
 

@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Validated(RuntimeTaskRegisteringValidator.class)
 public @interface RegisteredRuntimeTask {
-    Scope value();
+
 }

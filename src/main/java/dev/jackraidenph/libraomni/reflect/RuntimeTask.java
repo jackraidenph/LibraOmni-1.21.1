@@ -12,6 +12,8 @@ public interface RuntimeTask {
             Set<TransitiveAnnotatedElement> elements
     );
 
+    Scope getScope();
+
     default Set<Class<? extends Annotation>> getSupportedAnnotations() {
         return Set.of();
     }

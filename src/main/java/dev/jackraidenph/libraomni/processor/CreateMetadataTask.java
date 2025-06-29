@@ -108,8 +108,6 @@ class CreateMetadataTask implements CompilationTask {
 
         //Process user-defined runtime tasks
         for (Element e : roundEnv.getElementsAnnotatedWith(RegisteredRuntimeTask.class)) {
-            RegisteredRuntimeTask taskAnnotation = e.getAnnotation(RegisteredRuntimeTask.class);
-            Scope scope = taskAnnotation.value();
             String name = ((TypeElement) e).getQualifiedName().toString();
             String modId = modLocator.forElement(e);
             if (modId == null) {
@@ -117,7 +115,7 @@ class CreateMetadataTask implements CompilationTask {
                 continue;
             }
 
-            libraOmniMetadata.getOrCreateModMetadata(modId).addRuntimeTask(scope, name);
+            libraOmniMetadata.getOrCreateModMetadata(modId).addRuntimeTask(name);
         }
 
         return Set.of();
