@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 @Validated(RuntimeTaskRegisteringValidator.class)
-public @interface RuntimeTask {
+public @interface IsRuntimeTask {
 
 }
