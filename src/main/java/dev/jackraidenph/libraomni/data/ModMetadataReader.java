@@ -15,7 +15,7 @@ public class ModMetadataReader {
     private LibraOmniMetadata libraOmniMetadata = null;
     private boolean init = false;
 
-    public void init() {
+    public void readMetadataFile() {
         try (InputStream inputStream = openResourceStream(LibraOmniMetadata.PATH)) {
             if (inputStream != null) {
                 String nativeMetadataJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);

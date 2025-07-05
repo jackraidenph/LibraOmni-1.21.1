@@ -18,7 +18,7 @@ public class LibraOmni {
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         ModMetadataReader modMetadataReader = new ModMetadataReader();
-        modMetadataReader.init();
+        modMetadataReader.readMetadataFile();
 
         ModContextManager modContextManager = new ModContextManager(modMetadataReader);
         modContextManager.subscribeAll(modEventBus);
