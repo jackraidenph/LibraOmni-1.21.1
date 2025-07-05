@@ -18,12 +18,12 @@ public class RegisterObjectsTask implements RuntimeTask {
     public void process(ModContext modContext, Set<TransitiveAnnotatedElement> elements) {
         for (TransitiveAnnotatedElement composite : elements) {
             if (composite.getAnnotatedElement() instanceof Class<?> clazz) {
-                this.tryRegisterViaClass(modContext, clazz, composite.getAnnotation(Registered.class));
+                tryRegisterViaClass(modContext, clazz, composite.getAnnotation(Registered.class));
             }
         }
     }
 
-    private <T> void tryRegisterViaClass(ModContext modContext, Class<T> clazz, Registered registered) {
+    private static <T> void tryRegisterViaClass(ModContext modContext, Class<T> registerClass, Registered registered) {
         if (registered == null) {
             return;
         }
@@ -31,24 +31,29 @@ public class RegisterObjectsTask implements RuntimeTask {
         String id = registered.value();
 
         if (id == null || id.isBlank()) {
-            id = StringUtilities.snakeCase(clazz.getSimpleName());
+            id = StringUtilities.snakeCase(registerClass.getSimpleName());
         }
 
         try {
-            Constructor<T> emptyConstructor = clazz.getDeclaredConstructor();
+            Constructor<T> emptyConstructor = registerClass.getDeclaredConstructor();
             emptyConstructor.setAccessible(true);
 
-            DeferredRegister<? super T> register = modContext.getRegister(clazz);
+            AutoRegisters autoRegisters = modContext.getExtension(AutoRegisters.class);
+            DeferredRegister<? super T> register = autoRegisters.forClass(registerClass);
+            if (register == null) {
+                LibraOmni.LOGGER.warn("Failed to get register for [{}], skipping", registerClass.getSimpleName());
+                return;
+            }
             LibraOmni.LOGGER.info("Found [{}] registry for [{}] with superclass [{}]",
                     register.getRegistryName(),
-                    clazz.getSimpleName(),
-                    clazz.getSuperclass().getSimpleName()
+                    registerClass.getSimpleName(),
+                    registerClass.getSuperclass().getSimpleName()
             );
             register.register(id, () -> safeConstruct(emptyConstructor));
             LibraOmni.LOGGER.info("Registered [{}:{}] to [{}]", modContext.modId(), id, register.getRegistryName());
         } catch (NoSuchMethodException noSuchMethodException) {
             LibraOmni.LOGGER.error("Failed to register [{}] as there's no proper empty constructor",
-                    clazz.getSimpleName()
+                    registerClass.getSimpleName()
             );
         }
     }

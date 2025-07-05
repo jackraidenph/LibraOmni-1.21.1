@@ -2,9 +2,9 @@ package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
-import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 
 import java.util.*;
 
@@ -17,7 +17,7 @@ public class ModContextManager implements LifecycleSetup {
         this.modMetadataReader = modMetadataReader;
     }
 
-    private void createContextsFromMetadata() {
+    public void createContextsFromMetadata() {
         for (String mod : modMetadataReader.getAllModsWithMetadata()) {
             this.getOrCreate(mod);
         }
@@ -27,7 +27,7 @@ public class ModContextManager implements LifecycleSetup {
         return existsForMod(modId) ? getContext(modId) : createContext(modId);
     }
 
-    public ModContext getContext(String modId) {
+    private ModContext getContext(String modId) {
         if (!this.contextMap.containsKey(modId)) {
             throw new IllegalStateException("No context found for [" + modId + "]");
         }
@@ -47,7 +47,7 @@ public class ModContextManager implements LifecycleSetup {
     }
 
     private ModContext createContext(ModContainer modContainer) {
-        ModContext modContext = ModContext.builder(modContainer).build();
+        ModContext modContext = new ModContext(modContainer);
         this.addContext(modContainer.getModId(), modContext);
         LibraOmni.LOGGER.info("Created context for [{}]", modContainer.getModId());
         return modContext;
@@ -62,13 +62,11 @@ public class ModContextManager implements LifecycleSetup {
     }
 
     @Override
-    public void setupConstruct(FMLConstructModEvent event) {
-        event.enqueueWork(() -> {
-            createContextsFromMetadata();
-            for (ModContext context : contexts()) {
-                context.setupConstruct(event);
-            }
-        });
+    public void subscribeAll(IEventBus eventBus) {
+        LifecycleSetup.super.subscribeAll(eventBus);
+        for (ModContext modContext : contexts()) {
+            modContext.subscribeAll(eventBus);
+        }
     }
 
     private void addContext(String modId, ModContext modContext) {

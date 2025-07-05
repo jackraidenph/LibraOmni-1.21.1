@@ -15,16 +15,24 @@ public class LibraOmni {
 
     public static final String MOD_ID = "libraomni";
     public static final Logger LOGGER = LogUtils.getLogger();
+    private static ModContextManager CONTEXT_MANAGER = null;
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         ModMetadataReader modMetadataReader = new ModMetadataReader();
         modMetadataReader.readMetadataFile();
 
         ModContextManager modContextManager = new ModContextManager(modMetadataReader);
+        modContextManager.createContextsFromMetadata();
         modContextManager.subscribeAll(modEventBus);
+
+        CONTEXT_MANAGER = modContextManager;
 
         RuntimeTaskProcessor runtimeTaskProcessor = new RuntimeTaskProcessor(modMetadataReader, modContextManager);
         runtimeTaskProcessor.registerTask(new RegisterObjectsTask());
         runtimeTaskProcessor.subscribeAll(modEventBus);
+    }
+
+    public static ModContextManager getModContextManager() {
+        return CONTEXT_MANAGER;
     }
 }
