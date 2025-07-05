@@ -28,12 +28,12 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
     private boolean setup = false;
 
-    private RuntimeTaskProcessor(ModContextManager modContextManager, ModMetadataReader reader) {
+    public RuntimeTaskProcessor(ModMetadataReader reader, ModContextManager modContextManager) {
         this.modContextManager = modContextManager;
         this.modMetadataReader = reader;
     }
 
-    public void registerTask(RuntimeTask task) {
+    public RuntimeTaskProcessor registerTask(RuntimeTask task) {
         if (setup) {
             throw new AlreadySetupException();
         }
@@ -44,6 +44,8 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         }
 
         nativeTasks.put(clazz, task);
+
+        return this;
     }
 
     @Override
@@ -196,29 +198,6 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
                 runtimeTask.process(modContext, elements);
             }
-        }
-    }
-
-    public static RuntimeTaskProcessorConfigurator with(ModContextManager modContextManager, ModMetadataReader modMetadataReader) {
-        return new RuntimeTaskProcessorConfigurator(new RuntimeTaskProcessor(modContextManager, modMetadataReader));
-    }
-
-    public static class RuntimeTaskProcessorConfigurator {
-
-        private final RuntimeTaskProcessor taskProcessor;
-
-        public RuntimeTaskProcessorConfigurator(RuntimeTaskProcessor taskProcessor) {
-            this.taskProcessor = taskProcessor;
-        }
-
-        public RuntimeTaskProcessorConfigurator registerTask(RuntimeTask runtimeTask) {
-            taskProcessor.registerTask(runtimeTask);
-            return this;
-        }
-
-        public RuntimeTaskProcessor setup(IEventBus eventBus) {
-            taskProcessor.subscribeAll(eventBus);
-            return taskProcessor;
         }
     }
 
