@@ -1,14 +1,27 @@
 package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 
 import java.util.*;
 
-public class ModContextManager {
+public class ModContextManager implements LifecycleSetup {
 
     private final Map<String, ModContext> contextMap = new HashMap<>();
+    private final ModMetadataReader modMetadataReader;
+
+    public ModContextManager(ModMetadataReader modMetadataReader) {
+        this.modMetadataReader = modMetadataReader;
+    }
+
+    private void createContextsFromMetadata() {
+        for (String mod : modMetadataReader.getAllModsWithMetadata()) {
+            this.getOrCreate(mod);
+        }
+    }
 
     public ModContext getOrCreate(String modId) {
         return existsForMod(modId) ? getContext(modId) : createContext(modId);
@@ -46,6 +59,16 @@ public class ModContextManager {
 
     public Set<ModContext> contexts() {
         return new HashSet<>(this.contextMap.values());
+    }
+
+    @Override
+    public void setupConstruct(FMLConstructModEvent event) {
+        event.enqueueWork(() -> {
+            createContextsFromMetadata();
+            for (ModContext context : contexts()) {
+                context.setupConstruct(event);
+            }
+        });
     }
 
     private void addContext(String modId, ModContext modContext) {

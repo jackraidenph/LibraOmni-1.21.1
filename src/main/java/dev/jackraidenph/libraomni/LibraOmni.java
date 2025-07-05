@@ -20,7 +20,8 @@ public class LibraOmni {
         ModMetadataReader modMetadataReader = new ModMetadataReader();
         modMetadataReader.init();
 
-        ModContextManager modContextManager = new ModContextManager();
+        ModContextManager modContextManager = new ModContextManager(modMetadataReader);
+        modContextManager.subscribeAll(modEventBus);
 
         RuntimeTaskProcessor.with(modContextManager, modMetadataReader)
                 .registerTask(new RegisterObjectsTask())

@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
+import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;
@@ -12,7 +13,7 @@ public interface RuntimeTask {
             Set<TransitiveAnnotatedElement> elements
     );
 
-    Scope getScope();
+    LifecycleStage getExecutionStage();
 
     default Set<Class<? extends Annotation>> getSupportedAnnotations() {
         return Set.of();
@@ -20,11 +21,5 @@ public interface RuntimeTask {
 
     default Set<Class<? extends RuntimeTask>> dependsOn() {
         return Set.of();
-    }
-
-    enum Scope {
-        CONSTRUCT,
-        COMMON,
-        CLIENT
     }
 }

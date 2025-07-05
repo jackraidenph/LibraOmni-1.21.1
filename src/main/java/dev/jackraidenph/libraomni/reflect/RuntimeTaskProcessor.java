@@ -8,8 +8,6 @@ import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.math.graph.HashDirectedGraph;
 import dev.jackraidenph.libraomni.math.graph.IndexedGraph;
-import dev.jackraidenph.libraomni.reflect.RuntimeTask.Scope;
-import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -21,7 +19,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-public class RuntimeTaskProcessor {
+public class RuntimeTaskProcessor implements LifecycleSetup {
 
     private final Map<Class<? extends RuntimeTask>, RuntimeTask> nativeTasks = new HashMap<>();
 
@@ -33,10 +31,6 @@ public class RuntimeTaskProcessor {
     private RuntimeTaskProcessor(ModContextManager modContextManager, ModMetadataReader reader) {
         this.modContextManager = modContextManager;
         this.modMetadataReader = reader;
-    }
-
-    private void initContextRegisters() {
-        modContextManager.contexts().forEach(ModContext::initRegisters);
     }
 
     public void registerTask(RuntimeTask task) {
@@ -52,39 +46,28 @@ public class RuntimeTaskProcessor {
         nativeTasks.put(clazz, task);
     }
 
-    public void setup(IEventBus libraOmniEventBus) {
+    @Override
+    public void subscribeAll(IEventBus eventBus) {
         if (this.setup) {
             throw new IllegalStateException("Already set up");
         }
-
-        libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueConstruct);
-        libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueCommon);
-        libraOmniEventBus.addListener(EventPriority.HIGHEST, this::enqueueClient);
-
+        LifecycleSetup.super.subscribeAll(eventBus);
         this.setup = true;
     }
 
-    private void enqueueConstruct(FMLConstructModEvent constructModEvent) {
-        constructModEvent.enqueueWork(
-                () -> {
-                    this.createContextsFromMetadata();
-                    this.initContextRegisters();
-                    this.processAllModsForScope(Scope.CONSTRUCT);
-                });
+    @Override
+    public void setupConstruct(FMLConstructModEvent event) {
+        event.enqueueWork(() -> this.processAllModsForScope(LifecycleStage.CONSTRUCT));
     }
 
-    private void enqueueCommon(FMLCommonSetupEvent commonSetupEvent) {
-        commonSetupEvent.enqueueWork(() -> this.processAllModsForScope(Scope.COMMON));
+    @Override
+    public void setupCommon(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> this.processAllModsForScope(LifecycleStage.COMMON));
     }
 
-    private void enqueueClient(FMLClientSetupEvent clientSetupEvent) {
-        clientSetupEvent.enqueueWork(() -> this.processAllModsForScope(Scope.CLIENT));
-    }
-
-    private void createContextsFromMetadata() {
-        for (String mod : modMetadataReader.getAllModsWithMetadata()) {
-            modContextManager.getOrCreate(mod);
-        }
+    @Override
+    public void setupClient(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> this.processAllModsForScope(LifecycleStage.CLIENT));
     }
 
     private Map<Class<? extends RuntimeTask>, RuntimeTask> getModTasks(String modId) {
@@ -173,13 +156,13 @@ public class RuntimeTaskProcessor {
         return taskGraph;
     }
 
-    public void processAllModsForScope(Scope scope) {
+    public void processAllModsForScope(LifecycleStage scope) {
         for (ModContext modContext : modContextManager.contexts()) {
             Map<Class<? extends RuntimeTask>, RuntimeTask> tasksForMod = Streams.concat(
                             nativeTasks.entrySet().stream(),
                             getModTasks(modContext.modId()).entrySet().stream()
                     )
-                    .filter(t -> t.getValue().getScope().equals(scope))
+                    .filter(t -> t.getValue().getExecutionStage().equals(scope))
                     .collect(Collectors.toUnmodifiableMap(Entry::getKey, Entry::getValue));
 
             IndexedGraph<RuntimeTask> taskGraph = buildTaskGraph(tasksForMod);
@@ -234,7 +217,7 @@ public class RuntimeTaskProcessor {
         }
 
         public RuntimeTaskProcessor setup(IEventBus eventBus) {
-            taskProcessor.setup(eventBus);
+            taskProcessor.subscribeAll(eventBus);
             return taskProcessor;
         }
     }

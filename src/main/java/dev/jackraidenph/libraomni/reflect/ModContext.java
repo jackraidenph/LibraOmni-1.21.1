@@ -5,6 +5,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.Collection;
@@ -12,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class ModContext {
+public class ModContext implements LifecycleSetup {
 
     private final ModContainer modContainer;
     private final TypeSafeRegisterMap registersMap = new TypeSafeRegisterMap();
@@ -77,6 +78,11 @@ public class ModContext {
 
     public ModContainer modContainer() {
         return modContainer;
+    }
+
+    @Override
+    public void setupConstruct(FMLConstructModEvent event) {
+        this.initRegisters();
     }
 
     public void initRegisters() {

@@ -4,6 +4,7 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
+import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.annotation.Annotation;
@@ -69,8 +70,8 @@ public class RegisterObjectsTask implements RuntimeTask {
     }
 
     @Override
-    public Scope getScope() {
-        return Scope.CONSTRUCT;
+    public LifecycleStage getExecutionStage() {
+        return LifecycleStage.CONSTRUCT;
     }
 
     @Override
