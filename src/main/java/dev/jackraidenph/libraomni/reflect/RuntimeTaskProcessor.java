@@ -35,12 +35,12 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
     public void registerTask(RuntimeTask task) {
         if (setup) {
-            throw new IllegalStateException("Already set up");
+            throw new AlreadySetupException();
         }
 
         Class<? extends RuntimeTask> clazz = task.getClass();
         if (nativeTasks.containsKey(clazz)) {
-            throw new IllegalArgumentException("Duplicate task type " + clazz.getSimpleName());
+            throw new DuplicateTaskException(task);
         }
 
         nativeTasks.put(clazz, task);
@@ -49,7 +49,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
     @Override
     public void subscribeAll(IEventBus eventBus) {
         if (this.setup) {
-            throw new IllegalStateException("Already set up");
+            throw new AlreadySetupException();
         }
         LifecycleSetup.super.subscribeAll(eventBus);
         this.setup = true;
@@ -86,7 +86,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
             }
 
             if (tasks.containsKey(clazz)) {
-                throw new IllegalArgumentException("Duplicate task type " + clazz.getSimpleName());
+                throw new DuplicateTaskException(runtimeTask);
             }
 
             tasks.put(clazz, runtimeTask);
@@ -219,6 +219,26 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         public RuntimeTaskProcessor setup(IEventBus eventBus) {
             taskProcessor.subscribeAll(eventBus);
             return taskProcessor;
+        }
+    }
+
+    public static class DuplicateTaskException extends IllegalArgumentException {
+        private final RuntimeTask duplicate;
+
+        public DuplicateTaskException(RuntimeTask task) {
+            this.duplicate = task;
+        }
+
+        @Override
+        public String getMessage() {
+            return duplicate.getClass().getSimpleName();
+        }
+    }
+
+    public static class AlreadySetupException extends IllegalStateException {
+        @Override
+        public String getMessage() {
+            return "Setup was already performed";
         }
     }
 }
