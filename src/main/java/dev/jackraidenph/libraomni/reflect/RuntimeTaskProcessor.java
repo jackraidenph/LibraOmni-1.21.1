@@ -59,17 +59,17 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
     @Override
     public void setupConstruct(FMLConstructModEvent event) {
-        event.enqueueWork(() -> this.processAllModsForScope(LifecycleStage.CONSTRUCT));
+        event.enqueueWork(() -> this.processLifecycleStage(LifecycleStage.CONSTRUCT));
     }
 
     @Override
     public void setupCommon(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> this.processAllModsForScope(LifecycleStage.COMMON));
+        event.enqueueWork(() -> this.processLifecycleStage(LifecycleStage.COMMON));
     }
 
     @Override
     public void setupClient(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> this.processAllModsForScope(LifecycleStage.CLIENT));
+        event.enqueueWork(() -> this.processLifecycleStage(LifecycleStage.CLIENT));
     }
 
     private Map<Class<? extends RuntimeTask>, RuntimeTask> getModTasks(String modId) {
@@ -158,13 +158,13 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         return taskGraph;
     }
 
-    public void processAllModsForScope(LifecycleStage scope) {
+    public void processLifecycleStage(LifecycleStage stage) {
         for (ModContext modContext : modContextManager.contexts()) {
             Map<Class<? extends RuntimeTask>, RuntimeTask> tasksForMod = Streams.concat(
                             nativeTasks.entrySet().stream(),
                             getModTasks(modContext.modId()).entrySet().stream()
                     )
-                    .filter(t -> t.getValue().getExecutionStage().equals(scope))
+                    .filter(t -> t.getValue().getExecutionStage().equals(stage))
                     .collect(Collectors.toUnmodifiableMap(Entry::getKey, Entry::getValue));
 
             IndexedGraph<RuntimeTask> taskGraph = buildTaskGraph(tasksForMod);
@@ -172,7 +172,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                 return;
             }
 
-            LibraOmni.LOGGER.info("({}) Task graph created for mod [{}]", scope, modContext.modId());
+            LibraOmni.LOGGER.info("({}) Task graph created for mod [{}]", stage, modContext.modId());
 
             Stack<RuntimeTask> executionStack = new Stack<>();
             Iterator<RuntimeTask> bfi = taskGraph.breadthFirstIterator();
@@ -194,7 +194,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                         runtimeTask.getSupportedAnnotations()
                 );
 
-                LibraOmni.LOGGER.info("({}) Invoking {} for [{}]", scope, runtimeTask.getClass().getSimpleName(), modContext.modId());
+                LibraOmni.LOGGER.info("({}) Invoking {} for [{}]", stage, runtimeTask.getClass().getSimpleName(), modContext.modId());
 
                 runtimeTask.process(modContext, elements);
             }
