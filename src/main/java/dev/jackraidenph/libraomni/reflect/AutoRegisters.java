@@ -14,11 +14,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public class AutoRegisters extends AbstractModContextExtension {
 
-    private final TypeSafeRegisterMap registersMap = new TypeSafeRegisterMap();
+    private final Map<Class<?>, DeferredRegister<?>> registersMap = new HashMap<>();
 
     private boolean initialized = false;
 
@@ -72,7 +71,9 @@ public class AutoRegisters extends AbstractModContextExtension {
             return null;
         }
 
-        return this.registersMap.get(superclass);
+        //Should never throw by design
+        //noinspection unchecked
+        return (DeferredRegister<T>) this.registersMap.get(superclass);
     }
 
     protected <T> DeferredRegister<T> getOrCreateRegister(Class<T> clazz) {
@@ -109,27 +110,5 @@ public class AutoRegisters extends AbstractModContextExtension {
 
     private IEventBus eventBus() {
         return getContext().modContainer().getEventBus();
-    }
-
-    private static class TypeSafeRegisterMap {
-        private final Map<Class<?>, DeferredRegister<?>> classToRegisterMap = new HashMap<>();
-
-        @SuppressWarnings("unchecked")
-        public <T> DeferredRegister<T> put(Class<T> clazz, DeferredRegister<T> register) {
-            return (DeferredRegister<T>) this.classToRegisterMap.put(clazz, register);
-        }
-
-        @SuppressWarnings("unchecked")
-        public <T> DeferredRegister<T> get(Class<T> clazz) {
-            return (DeferredRegister<T>) this.classToRegisterMap.get(clazz);
-        }
-
-        public Set<Class<?>> keySet() {
-            return this.classToRegisterMap.keySet();
-        }
-
-        public Collection<DeferredRegister<?>> values() {
-            return this.classToRegisterMap.values();
-        }
     }
 }
