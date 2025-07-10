@@ -35,6 +35,11 @@ public class AutoRegisters extends AbstractModContextExtension {
         event.enqueueWork(this::init);
     }
 
+    @Override
+    public void listenToBus(IEventBus eventBus) {
+        eventBus.addListener(this::setupConstruct);
+    }
+
     public void init() {
         if (this.initialized) {
             throw new IllegalStateException("Registers context for [" + this.getContext().modId() + "] were already initialized");

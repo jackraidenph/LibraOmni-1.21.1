@@ -49,11 +49,13 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
     }
 
     @Override
-    public void subscribeAll(IEventBus eventBus) {
+    public void listenToBus(IEventBus eventBus) {
         if (this.setup) {
             throw new AlreadySetupException();
         }
-        LifecycleSetup.super.subscribeAll(eventBus);
+        eventBus.addListener(this::setupConstruct);
+        eventBus.addListener(this::setupCommon);
+        eventBus.addListener(this::setupClient);
         this.setup = true;
     }
 

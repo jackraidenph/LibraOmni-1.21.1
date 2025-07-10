@@ -39,9 +39,9 @@ public class ModContext implements LifecycleSetup {
     }
 
     @Override
-    public void subscribeAll(IEventBus eventBus) {
+    public void listenToBus(IEventBus eventBus) {
         for (AbstractModContextExtension extension : extensions.values()) {
-            extension.subscribeAll(eventBus);
+            extension.listenToBus(eventBus);
         }
     }
 

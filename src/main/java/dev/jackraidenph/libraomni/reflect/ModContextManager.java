@@ -62,10 +62,9 @@ public class ModContextManager implements LifecycleSetup {
     }
 
     @Override
-    public void subscribeAll(IEventBus eventBus) {
-        LifecycleSetup.super.subscribeAll(eventBus);
+    public void listenToBus(IEventBus eventBus) {
         for (ModContext modContext : contexts()) {
-            modContext.subscribeAll(eventBus);
+            modContext.listenToBus(eventBus);
         }
     }
 

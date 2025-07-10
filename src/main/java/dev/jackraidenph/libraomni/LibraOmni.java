@@ -26,7 +26,7 @@ public class LibraOmni {
         LOGGER.info("Creating ModContextManager");
         ModContextManager modContextManager = new ModContextManager(modMetadataReader);
         modContextManager.createContextsFromMetadata();
-        modContextManager.subscribeAll(modEventBus);
+        modContextManager.listenToBus(modEventBus);
 
         CONTEXT_MANAGER = modContextManager;
         LOGGER.info("ModContextManager created");
@@ -35,7 +35,7 @@ public class LibraOmni {
         RuntimeTaskProcessor runtimeTaskProcessor = new RuntimeTaskProcessor(modMetadataReader, modContextManager);
         runtimeTaskProcessor.registerTask(new RegisterObjectsTask());
         LOGGER.info("Registered runtime tasks");
-        runtimeTaskProcessor.subscribeAll(modEventBus);
+        runtimeTaskProcessor.listenToBus(modEventBus);
         LOGGER.info("RuntimeTaskProcessor created");
     }
 

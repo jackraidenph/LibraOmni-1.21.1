@@ -18,10 +18,8 @@ public interface LifecycleSetup {
 
     }
 
-    default void subscribeAll(IEventBus eventBus) {
-        eventBus.addListener(this::setupConstruct);
-        eventBus.addListener(this::setupCommon);
-        eventBus.addListener(this::setupClient);
+    default void listenToBus(IEventBus eventBus) {
+
     }
 
     enum LifecycleStage {
