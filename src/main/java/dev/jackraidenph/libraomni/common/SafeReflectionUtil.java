@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.common;
 
 import java.lang.annotation.ElementType;
 import java.lang.reflect.*;
+import java.util.Set;
 
 /**
  * Instead of throwing, methods return null.
@@ -9,12 +10,36 @@ import java.lang.reflect.*;
  */
 public class SafeReflectionUtil {
 
+    public static <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<?> child) {
+        for (Class<?> superclass : classes) {
+            if (superclass.isAssignableFrom(child)) {
+                //Checked via isAssignableFrom
+                //noinspection unchecked
+                return (Class<T>) superclass;
+            }
+        }
+
+        return null;
+    }
+
     public static Class<?> forName(String name) {
         try {
             return Class.forName(name);
         } catch (ClassNotFoundException e) {
             return null;
         }
+    }
+
+    public static Object getFieldValue(Field field, Object parent) {
+        try {
+            return field.get(parent);
+        } catch (IllegalAccessException e) {
+            return null;
+        }
+    }
+
+    public static Object getFieldValueStatic(Field field) {
+        return getFieldValue(field, null);
     }
 
     public static <T> Class<? extends T> forNameSubclass(String name, Class<T> clazz) {

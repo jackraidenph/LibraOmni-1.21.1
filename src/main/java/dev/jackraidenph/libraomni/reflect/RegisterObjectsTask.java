@@ -39,18 +39,18 @@ public class RegisterObjectsTask implements RuntimeTask {
             emptyConstructor.setAccessible(true);
 
             AutoRegisters autoRegisters = modContext.getExtension(AutoRegisters.class);
-            DeferredRegister<? super T> register = autoRegisters.forClass(registerClass);
+            DeferredRegister<? super T> register = autoRegisters.getOrCreateRegister(registerClass);
             if (register == null) {
                 LibraOmni.LOGGER.warn("Failed to get register for [{}], skipping", registerClass.getSimpleName());
                 return;
             }
-            LibraOmni.LOGGER.info("Found [{}] registry for [{}] with superclass [{}]",
-                    register.getRegistryName(),
-                    registerClass.getSimpleName(),
-                    registerClass.getSuperclass().getSimpleName()
-            );
             register.register(id, () -> safeConstruct(emptyConstructor));
-            LibraOmni.LOGGER.info("Registered [{}:{}] to [{}]", modContext.modId(), id, register.getRegistryName());
+            LibraOmni.LOGGER.info("Registered [{}:{}] to [{}] from [{}]",
+                    modContext.modId(),
+                    id,
+                    register.getRegistryName(),
+                    registerClass
+            );
         } catch (NoSuchMethodException noSuchMethodException) {
             LibraOmni.LOGGER.error("Failed to register [{}] as there's no proper empty constructor",
                     registerClass.getSimpleName()

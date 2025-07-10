@@ -1,78 +1,68 @@
 package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import net.minecraft.world.item.Item;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredRegister.Items;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class AutoRegisters extends AbstractModContextExtension {
 
     private final TypeSafeRegisterMap registersMap = new TypeSafeRegisterMap();
-    private DeferredRegister.Blocks blocksRegister;
-    private DeferredRegister.Items itemsRegister;
 
-    private boolean registersRegistered = false;
-
-    public AutoRegisters(ModContext modContext) {
-        super(modContext);
-    }
+    private boolean initialized = false;
 
     public static AutoRegisters mod(String modId) {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
     }
 
+    public AutoRegisters(ModContext modContext) {
+        super(modContext);
+    }
+
     @Override
     public void setupConstruct(FMLConstructModEvent event) {
-        event.enqueueWork(this::initRegisters);
+        event.enqueueWork(this::init);
     }
 
-    public void initRegisters() {
-        if (this.registersRegistered) {
-            throw new IllegalStateException("Registers for [" + this.getContext().modId() + "] were already initialized");
+    public void init() {
+        if (this.initialized) {
+            throw new IllegalStateException("Registers context for [" + this.getContext().modId() + "] were already initialized");
         }
 
-        this.createBlockAndItemRegisters();
+        VanillaRegistriesAccess.mapAndCacheVanillaRegistries();
 
-        for (DeferredRegister<?> deferredRegister : this.allRegisters()) {
-            IEventBus eventBus = this.getContext().modContainer().getEventBus();
-            if (eventBus != null) {
-                deferredRegister.register(eventBus);
-                LibraOmni.LOGGER.info("Created register [{}] for [{}]", deferredRegister.getRegistryName(), this.getContext().modId());
-            }
-        }
-        this.registersRegistered = true;
+        this.initialized = true;
     }
 
-    private void createBlockAndItemRegisters() {
-        String modId = getContext().modId();
-        this.blocksRegister = DeferredRegister.createBlocks(modId);
-        this.itemsRegister = DeferredRegister.createItems(modId);
-
-        this.add(Block.class, blocksRegister);
-        this.add(Item.class, itemsRegister);
+    public DeferredRegister<Items> items() {
+        return this.forClass(Items.class);
     }
 
-    public DeferredRegister.Items itemsRegister() {
-        return this.itemsRegister;
+    public DeferredRegister<Block> blocks() {
+        return this.forClass(Block.class);
     }
 
-    public DeferredRegister.Blocks blocksRegister() {
-        return this.blocksRegister;
+    public Collection<DeferredRegister<?>> allRegisters() {
+        return this.registersMap.values();
     }
 
-    private <T> void add(Class<T> clazz, DeferredRegister<T> register) {
+    public <T> void add(Class<T> clazz, DeferredRegister<T> register) {
         this.registersMap.put(clazz, register);
     }
 
-    public <T> DeferredRegister<T> forClass(Class<T> clazz) {
-        Class<T> superclass = this.tryFindSuperclass(this.registersMap.keySet(), clazz);
+    public <T> DeferredRegister<T> forClass(Class<?> clazz) {
+        Class<T> superclass = SafeReflectionUtil.tryFindSuperclass(this.registersMap.keySet(), clazz);
         if (superclass == null) {
             return null;
         }
@@ -80,20 +70,40 @@ public class AutoRegisters extends AbstractModContextExtension {
         return this.registersMap.get(superclass);
     }
 
-    private <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<T> child) {
-        for (Class<?> superclass : classes) {
-            if (superclass.isAssignableFrom(child)) {
-                //Checked via isAssignableFrom
-                //noinspection unchecked
-                return (Class<T>) superclass;
+    protected <T> DeferredRegister<T> getOrCreateRegister(Class<T> clazz) {
+        DeferredRegister<T> register = forClass(clazz);
+        if (register != null) {
+            return register;
+        } else {
+            DeferredRegister<T> created = createRegister(clazz);
+            if (created == null) {
+                return null;
             }
+            LibraOmni.LOGGER.info("Created register [{}] for [{}]", created.getRegistryName(), modId());
+            return created;
         }
-
-        return null;
     }
 
-    public Collection<DeferredRegister<?>> allRegisters() {
-        return this.registersMap.values();
+    private <T> DeferredRegister<T> createRegister(Class<T> clazz) {
+        Entry<Class<T>, ResourceKey<Registry<T>>> resourceKeyPair = VanillaRegistriesAccess.getRegistryResourceKey(clazz);
+
+        if (resourceKeyPair == null) {
+            return null;
+        }
+
+        DeferredRegister<T> created = DeferredRegister.create(resourceKeyPair.getValue(), modId());
+        created.register(eventBus());
+        this.registersMap.put(resourceKeyPair.getKey(), created);
+
+        return created;
+    }
+
+    private String modId() {
+        return this.getContext().modId();
+    }
+
+    private IEventBus eventBus() {
+        return getContext().modContainer().getEventBus();
     }
 
     private static class TypeSafeRegisterMap {
