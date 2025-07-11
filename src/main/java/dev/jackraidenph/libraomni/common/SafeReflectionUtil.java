@@ -30,46 +30,12 @@ public class SafeReflectionUtil {
         }
     }
 
-    public static Object getFieldValue(Field field, Object parent) {
-        try {
-            return field.get(parent);
-        } catch (IllegalAccessException e) {
-            return null;
-        }
-    }
-
-    public static Object getFieldValueStatic(Field field) {
-        return getFieldValue(field, null);
-    }
-
     public static <T> Class<? extends T> forNameSubclass(String name, Class<T> clazz) {
         Class<?> forNameClass = forName(name);
         if (forNameClass == null) {
             return null;
         }
         return forNameClass.asSubclass(clazz);
-    }
-
-    public static <T> T tryConstruct(Class<? extends T> clazz, Object... args) {
-        try {
-            Constructor<? extends T> constructor = clazz.getDeclaredConstructor(inferTypes(args));
-            return constructor.newInstance(args);
-        } catch (NoSuchMethodException
-                 | InstantiationException
-                 | IllegalAccessException
-                 | InvocationTargetException e
-        ) {
-            return null;
-        }
-    }
-
-    private static Class<?>[] inferTypes(Object... objects) {
-        Class<?>[] typesArray = new Class[objects.length];
-        for (int i = 0; i < objects.length; i++) {
-            typesArray[i] = objects[i].getClass();
-        }
-
-        return typesArray;
     }
 
     public static ElementType getElementType(AnnotatedElement element) {

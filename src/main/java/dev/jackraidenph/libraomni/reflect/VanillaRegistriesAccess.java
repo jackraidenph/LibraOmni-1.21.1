@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -40,7 +41,7 @@ public class VanillaRegistriesAccess {
             return null;
         }
 
-        Object obj = SafeReflectionUtil.getFieldValueStatic(key);
+        Object obj = UnsafeReflectionUtil.getFieldValueStatic(key);
         if (obj == null) {
             throw new IllegalStateException("Failed to get %s value".formatted(key.toGenericString()));
         }

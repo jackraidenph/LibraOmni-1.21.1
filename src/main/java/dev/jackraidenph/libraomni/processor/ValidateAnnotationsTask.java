@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.processor;
 
 import dev.jackraidenph.libraomni.annotation.Validated;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.processor.validation.Validator;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -80,12 +81,7 @@ class ValidateAnnotationsTask implements CompilationTask {
                 throw new IllegalStateException("Failed to get Validator for name [" + validatorClassName + "]");
             }
 
-            Validator validator = SafeReflectionUtil.tryConstruct(validatorClass);
-            if (validator == null) {
-                throw new IllegalStateException("Failed to construct Validator for [" + validatorClass.getSimpleName() + "]");
-            }
-
-            return validator;
+            return UnsafeReflectionUtil.tryConstruct(validatorClass);
         } catch (ClassCastException classCastException) {
             return null;
         }

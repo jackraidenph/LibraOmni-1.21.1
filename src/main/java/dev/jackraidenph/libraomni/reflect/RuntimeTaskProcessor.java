@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.reflect;
 import com.google.common.collect.Streams;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.ModMetadata;
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
@@ -83,11 +84,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                 LibraOmni.LOGGER.error("Failed to get task class for name [{}]", taskName);
                 continue;
             }
-            RuntimeTask runtimeTask = SafeReflectionUtil.tryConstruct(clazz);
-            if (runtimeTask == null) {
-                LibraOmni.LOGGER.error("Failed to get construct task for name [{}]", taskName);
-                continue;
-            }
+            RuntimeTask runtimeTask = UnsafeReflectionUtil.tryConstruct(clazz);
 
             if (tasks.containsKey(clazz)) {
                 throw new DuplicateTaskException(runtimeTask);
