@@ -36,7 +36,7 @@ public class RegisterObjectsTask implements RuntimeTask {
             } else if (Item.class.isAssignableFrom(clazz)) {
                 registerItem(modContext, e, clazz);
             } else {
-                registerRest(modContext, e);
+                registerArbitrary(modContext, e);
             }
         }
     }
@@ -152,7 +152,7 @@ public class RegisterObjectsTask implements RuntimeTask {
         return created;
     }
 
-    private static <T> void registerRest(ModContext modContext, TransitiveAnnotatedElement element) {
+    private static <T> void registerArbitrary(ModContext modContext, TransitiveAnnotatedElement element) {
         Class<?> clazz = hostingClassOrSelf(element);
 
         if (clazz == null || Block.class.isAssignableFrom(clazz) || Item.class.isAssignableFrom(clazz)) {
