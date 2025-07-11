@@ -4,11 +4,11 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.DeferredRegister.Items;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,6 +20,8 @@ public class AutoRegisters extends AbstractModContextExtension {
     private final Map<Class<?>, DeferredRegister<?>> registersMap = new HashMap<>();
 
     private boolean initialized = false;
+    private DeferredRegister.Items items = null;
+    private DeferredRegister.Blocks blocks = null;
 
     public static AutoRegisters mod(String modId) {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
@@ -49,12 +51,12 @@ public class AutoRegisters extends AbstractModContextExtension {
         this.initialized = true;
     }
 
-    public DeferredRegister<Items> items() {
-        return this.forClass(Items.class);
+    public DeferredRegister.Items items() {
+        return items == null ? (DeferredRegister.Items) createRegister(Item.class) : items;
     }
 
-    public DeferredRegister<Block> blocks() {
-        return this.forClass(Block.class);
+    public DeferredRegister.Blocks blocks() {
+        return blocks == null ? (DeferredRegister.Blocks) createRegister(Block.class) : blocks;
     }
 
     public Collection<DeferredRegister<?>> allRegisters() {
@@ -66,6 +68,14 @@ public class AutoRegisters extends AbstractModContextExtension {
     }
 
     public <T> DeferredRegister<T> forClass(Class<?> clazz) {
+        if (Block.class.isAssignableFrom(clazz)) {
+            //noinspection unchecked
+            return (DeferredRegister<T>) blocks();
+        } else if (Item.class.isAssignableFrom(clazz)) {
+            //noinspection unchecked
+            return (DeferredRegister<T>) items();
+        }
+
         Class<T> superclass = SafeReflectionUtil.tryFindSuperclass(this.registersMap.keySet(), clazz);
         if (superclass == null) {
             return null;
@@ -81,26 +91,29 @@ public class AutoRegisters extends AbstractModContextExtension {
         if (register != null) {
             return register;
         } else {
-            DeferredRegister<T> created = createRegister(clazz);
-            if (created == null) {
-                return null;
-            }
-            LibraOmni.LOGGER.info("Created register [{}] for [{}]", created.getRegistryName(), modId());
-            return created;
+            return createRegister(clazz);
         }
     }
 
     private <T> DeferredRegister<T> createRegister(Class<T> clazz) {
-        Entry<Class<T>, ResourceKey<Registry<T>>> resourceKeyPair = VanillaRegistriesAccess.getRegistryResourceKey(clazz);
+        DeferredRegister<T> created;
 
-        if (resourceKeyPair == null) {
-            return null;
+        if (Block.class.isAssignableFrom(clazz)) {
+            //noinspection unchecked
+            created = (DeferredRegister<T>) (blocks = DeferredRegister.createBlocks(modId()));
+        } else if (Item.class.isAssignableFrom(clazz)) {
+            //noinspection unchecked
+            created = (DeferredRegister<T>) (items = DeferredRegister.createItems(modId()));
+        } else {
+            Entry<Class<T>, ResourceKey<Registry<T>>> resourceKeyPair = VanillaRegistriesAccess.getRegistryResourceKey(clazz);
+            if (resourceKeyPair == null) {
+                return null;
+            }
+            created = DeferredRegister.create(resourceKeyPair.getValue(), modId());
+            this.registersMap.put(resourceKeyPair.getKey(), created);
         }
-
-        DeferredRegister<T> created = DeferredRegister.create(resourceKeyPair.getValue(), modId());
         created.register(eventBus());
-        this.registersMap.put(resourceKeyPair.getKey(), created);
-
+        LibraOmni.LOGGER.info("Created register [{}] for [{}]", created.getRegistryName(), modId());
         return created;
     }
 
