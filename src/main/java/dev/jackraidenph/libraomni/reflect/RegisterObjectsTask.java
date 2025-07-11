@@ -28,7 +28,6 @@ public class RegisterObjectsTask implements RuntimeTask {
 
     @Override
     public void process(ModContext modContext, Set<TransitiveAnnotatedElement> elements) {
-
         for (TransitiveAnnotatedElement e : elements) {
             Class<?> clazz = hostingClassOrSelf(e);
             if (Block.class.isAssignableFrom(clazz)) {
@@ -36,7 +35,7 @@ public class RegisterObjectsTask implements RuntimeTask {
             } else if (Item.class.isAssignableFrom(clazz)) {
                 registerItem(modContext, e, clazz);
             } else {
-                registerArbitrary(modContext, e);
+                registerArbitrary(modContext, e, clazz);
             }
         }
     }
@@ -152,9 +151,7 @@ public class RegisterObjectsTask implements RuntimeTask {
         return created;
     }
 
-    private static <T> void registerArbitrary(ModContext modContext, TransitiveAnnotatedElement element) {
-        Class<?> clazz = hostingClassOrSelf(element);
-
+    private static <T> void registerArbitrary(ModContext modContext, TransitiveAnnotatedElement element, Class<?> clazz) {
         if (clazz == null || Block.class.isAssignableFrom(clazz) || Item.class.isAssignableFrom(clazz)) {
             return;
         }
