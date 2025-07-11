@@ -105,13 +105,7 @@ public class RegisterObjectsTask implements RuntimeTask {
 
         DeferredBlock<?> block = register.blocks().registerBlock(
                 id,
-                (props) -> {
-                    Block created = UnsafeReflectionUtil.getValue(blockElement, null, props);
-                    if (created == null) {
-                        throw new IllegalStateException("Failed to instantiate block [%s]".formatted(hosting));
-                    }
-                    return created;
-                },
+                (props) -> nullFailingStaticInstantiate(blockElement, props),
                 properties
         );
         LibraOmni.LOGGER.info("Registered block [{}]", block.getId());
@@ -144,16 +138,18 @@ public class RegisterObjectsTask implements RuntimeTask {
 
         DeferredItem<?> item = register.items().registerItem(
                 id,
-                (props) -> {
-                    Item created = UnsafeReflectionUtil.getValue(itemElement, null, props);
-                    if (created == null) {
-                        throw new IllegalStateException("Failed to instantiate item [%s]".formatted(hosting));
-                    }
-                    return created;
-                },
+                (props) -> nullFailingStaticInstantiate(itemElement, props),
                 properties
         );
         LibraOmni.LOGGER.info("Registered item [{}]", item.getId());
+    }
+
+    private static <T> T nullFailingStaticInstantiate(AnnotatedElement element, Object... args) {
+        T created = UnsafeReflectionUtil.getValue(element, null, args);
+        if (created == null) {
+            throw new IllegalStateException("Failed to instantiate object from element [%s]".formatted(element.toString()));
+        }
+        return created;
     }
 
     private static <T> void registerRest(ModContext modContext, TransitiveAnnotatedElement element) {

@@ -102,4 +102,9 @@ public class TransitiveAnnotatedElement implements AnnotatedElement {
     public Annotation[] getDeclaredAnnotations() {
         return Arrays.copyOf(allDeclaredAnnotations, allDeclaredAnnotations.length);
     }
+
+    @Override
+    public String toString() {
+        return this.getAnnotatedElement().toString();
+    }
 }
