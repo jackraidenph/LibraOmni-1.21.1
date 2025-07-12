@@ -29,7 +29,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     @Override
     public void process(ModContext modContext, Set<TransitiveAnnotatedElement> elements) {
         for (TransitiveAnnotatedElement e : elements) {
-            Class<?> clazz = hostingClassOrSelf(e);
+            Class<?> clazz = selfOrReturnType(e);
             if (Block.class.isAssignableFrom(clazz)) {
                 registerBlock(modContext, e, clazz);
             } else if (Item.class.isAssignableFrom(clazz)) {
@@ -77,18 +77,29 @@ public class RegisterObjectsTask implements RuntimeTask {
         );
     }
 
-    private static Class<?> hostingClassOrSelf(TransitiveAnnotatedElement element) {
-        AnnotatedElement wrapped = element.getAnnotatedElement();
-        if (wrapped instanceof Class<?> clazz) {
-            return clazz;
-        }
+    private static Class<?> selfOrReturnType(TransitiveAnnotatedElement element) {
+        AnnotatedElement unwrapped = element.getAnnotatedElement();
+        return switch (unwrapped) {
+            case Class<?> clazz -> clazz;
+            case Field field -> field.getType();
+            case Method method -> method.getReturnType();
+            case null, default -> throw new UnsupportedOperationException();
+        };
+    }
 
-        Member member = (Member) wrapped;
-        return member.getDeclaringClass();
+    private static String objectName(TransitiveAnnotatedElement element) {
+        AnnotatedElement unwrapped = element.getAnnotatedElement();
+        return StringUtilities.snakeCase(
+                switch (unwrapped) {
+                    case Class<?> clazz -> clazz.getSimpleName();
+                    case Member otherMember -> otherMember.getName();
+                    case null, default -> throw new UnsupportedOperationException();
+                }
+        );
     }
 
     private static String idOrDefault(TransitiveAnnotatedElement element, Registered registered) {
-        String className = hostingClassOrSelf(element).getSimpleName();
+        String className = objectName(element);
         return registered.value().isBlank()
                 ? StringUtilities.snakeCase(className)
                 : registered.value();
@@ -162,33 +173,26 @@ public class RegisterObjectsTask implements RuntimeTask {
             return;
         }
 
+        AutoRegisters autoRegisters = modContext.getExtension(AutoRegisters.class);
+
         String id = idOrDefault(element, registered);
 
         //noinspection unchecked
         Class<T> genericClass = (Class<T>) clazz;
-
-        try {
-            Constructor<T> emptyConstructor = genericClass.getDeclaredConstructor();
-            emptyConstructor.setAccessible(true);
-
-            AutoRegisters autoRegisters = modContext.getExtension(AutoRegisters.class);
-            DeferredRegister<? super T> register = autoRegisters.getOrCreateRegister(genericClass);
-            if (register == null) {
-                LibraOmni.LOGGER.warn("Failed to get register for [{}], skipping", genericClass.getSimpleName());
-                return;
-            }
-            register.register(id, () -> UnsafeReflectionUtil.getConstructorValue(emptyConstructor));
-            LibraOmni.LOGGER.info("Registered [{}:{}] to [{}] from [{}]",
-                    modContext.modId(),
-                    id,
-                    register.getRegistryName(),
-                    element
-            );
-        } catch (NoSuchMethodException noSuchMethodException) {
-            LibraOmni.LOGGER.error("Failed to register [{}] as there's no proper empty constructor",
-                    genericClass.getSimpleName()
-            );
+        DeferredRegister<? super T> register = autoRegisters.getOrCreateRegister(genericClass);
+        if (register == null) {
+            LibraOmni.LOGGER.warn("Failed to get register for [{}], skipping", genericClass.getSimpleName());
+            return;
         }
+
+        T toRegister = nullFailingStaticInstantiate(element);
+        register.register(id, () -> toRegister);
+        LibraOmni.LOGGER.info("Registered [{}:{}] to [{}] from [{}]",
+                modContext.modId(),
+                id,
+                register.getRegistryName(),
+                element
+        );
     }
 
     @Override
