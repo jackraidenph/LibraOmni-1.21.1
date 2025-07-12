@@ -13,10 +13,26 @@ import java.util.Set;
  */
 public class SafeReflectionUtil {
 
-    public static String objectName(TransitiveAnnotatedElement element) {
-        AnnotatedElement unwrapped = element.getAnnotatedElement();
+    public static Class<?> selfOrReturnType(AnnotatedElement element) {
+        return switch (element) {
+            case Class<?> clazz -> clazz;
+            case Field field -> field.getType();
+            case Method method -> method.getReturnType();
+            case null, default -> throw new UnsupportedOperationException();
+        };
+    }
+
+    public static Class<?> declaringOrSelf(AnnotatedElement e) {
+        return switch (e) {
+            case Class<?> clazz -> clazz;
+            case Member member -> member.getDeclaringClass();
+            case null, default -> throw new UnsupportedOperationException();
+        };
+    }
+
+    public static String objectName(AnnotatedElement element) {
         return StringUtilities.snakeCase(
-                switch (unwrapped) {
+                switch (element) {
                     case Class<?> clazz -> clazz.getSimpleName();
                     case Member otherMember -> otherMember.getName();
                     case null, default -> throw new UnsupportedOperationException();
@@ -24,7 +40,7 @@ public class SafeReflectionUtil {
         );
     }
 
-    public static String idOrDefault(TransitiveAnnotatedElement element) {
+    public static String idOrDefault(AnnotatedElement element) {
         String className = objectName(element);
         Registered registered = element.getAnnotation(Registered.class);
         return registered == null || registered.value().isBlank()
