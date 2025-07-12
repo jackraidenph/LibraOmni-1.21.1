@@ -14,6 +14,7 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.lang.reflect.AnnotatedElement;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -32,12 +33,14 @@ public class AutoRegisters extends AbstractModContextExtension {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
     }
 
-    public static <T> Optional<DeferredHolder<T, ? extends T>> entry(String modId, Class<T> clazz) {
-        String className = clazz.getSimpleName();
-        Registered registered = clazz.getAnnotation(Registered.class);
+    public static <T> Optional<DeferredHolder<T, ? extends T>> entry(String modId, AnnotatedElement element) {
+        String className = SafeReflectionUtil.objectName(element);
+        Registered registered = element.getAnnotation(Registered.class);
         String id = registered == null || registered.value().isBlank()
                 ? StringUtilities.snakeCase(className)
                 : registered.value();
+
+        Class<?> clazz = SafeReflectionUtil.selfOrReturnType(element);
 
         return entry(modId, clazz, id);
     }
