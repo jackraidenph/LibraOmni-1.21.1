@@ -5,7 +5,7 @@ import dev.jackraidenph.libraomni.annotation.BlockPropertiesSupplier;
 import dev.jackraidenph.libraomni.annotation.HasBlockItem;
 import dev.jackraidenph.libraomni.annotation.ItemPropertiesSupplier;
 import dev.jackraidenph.libraomni.annotation.Registered;
-import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
@@ -87,29 +87,10 @@ public class RegisterObjectsTask implements RuntimeTask {
         };
     }
 
-    private static String objectName(TransitiveAnnotatedElement element) {
-        AnnotatedElement unwrapped = element.getAnnotatedElement();
-        return StringUtilities.snakeCase(
-                switch (unwrapped) {
-                    case Class<?> clazz -> clazz.getSimpleName();
-                    case Member otherMember -> otherMember.getName();
-                    case null, default -> throw new UnsupportedOperationException();
-                }
-        );
-    }
-
-    private static String idOrDefault(TransitiveAnnotatedElement element, Registered registered) {
-        String className = objectName(element);
-        return registered.value().isBlank()
-                ? StringUtilities.snakeCase(className)
-                : registered.value();
-    }
-
     private static void registerBlock(ModContext modContext, TransitiveAnnotatedElement blockElement, Class<?> hosting) {
         AutoRegisters register = modContext.getExtension(AutoRegisters.class);
 
-        Registered registered = blockElement.getAnnotation(Registered.class);
-        String id = idOrDefault(blockElement, registered);
+        String id = SafeReflectionUtil.idOrDefault(blockElement);
 
         BlockBehaviour.Properties properties = blockProperties(hosting);
 
@@ -141,8 +122,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     private static void registerItem(ModContext modContext, TransitiveAnnotatedElement itemElement, Class<?> hosting) {
         AutoRegisters register = modContext.getExtension(AutoRegisters.class);
 
-        Registered registered = itemElement.getAnnotation(Registered.class);
-        String id = idOrDefault(itemElement, registered);
+        String id = SafeReflectionUtil.idOrDefault(itemElement);
 
         Item.Properties properties = itemProperties(hosting);
 
@@ -167,15 +147,9 @@ public class RegisterObjectsTask implements RuntimeTask {
             return;
         }
 
-        Registered registered = element.getAnnotation(Registered.class);
-
-        if (registered == null) {
-            return;
-        }
-
         AutoRegisters autoRegisters = modContext.getExtension(AutoRegisters.class);
 
-        String id = idOrDefault(element, registered);
+        String id = SafeReflectionUtil.idOrDefault(element);
 
         //noinspection unchecked
         Class<T> genericClass = (Class<T>) clazz;

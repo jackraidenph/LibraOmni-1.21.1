@@ -1,5 +1,8 @@
 package dev.jackraidenph.libraomni.common;
 
+import dev.jackraidenph.libraomni.annotation.Registered;
+import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
+
 import java.lang.annotation.ElementType;
 import java.lang.reflect.*;
 import java.util.Set;
@@ -9,6 +12,25 @@ import java.util.Set;
  * If throwing an exception is actually needed - null check should be used on the calling side
  */
 public class SafeReflectionUtil {
+
+    public static String objectName(TransitiveAnnotatedElement element) {
+        AnnotatedElement unwrapped = element.getAnnotatedElement();
+        return StringUtilities.snakeCase(
+                switch (unwrapped) {
+                    case Class<?> clazz -> clazz.getSimpleName();
+                    case Member otherMember -> otherMember.getName();
+                    case null, default -> throw new UnsupportedOperationException();
+                }
+        );
+    }
+
+    public static String idOrDefault(TransitiveAnnotatedElement element) {
+        String className = objectName(element);
+        Registered registered = element.getAnnotation(Registered.class);
+        return registered == null || registered.value().isBlank()
+                ? StringUtilities.snakeCase(className)
+                : registered.value();
+    }
 
     public static <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<?> child) {
         for (Class<?> superclass : classes) {
