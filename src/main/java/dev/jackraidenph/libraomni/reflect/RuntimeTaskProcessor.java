@@ -133,8 +133,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
             for (Class<? extends RuntimeTask> requiredType : task.dependsOn()) {
                 RuntimeTask requiredTask = tasksTable.get(requiredType);
                 if (requiredTask == null) {
-                    LibraOmni.LOGGER.error("Failed to fetch required task of type {}", requiredType);
-                    throw new IllegalStateException();
+                    throw new IllegalStateException("Failed to fetch required task of type " + requiredType + ", check if tasks exist at the same lifecycle stage");
                 }
 
                 if (taskGraph.getNodeIndex(requiredTask) < 0) {
