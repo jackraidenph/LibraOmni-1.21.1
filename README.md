@@ -19,7 +19,7 @@
 <details>
   <summary><h3>[~] Runtime Annotation Processing</h3></summary>
   
-  [~] Registering stuff<br/>
+  [+] Registering stuff<br/>
   [-] Proper configuration<br/>
 </details>
 
