@@ -1,21 +1,26 @@
 package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.StringUtilities;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class AutoRegisters extends AbstractModContextExtension {
+
+    private final Map<String, DeferredHolder<?, ?>> entryCache = new WeakHashMap<>();
 
     private final Map<Class<?>, DeferredRegister<?>> registersMap = new HashMap<>();
 
@@ -25,6 +30,49 @@ public class AutoRegisters extends AbstractModContextExtension {
 
     public static AutoRegisters mod(String modId) {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
+    }
+
+    public static <T> Optional<DeferredHolder<T, ? extends T>> entry(String modId, Class<T> clazz) {
+        String className = clazz.getSimpleName();
+        Registered registered = clazz.getAnnotation(Registered.class);
+        String id = registered == null || registered.value().isBlank()
+                ? StringUtilities.snakeCase(className)
+                : registered.value();
+
+        return entry(modId, clazz, id);
+    }
+
+    public static <T> Optional<DeferredHolder<T, ? extends T>> entry(String modId, Class<?> entryType, String id) {
+        AutoRegisters autoRegisters = mod(modId);
+
+        //noinspection unchecked
+        DeferredHolder<T, ? extends T> holder = (DeferredHolder<T, ? extends T>) autoRegisters.entryCache.get(id);
+        if (holder != null) {
+            return Optional.of(holder);
+        }
+
+        DeferredRegister<T> register = autoRegisters.forClass(entryType);
+        if (register == null) {
+            throw new IllegalStateException();
+        }
+
+        ResourceLocation resourceLocation = ResourceLocation.tryBuild(modId, id);
+        if (resourceLocation == null) {
+            throw new IllegalArgumentException("Bad ResourceLocation [%s]".formatted(modId + ":" + id));
+        }
+
+        Set<DeferredHolder<T, ? extends T>> holders = register.getEntries().stream()
+                .filter(entry -> entry.is(resourceLocation))
+                .collect(Collectors.toSet());
+
+        if (holders.isEmpty()) {
+            return Optional.empty();
+        }
+
+        DeferredHolder<T, ? extends T> retrieved = holders.iterator().next();
+        autoRegisters.entryCache.put(id, retrieved);
+
+        return Optional.of(retrieved);
     }
 
     public AutoRegisters(ModContext modContext) {
