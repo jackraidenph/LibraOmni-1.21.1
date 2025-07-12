@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @NeedsRuntimeProcessing
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
 public @interface Registered {
     String value() default "";
 }
