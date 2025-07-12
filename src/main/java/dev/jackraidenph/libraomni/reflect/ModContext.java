@@ -19,6 +19,7 @@ public class ModContext implements LifecycleSetup {
 
     private void initExtensions() {
         this.registerExtension(new AutoRegisters(this));
+        this.registerExtension(new AutoCreativeModeTabs(this));
     }
 
     private void registerExtension(AbstractModContextExtension extension) {

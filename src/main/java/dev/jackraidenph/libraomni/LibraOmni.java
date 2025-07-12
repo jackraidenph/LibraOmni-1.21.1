@@ -2,9 +2,7 @@ package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
-import dev.jackraidenph.libraomni.reflect.ModContextManager;
-import dev.jackraidenph.libraomni.reflect.RegisterObjectsTask;
-import dev.jackraidenph.libraomni.reflect.RuntimeTaskProcessor;
+import dev.jackraidenph.libraomni.reflect.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -16,7 +14,6 @@ public class LibraOmni {
     public static final String MOD_ID = "libraomni";
     public static final Logger LOGGER = LogUtils.getLogger();
     private static ModContextManager CONTEXT_MANAGER = null;
-
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("Reading metadata files");
         ModMetadataReader modMetadataReader = new ModMetadataReader();
@@ -34,6 +31,7 @@ public class LibraOmni {
         LOGGER.info("Creating RuntimeTaskProcessor");
         RuntimeTaskProcessor runtimeTaskProcessor = new RuntimeTaskProcessor(modMetadataReader, modContextManager);
         runtimeTaskProcessor.registerTask(new RegisterObjectsTask());
+        runtimeTaskProcessor.registerTask(new AddToCreativeTabsTask());
         LOGGER.info("Registered runtime tasks");
         runtimeTaskProcessor.listenToBus(modEventBus);
         LOGGER.info("RuntimeTaskProcessor created");
