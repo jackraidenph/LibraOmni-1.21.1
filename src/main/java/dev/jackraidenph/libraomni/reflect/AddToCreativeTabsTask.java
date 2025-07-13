@@ -21,7 +21,7 @@ public class AddToCreativeTabsTask implements RuntimeTask {
 
             AutoCreativeModeTabs autoCreativeModeTabs = modContext.getExtension(AutoCreativeModeTabs.class);
 
-            DeferredHolder<?, ?> holder = AutoRegisters.entry(modContext.modId(), e.getAnnotatedElement()).orElse(null);
+            DeferredHolder<?, ?> holder = AutoRegisters.entry(modContext.modId(), e.unwrap()).orElse(null);
 
             if (holder == null) {
                 LibraOmni.LOGGER.error("Failed to add {} to creative tab, deferred holder not found", e);

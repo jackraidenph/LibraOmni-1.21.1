@@ -9,7 +9,7 @@ public class UnsafeReflectionUtil {
     public static <T> T getValue(AnnotatedElement annotatedElement, Object context, Object... args) {
         return switch (annotatedElement) {
             case TransitiveAnnotatedElement transitiveAnnotatedElement ->
-                    getValue(transitiveAnnotatedElement.getAnnotatedElement(), context, args);
+                    getValue(transitiveAnnotatedElement.unwrap(), context, args);
             case AccessibleObject accessibleObject -> getValue(accessibleObject, context, args);
             case Class<?> clazz -> {
                 try {

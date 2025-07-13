@@ -29,7 +29,7 @@ public class TransitiveAnnotatedElement implements AnnotatedElement {
         allDeclaredAnnotations = declared.toArray(Annotation[]::new);
     }
 
-    public AnnotatedElement getAnnotatedElement() {
+    public AnnotatedElement unwrap() {
         return annotatedElement;
     }
 
@@ -105,6 +105,6 @@ public class TransitiveAnnotatedElement implements AnnotatedElement {
 
     @Override
     public String toString() {
-        return this.getAnnotatedElement().toString();
+        return this.unwrap().toString();
     }
 }

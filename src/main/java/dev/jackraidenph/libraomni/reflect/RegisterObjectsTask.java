@@ -29,7 +29,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     @Override
     public void process(ModContext modContext, Set<TransitiveAnnotatedElement> elements) {
         for (TransitiveAnnotatedElement e : elements) {
-            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(e.getAnnotatedElement());
+            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(e.unwrap());
             if (Block.class.isAssignableFrom(clazz)) {
                 registerBlock(modContext, e, clazz);
             } else if (Item.class.isAssignableFrom(clazz)) {
@@ -80,7 +80,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     private static void registerBlock(ModContext modContext, TransitiveAnnotatedElement blockElement, Class<?> hosting) {
         AutoRegisters register = modContext.getExtension(AutoRegisters.class);
 
-        String id = SafeReflectionUtil.idOrDefault(blockElement.getAnnotatedElement());
+        String id = SafeReflectionUtil.idOrDefault(blockElement.unwrap());
 
         BlockBehaviour.Properties properties = blockProperties(hosting);
 
@@ -112,7 +112,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     private static void registerItem(ModContext modContext, TransitiveAnnotatedElement itemElement, Class<?> hosting) {
         AutoRegisters register = modContext.getExtension(AutoRegisters.class);
 
-        String id = SafeReflectionUtil.idOrDefault(itemElement.getAnnotatedElement());
+        String id = SafeReflectionUtil.idOrDefault(itemElement.unwrap());
 
         Item.Properties properties = itemProperties(hosting);
 
@@ -139,7 +139,7 @@ public class RegisterObjectsTask implements RuntimeTask {
 
         AutoRegisters autoRegisters = modContext.getExtension(AutoRegisters.class);
 
-        String id = SafeReflectionUtil.idOrDefault(element.getAnnotatedElement());
+        String id = SafeReflectionUtil.idOrDefault(element.unwrap());
 
         //noinspection unchecked
         Class<T> genericClass = (Class<T>) clazz;
