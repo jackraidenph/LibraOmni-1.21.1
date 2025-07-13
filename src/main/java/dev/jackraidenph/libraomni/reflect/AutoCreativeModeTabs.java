@@ -5,7 +5,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
 import java.util.*;
@@ -52,8 +51,7 @@ public class AutoCreativeModeTabs extends AbstractModContextExtension implements
         eventBus.addListener(this::populateTabs);
     }
 
-    @SubscribeEvent
-    public void populateTabs(BuildCreativeModeTabContentsEvent event) {
+    private void populateTabs(BuildCreativeModeTabContentsEvent event) {
         List<ItemLike> items = getItems(event.getTabKey().location());
         if (items != null && !items.isEmpty()) {
             for (ItemLike itemLike : items) {
