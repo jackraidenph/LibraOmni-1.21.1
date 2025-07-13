@@ -5,7 +5,7 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 
-public abstract class ExtensionValidator implements Validator {
+public abstract class AssignabilityValidator implements Validator {
 
     @Override
     public boolean test(Element element, ProcessingEnvironment processingEnvironment) {
@@ -19,7 +19,7 @@ public abstract class ExtensionValidator implements Validator {
         );
 
         if (!implementsRuntimeProcessor) {
-            messager.printError(element.getSimpleName().toString() + " must implement or extend " + toExtendOrImplement);
+            messager.printError(element.getSimpleName().toString() + " must be assignable to " + toExtendOrImplement);
         }
 
         return implementsRuntimeProcessor;
