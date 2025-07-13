@@ -29,6 +29,7 @@ class ValidationUtils {
             throw new IllegalArgumentException(castException);
         }
 
+        hierarchy.add(OBJECT_STR);
 
         return hierarchy;
     }
