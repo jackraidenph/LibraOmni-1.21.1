@@ -23,12 +23,10 @@ public class CompilationTaskProcessor extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-
-        registerTask(new CreateMetadataTask());
-        registerTask(new ValidateAnnotationsTask());
+        CompilationTasks.init(this);
     }
 
-    private void registerTask(CompilationTask task) {
+    void registerTask(CompilationTask task) {
         if (this.tasks.stream().map(Object::getClass).anyMatch(clazz -> clazz.equals(task.getClass()))) {
             return;
         }

@@ -14,15 +14,9 @@ public class ModContext implements LifecycleSetup {
 
     public ModContext(ModContainer modContainer) {
         this.modContainer = modContainer;
-        initExtensions();
     }
 
-    private void initExtensions() {
-        this.registerExtension(new AutoRegisters(this));
-        this.registerExtension(new AutoCreativeModeTabs(this));
-    }
-
-    private void registerExtension(AbstractModContextExtension extension) {
+    protected void registerExtension(AbstractModContextExtension extension) {
         Class<? extends AbstractModContextExtension> clazz = extension.getClass();
         if (extensions.containsKey(clazz)) {
             throw new IllegalArgumentException();

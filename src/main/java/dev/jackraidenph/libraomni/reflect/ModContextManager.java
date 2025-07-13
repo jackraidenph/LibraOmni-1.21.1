@@ -7,6 +7,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class ModContextManager implements LifecycleSetup {
 
@@ -15,6 +16,12 @@ public class ModContextManager implements LifecycleSetup {
 
     public ModContextManager(ModMetadataReader modMetadataReader) {
         this.modMetadataReader = modMetadataReader;
+    }
+
+    protected void addExtension(Function<ModContext, AbstractModContextExtension> extension) {
+        for (ModContext context : contexts()) {
+            context.registerExtension(extension.apply(context));
+        }
     }
 
     public void createContextsFromMetadata() {

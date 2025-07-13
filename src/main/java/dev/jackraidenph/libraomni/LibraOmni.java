@@ -14,6 +14,7 @@ public class LibraOmni {
     public static final String MOD_ID = "libraomni";
     public static final Logger LOGGER = LogUtils.getLogger();
     private static ModContextManager CONTEXT_MANAGER = null;
+
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("Reading metadata files");
         ModMetadataReader modMetadataReader = new ModMetadataReader();
@@ -23,15 +24,14 @@ public class LibraOmni {
         LOGGER.info("Creating ModContextManager");
         ModContextManager modContextManager = new ModContextManager(modMetadataReader);
         modContextManager.createContextsFromMetadata();
+        StaticInit.initContextExtensions(modContextManager);
         modContextManager.listenToBus(modEventBus);
-
         CONTEXT_MANAGER = modContextManager;
         LOGGER.info("ModContextManager created");
 
         LOGGER.info("Creating RuntimeTaskProcessor");
         RuntimeTaskProcessor runtimeTaskProcessor = new RuntimeTaskProcessor(modMetadataReader, modContextManager);
-        runtimeTaskProcessor.registerTask(new RegisterObjectsTask());
-        runtimeTaskProcessor.registerTask(new AddToCreativeTabsTask());
+        StaticInit.initRuntimeTasks(runtimeTaskProcessor);
         LOGGER.info("Registered runtime tasks");
         runtimeTaskProcessor.listenToBus(modEventBus);
         LOGGER.info("RuntimeTaskProcessor created");
