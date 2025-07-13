@@ -58,34 +58,21 @@ class ValidationUtils {
             return false;
         }
 
-        TypeElement typeElement = (TypeElement) e;
-        List<? extends Element> constructors = typeElement.getEnclosedElements();
-        constructors.removeIf(enc -> !enc.getKind().equals(ElementKind.CONSTRUCTOR));
+        return e.getEnclosedElements().stream()
+                .filter(enc -> enc.getKind().equals(ElementKind.CONSTRUCTOR))
+                .map(enc -> ((ExecutableElement) enc).getParameters())
+                .anyMatch((params) -> {
+                    if (typeParameters.length != params.size()) {
+                        return false;
+                    }
 
-        for (Element constructor : constructors) {
-            ExecutableElement executable = (ExecutableElement) constructor;
-            List<String> params = executable.getParameters()
-                    .stream()
-                    .map(tp -> tp.asType().toString())
-                    .toList();
+                    for (int i = 0; i < typeParameters.length; i++) {
+                        if (!assignableTo(params.get(i)).contains(typeParameters[i])) {
+                            return false;
+                        }
+                    }
 
-            if (typeParameters.length != params.size()) {
-                continue;
-            }
-
-            boolean matches = true;
-            for (int i = 0; i < typeParameters.length; i++) {
-                if (!typeParameters[i].equals(params.get(i))) {
-                    matches = false;
-                    break;
-                }
-            }
-
-            if (matches) {
-                return true;
-            }
-        }
-
-        return false;
+                    return true;
+                });
     }
 }
