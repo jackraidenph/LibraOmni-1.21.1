@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.BlockPropertiesSupplier;
-import dev.jackraidenph.libraomni.annotation.HasBlockItem;
+import dev.jackraidenph.libraomni.annotation.GeneratesBlockItem;
 import dev.jackraidenph.libraomni.annotation.ItemPropertiesSupplier;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
@@ -91,7 +91,7 @@ public class RegisterObjectsTask implements RuntimeTask {
         );
         LibraOmni.LOGGER.info("Registered block [{}]", block.getId());
 
-        if (blockElement.getAnnotation(HasBlockItem.class) != null) {
+        if (blockElement.getAnnotation(GeneratesBlockItem.class) != null) {
             Item.Properties itemProperties = itemProperties(hosting);
             registerBlockItem(itemProperties, block, register.items());
         }
@@ -167,7 +167,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotations() {
         return Set.of(
-                HasBlockItem.class,
+                GeneratesBlockItem.class,
                 Registered.class
         );
     }
