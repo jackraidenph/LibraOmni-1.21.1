@@ -1,18 +1,11 @@
 package dev.jackraidenph.libraomni.processor.validation;
 
 import dev.jackraidenph.libraomni.reflect.RuntimeTask;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.processing.Messager;
-import javax.lang.model.element.Element;
-
-public class RuntimeTaskRegisteringValidator implements Validator {
+public class RuntimeTaskRegisteringValidator extends ExtensionValidator {
     @Override
-    public boolean test(Element element, Messager messager) {
-        String runtimeProcessorClassName = RuntimeTask.class.getName();
-        boolean implementsRuntimeProcessor = ValidationUtils.elementImplementsAny(element, runtimeProcessorClassName);
-        if (!implementsRuntimeProcessor) {
-            messager.printError(element.getSimpleName().toString() + " must implement " + runtimeProcessorClassName);
-        }
-        return implementsRuntimeProcessor;
+    protected @NotNull Class<?> mustImplement() {
+        return RuntimeTask.class;
     }
 }
