@@ -13,23 +13,23 @@ class ValidationUtils {
         return e.toString().equals(OBJECT_STR);
     }
 
-    public static List<String> getAssignableTypes(Element e) {
+    public static SequencedCollection<String> getAssignableTypes(Element e) {
         TypeElement type = (TypeElement) e;
-        List<String> hierarchy = new ArrayList<>();
+        SequencedCollection<String> hierarchy = new LinkedHashSet<>();
 
         try {
             do {
                 for (TypeMirror i : type.getInterfaces()) {
-                    hierarchy.add(i.toString());
+                    hierarchy.addLast(i.toString());
                 }
-                hierarchy.add(type.toString());
+                hierarchy.addLast(type.toString());
                 type = ((TypeElement) ((DeclaredType) type.getSuperclass()).asElement());
             } while (!isObject(type));
         } catch (ClassCastException castException) {
             throw new IllegalArgumentException(castException);
         }
 
-        hierarchy.add(OBJECT_STR);
+        hierarchy.addLast(OBJECT_STR);
 
         return hierarchy;
     }
