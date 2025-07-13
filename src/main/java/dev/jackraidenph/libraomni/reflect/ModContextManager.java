@@ -18,7 +18,7 @@ public class ModContextManager implements LifecycleSetup {
         this.modMetadataReader = modMetadataReader;
     }
 
-    protected void addExtension(Function<ModContext, AbstractModContextExtension> extension) {
+    void registerExtensionFactory(Function<ModContext, AbstractModContextExtension> extension) {
         for (ModContext context : contexts()) {
             context.registerExtension(extension.apply(context));
         }

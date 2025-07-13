@@ -40,10 +40,6 @@ public class ModMetadataReader {
     }
 
     public ModMetadata getModMetadata(String modId) {
-        if (!init) {
-            throw new IllegalStateException("Reader was not initialized");
-        }
-
         return modMetadataMap().get(modId);
     }
 

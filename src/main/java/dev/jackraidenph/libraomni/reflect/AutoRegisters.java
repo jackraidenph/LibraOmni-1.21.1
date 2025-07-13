@@ -137,7 +137,7 @@ public class AutoRegisters extends AbstractModContextExtension {
         return (DeferredRegister<T>) this.registersMap.get(superclass);
     }
 
-    protected <T> DeferredRegister<T> getOrCreateRegister(Class<T> clazz) {
+    public <T> DeferredRegister<T> getOrCreateRegister(Class<T> clazz) {
         DeferredRegister<T> register = forClass(clazz);
         if (register != null) {
             return register;

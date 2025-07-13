@@ -3,8 +3,8 @@ package dev.jackraidenph.libraomni.reflect;
 public class StaticInit {
 
     public static void initContextExtensions(ModContextManager modContextManager) {
-        modContextManager.addExtension(AutoRegisters::new);
-        modContextManager.addExtension(AutoCreativeModeTabs::new);
+        modContextManager.registerExtensionFactory(AutoRegisters::new);
+        modContextManager.registerExtensionFactory(AutoCreativeModeTabs::new);
     }
 
     //---

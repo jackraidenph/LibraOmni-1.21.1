@@ -34,7 +34,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         this.modMetadataReader = reader;
     }
 
-    public RuntimeTaskProcessor registerTask(RuntimeTask task) {
+    RuntimeTaskProcessor registerTask(RuntimeTask task) {
         if (setup) {
             throw new AlreadySetupException();
         }
@@ -156,7 +156,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         return taskGraph;
     }
 
-    public void processLifecycleStage(LifecycleStage stage) {
+    private void processLifecycleStage(LifecycleStage stage) {
         for (ModContext modContext : modContextManager.contexts()) {
             Map<Class<? extends RuntimeTask>, RuntimeTask> tasksForMod = Streams.concat(
                             nativeTasks.entrySet().stream(),
@@ -199,7 +199,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         }
     }
 
-    public static class DuplicateTaskException extends IllegalArgumentException {
+    private static class DuplicateTaskException extends IllegalArgumentException {
         private final RuntimeTask duplicate;
 
         public DuplicateTaskException(RuntimeTask task) {
@@ -212,7 +212,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         }
     }
 
-    public static class AlreadySetupException extends IllegalStateException {
+    private static class AlreadySetupException extends IllegalStateException {
         @Override
         public String getMessage() {
             return "Setup was already performed";

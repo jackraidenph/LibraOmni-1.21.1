@@ -86,7 +86,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
         }
     }
 
-    public final boolean saveResourceToDisk(Resource resource) {
+    private void saveResourceToDisk(Resource resource) {
         Filer filer = this.processingEnv.getFiler();
 
         try {
@@ -101,10 +101,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
             }
         } catch (IOException ioException) {
             this.processingEnv.getMessager().printError("Failed to create resource [" + resource.getPath() + "]:\n" + ioException.getLocalizedMessage());
-            return false;
         }
-
-        return true;
     }
 
     private boolean resourceExists(Resource resource) {
