@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.processor.validation;
 
-import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 
 public interface Validator {
-    boolean test(Element element, Messager messager);
+    boolean test(Element element, ProcessingEnvironment processingEnvironment);
 }

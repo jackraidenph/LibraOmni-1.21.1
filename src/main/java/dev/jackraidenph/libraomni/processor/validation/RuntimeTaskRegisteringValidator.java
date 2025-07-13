@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RuntimeTaskRegisteringValidator extends ExtensionValidator {
     @Override
-    protected @NotNull Class<?> mustImplement() {
-        return RuntimeTask.class;
+    protected @NotNull String classNameToValidateAgainst() {
+        return RuntimeTask.class.getName();
     }
 }

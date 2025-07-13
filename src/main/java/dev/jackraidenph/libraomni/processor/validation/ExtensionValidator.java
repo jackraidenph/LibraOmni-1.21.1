@@ -2,35 +2,31 @@ package dev.jackraidenph.libraomni.processor.validation;
 
 import javax.annotation.Nonnull;
 import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 
 public abstract class ExtensionValidator implements Validator {
 
     @Override
-    public boolean test(Element element, Messager messager) {
-        Class<?> toImplement = mustImplement();
+    public boolean test(Element element, ProcessingEnvironment processingEnvironment) {
+        Messager messager = processingEnvironment.getMessager();
 
-        boolean isInterface = toImplement.isInterface();
+        String toExtendOrImplement = classNameToValidateAgainst();
 
-        String className = toImplement.getName();
-        boolean implementsRuntimeProcessor = isInterface
-                ? ValidationUtils.elementImplementsAny(element, className)
-                : ValidationUtils.elementExtendsAny(element, className);
+        boolean implementsRuntimeProcessor = ValidationUtils.elementImplementsOrExtendsAny(
+                element,
+                toExtendOrImplement
+        );
 
         if (!implementsRuntimeProcessor) {
-            messager.printError(
-                    element.getSimpleName().toString() +
-                            "must " +
-                            (isInterface ? "implement " : "extend ") +
-                            className
-            );
+            messager.printError(element.getSimpleName().toString() + " must implement or extend " + toExtendOrImplement);
         }
 
         return implementsRuntimeProcessor;
     }
 
     @Nonnull
-    protected Class<?> mustImplement() {
-        return Object.class;
+    protected String classNameToValidateAgainst() {
+        return Object.class.getName();
     }
 }

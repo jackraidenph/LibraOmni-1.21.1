@@ -37,7 +37,7 @@ class ValidateAnnotationsTask implements CompilationTask {
             Set<? extends Element> toValidate = roundEnv.getElementsAnnotatedWith(annotationElement);
 
             for (Element e : toValidate) {
-                if (!validator.test(e, processingEnv.getMessager())) {
+                if (!validator.test(e, processingEnv)) {
                     processingEnv.getMessager().printError("Validation failed for element [" + e.getSimpleName().toString() + "]");
                 }
             }
