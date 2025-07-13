@@ -13,7 +13,7 @@ class ValidationUtils {
         return e.toString().equals(OBJECT_STR);
     }
 
-    public static List<String> assignableTo(Element e) {
+    public static List<String> getAssignableTypes(Element e) {
         TypeElement type = (TypeElement) e;
         List<String> hierarchy = new ArrayList<>();
 
@@ -50,7 +50,7 @@ class ValidationUtils {
         if (e.toString().equals(OBJECT_STR)) {
             return true;
         }
-        return !Collections.disjoint(Set.of(classNames), assignableTo(getType(e)));
+        return !Collections.disjoint(Set.of(classNames), getAssignableTypes(getType(e)));
     }
 
     public static boolean constructorMatches(Element e, String... typeParameters) {
@@ -67,7 +67,7 @@ class ValidationUtils {
                     }
 
                     for (int i = 0; i < typeParameters.length; i++) {
-                        if (!assignableTo(params.get(i)).contains(typeParameters[i])) {
+                        if (!getAssignableTypes(params.get(i)).contains(typeParameters[i])) {
                             return false;
                         }
                     }
