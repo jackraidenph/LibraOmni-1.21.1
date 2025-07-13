@@ -56,7 +56,6 @@ public class AutoCreativeModeTabs extends AbstractModContextExtension implements
     public void populateTabs(BuildCreativeModeTabContentsEvent event) {
         List<ItemLike> items = getItems(event.getTabKey().location());
         if (items != null && !items.isEmpty()) {
-            LibraOmni.LOGGER.info("AAAA {}", items);
             for (ItemLike itemLike : items) {
                 event.accept(itemLike);
                 LibraOmni.LOGGER.info("Added [{}] to [{}]", itemLike, event.getTabKey());
