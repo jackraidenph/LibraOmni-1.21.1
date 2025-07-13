@@ -1,52 +1,55 @@
 package dev.jackraidenph.libraomni.processor.validation;
 
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 class ValidationUtils {
 
-    public static boolean elementExtendsAny(Element e, String... classNames) {
-        if (!e.getKind().isDeclaredType()) {
-            return false;
-        }
+    private static final String OBJECT_STR = Object.class.getName();
 
-        Set<String> classNamesSet = Set.of(classNames);
-
-        TypeElement typeElement = (TypeElement) e;
-        final String objectName = Object.class.getName();
-        String currentSuperclass = typeElement.getSuperclass().toString();
-        while (!currentSuperclass.equals(objectName)) {
-            if (classNamesSet.contains(currentSuperclass)) {
-                return true;
-            }
-            typeElement = ((TypeElement) ((DeclaredType) typeElement.getSuperclass()).asElement());
-            currentSuperclass = typeElement.getSuperclass().toString();
-        }
-        return false;
+    private static boolean isObject(Element e) {
+        return e.toString().equals(OBJECT_STR);
     }
 
-    public static boolean elementImplementsAny(Element e, String... classNames) {
-        if (!e.getKind().isDeclaredType()) {
-            return false;
+    public static List<String> assignableTo(Element e) {
+        TypeElement type = (TypeElement) e;
+        List<String> hierarchy = new ArrayList<>();
+
+        try {
+            do {
+                for (TypeMirror i : type.getInterfaces()) {
+                    hierarchy.add(i.toString());
+                }
+                hierarchy.add(type.toString());
+                type = ((TypeElement) ((DeclaredType) type.getSuperclass()).asElement());
+            } while (!isObject(type));
+        } catch (ClassCastException castException) {
+            throw new IllegalArgumentException(castException);
         }
 
-        Set<String> classNamesSet = Set.of(classNames);
 
-        TypeElement typeElement = (TypeElement) e;
-        for (TypeMirror typeMirror : typeElement.getInterfaces()) {
-            TypeElement interfaceType = ((TypeElement) ((DeclaredType) typeMirror).asElement());
-            if (classNamesSet.contains(interfaceType.getQualifiedName().toString())) {
-                return true;
-            }
+        return hierarchy;
+    }
+
+    public static Element getType(Element e) {
+        return ((DeclaredType) switch (e) {
+            case TypeElement typeElement -> typeElement.asType();
+            case ExecutableElement executableElement -> executableElement.getReturnType();
+            case VariableElement variableElement -> variableElement.asType();
+            case null, default -> throw new UnsupportedOperationException();
+        }).asElement();
+    }
+
+    public static boolean elementImplementsOrExtendsAny(
+            Element e,
+            String... classNames
+    ) {
+        if (e.toString().equals(OBJECT_STR)) {
+            return true;
         }
-
-        return false;
+        return !Collections.disjoint(Set.of(classNames), assignableTo(getType(e)));
     }
 
     public static boolean constructorMatches(Element e, String... typeParameters) {
