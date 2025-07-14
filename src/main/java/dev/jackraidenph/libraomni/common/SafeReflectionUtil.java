@@ -13,16 +13,18 @@ import java.util.Set;
 public class SafeReflectionUtil {
 
     public static Type[] extractTypeArgumentsFromFunctionalField(Field field) {
-        Type genericType = field.getGenericType();
-        if (!(genericType instanceof ParameterizedType parameterizedType)) {
-            return new Type[0];
-        }
-
-        return parameterizedType.getActualTypeArguments();
+        Class<?> type = field.getType();
+        Method function = type.getMethods()[0];
+        return function.getParameterTypes();
     }
 
     public static Class<?> tryResolveFunctionalReturnType(Field functionalTypeField) {
-        Type[] types = extractTypeArgumentsFromFunctionalField(functionalTypeField);
+        Type genericType = functionalTypeField.getGenericType();
+        if (!(genericType instanceof ParameterizedType parameterizedType)) {
+            return null;
+        }
+
+        Type[] types = parameterizedType.getActualTypeArguments();
         if (types.length < 1) {
             return null;
         }
