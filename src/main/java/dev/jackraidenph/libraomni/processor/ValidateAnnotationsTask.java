@@ -29,8 +29,7 @@ class ValidateAnnotationsTask implements CompilationTask {
         for (TypeElement annotationElement : validatedAnnotations) {
             Validator validator = this.getValidatorForAnnotation(annotationElement);
             if (validator == null) {
-                processingEnv.getMessager().printError("Failed to get validator from " + annotationElement);
-                continue;
+                throw new AnnotationValidationException(annotationElement, "Failed to instantiate validator");
             }
             processingEnv.getMessager().printNote("Found validator [" + validator.getClass().getSimpleName() + "] for [" + annotationElement.getQualifiedName() + "]");
 
@@ -92,6 +91,10 @@ class ValidateAnnotationsTask implements CompilationTask {
     }
 
     public static class AnnotationValidationException extends IllegalStateException {
+        public AnnotationValidationException(Element e, String details) {
+            super("Validation failed for [%s]: %s".formatted(e, details));
+        }
+
         public AnnotationValidationException(Element e, Throwable cause) {
             super("Validation failed for [%s]".formatted(e), cause);
         }
