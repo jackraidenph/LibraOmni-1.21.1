@@ -6,11 +6,12 @@ import java.lang.reflect.*;
 
 public class UnsafeReflectionUtil {
 
-    public static <T> T getValue(AnnotatedElement annotatedElement, Object context, Object... args) {
+    public static <T> T getValue(AnnotatedElement annotatedElement, Object context, boolean resolveFunctionalFields, Object... args) {
         return switch (annotatedElement) {
             case TransitiveAnnotatedElement transitiveAnnotatedElement ->
-                    getValue(transitiveAnnotatedElement.unwrap(), context, args);
-            case AccessibleObject accessibleObject -> getValue(accessibleObject, context, args);
+                    getValue(transitiveAnnotatedElement.unwrap(), context, resolveFunctionalFields, args);
+            case AccessibleObject accessibleObject ->
+                    getValueFromAccessible(accessibleObject, context, resolveFunctionalFields, args);
             case Class<?> clazz -> {
                 try {
                     //noinspection unchecked
@@ -23,10 +24,10 @@ public class UnsafeReflectionUtil {
         };
     }
 
-    public static <T> T getValue(AccessibleObject accessibleObject, Object context, Object... args) {
+    public static <T> T getValueFromAccessible(AccessibleObject accessibleObject, Object context, boolean resolveFunctionalFields, Object... args) {
         accessibleObject.setAccessible(true);
         return switch (accessibleObject) {
-            case Field field -> getFieldValue(field, context);
+            case Field field -> getFieldValue(field, context, resolveFunctionalFields, args);
             case Method method -> getMethodValue(method, context, args);
             case Constructor<?> constructor -> {
                 try {
@@ -50,18 +51,23 @@ public class UnsafeReflectionUtil {
         }
     }
 
-    public static <T> T getFieldValue(Field field, Object context) {
+    public static <T> T getFieldValue(Field field, Object context, boolean resolveFunctionalInterfaces, Object... args) {
         try {
+            Object val = field.get(context);
+
+            if (resolveFunctionalInterfaces) {
+                Class<?> clazz = SafeReflectionUtil.selfOrReturnType(field);
+                if (SafeReflectionUtil.isFunctionalInterface(clazz)) {
+                    return getMethodValue(clazz.getMethods()[0], val, args);
+                }
+            }
+
             //Return null if the return type is not appropriate
             //noinspection unchecked
-            return (T) field.get(context);
+            return (T) val;
         } catch (IllegalAccessException | ClassCastException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static Object getFieldValueStatic(Field field) {
-        return getFieldValue(field, null);
     }
 
     public static <T> T getConstructorValue(Constructor<T> constructor, Object... args) {

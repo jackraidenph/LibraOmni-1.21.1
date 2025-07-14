@@ -12,10 +12,62 @@ import java.util.Set;
  */
 public class SafeReflectionUtil {
 
+    public static Type[] extractTypeArgumentsFromFunctionalField(Field field) {
+        Type genericType = field.getGenericType();
+        if (!(genericType instanceof ParameterizedType parameterizedType)) {
+            return new Type[0];
+        }
+
+        return parameterizedType.getActualTypeArguments();
+    }
+
+    public static Class<?> tryResolveFunctionalReturnType(Field functionalTypeField) {
+        Type[] types = extractTypeArgumentsFromFunctionalField(functionalTypeField);
+        if (types.length < 1) {
+            return null;
+        }
+
+        return (Class<?>) types[types.length - 1];
+    }
+
+    public static boolean isFunctionalInterface(AnnotatedElement element) {
+        if (!(element instanceof Class<?> clazz)) {
+            return false;
+        }
+
+        if (!clazz.isInterface()) {
+            return false;
+        }
+
+        Method[] methods = clazz.getMethods();
+        boolean encounteredAbstract = false;
+        for (Method m : methods) {
+            if (!Modifier.isAbstract(m.getModifiers())) {
+                continue;
+            }
+            if (encounteredAbstract) {
+                return false;
+            }
+            encounteredAbstract = true;
+        }
+
+        return encounteredAbstract;
+    }
+
     public static Class<?> selfOrReturnType(AnnotatedElement element) {
+        return selfOrReturnType(element, false);
+    }
+
+    public static Class<?> selfOrReturnType(AnnotatedElement element, boolean resolveFunctionalInterfaces) {
         return switch (element) {
             case Class<?> clazz -> clazz;
-            case Field field -> field.getType();
+            case Field field -> {
+                Class<?> clazz = field.getType();
+                if (!resolveFunctionalInterfaces || !isFunctionalInterface(clazz)) {
+                    yield clazz;
+                }
+                yield tryResolveFunctionalReturnType(field);
+            }
             case Method method -> method.getReturnType();
             case null, default -> throw new UnsupportedOperationException();
         };

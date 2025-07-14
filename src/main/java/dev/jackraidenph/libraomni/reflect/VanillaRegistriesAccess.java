@@ -41,7 +41,7 @@ public class VanillaRegistriesAccess {
             return null;
         }
 
-        Object obj = UnsafeReflectionUtil.getFieldValueStatic(key);
+        Object obj = UnsafeReflectionUtil.getFieldValue(key, null, false);
         if (obj == null) {
             throw new IllegalStateException("Failed to get %s value".formatted(key.toGenericString()));
         }

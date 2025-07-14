@@ -29,7 +29,11 @@ public class RegisterObjectsTask implements RuntimeTask {
     @Override
     public void process(ModContext modContext, Set<TransitiveAnnotatedElement> elements) {
         for (TransitiveAnnotatedElement e : elements) {
-            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(e.unwrap());
+            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(e.unwrap(), true);
+            if (clazz == null) {
+                throw new IllegalStateException("Resolved class for [%s] is null".formatted(e));
+            }
+
             if (Block.class.isAssignableFrom(clazz)) {
                 registerBlock(modContext, e, clazz);
             } else if (Item.class.isAssignableFrom(clazz)) {
@@ -40,7 +44,7 @@ public class RegisterObjectsTask implements RuntimeTask {
         }
     }
 
-    private static <T> T getValueFromSingularMethod(Class<?> clazz, Predicate<Method> predicate, Supplier<T> defaultValue) {
+    private static <T> T getValueFromSingularMethod(Class<?> clazz, Predicate<Method> predicate, Supplier<T> defaultValue, Object... args) {
         Set<Method> suppliers = Arrays.stream(clazz.getMethods())
                 .filter(predicate)
                 .collect(Collectors.toSet());
@@ -52,7 +56,7 @@ public class RegisterObjectsTask implements RuntimeTask {
 
         Method supplier = suppliers.iterator().next();
 
-        return UnsafeReflectionUtil.getValue(supplier, null);
+        return UnsafeReflectionUtil.getValue(supplier, null, true, args);
     }
 
     private static BlockBehaviour.Properties blockProperties(Class<?> blockClass) {
@@ -129,7 +133,6 @@ public class RegisterObjectsTask implements RuntimeTask {
         if (created == null) {
             throw new IllegalStateException("Failed to instantiate object from element [%s]".formatted(element.toString()));
         }
-        return created;
     }
 
     private static <T> void registerArbitrary(ModContext modContext, TransitiveAnnotatedElement element, Class<?> clazz) {
