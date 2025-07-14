@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
+import dev.jackraidenph.libraomni.common.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import net.minecraft.core.Registry;
@@ -94,7 +95,7 @@ public class AutoRegisters extends AbstractModContextExtension {
 
     public void init() {
         if (this.initialized) {
-            throw new IllegalStateException("Registers context for [" + this.getContext().modId() + "] were already initialized");
+            throw new AlreadyInitializedException();
         }
 
         VanillaRegistriesAccess.mapAndCacheVanillaRegistries();

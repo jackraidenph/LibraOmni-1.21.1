@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.reflect;
 
 import com.google.common.collect.Streams;
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.common.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.ModMetadata;
@@ -36,7 +37,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
     RuntimeTaskProcessor registerTask(RuntimeTask task) {
         if (setup) {
-            throw new AlreadySetupException();
+            throw new AlreadyInitializedException();
         }
 
         Class<? extends RuntimeTask> clazz = task.getClass();
@@ -52,7 +53,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
     @Override
     public void listenToBus(IEventBus eventBus) {
         if (this.setup) {
-            throw new AlreadySetupException();
+            throw new AlreadyInitializedException();
         }
         eventBus.addListener(this::setupConstruct);
         eventBus.addListener(this::setupCommon);
@@ -209,13 +210,6 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         @Override
         public String getMessage() {
             return duplicate.getClass().getSimpleName();
-        }
-    }
-
-    public static class AlreadySetupException extends IllegalStateException {
-        @Override
-        public String getMessage() {
-            return "Setup was already performed";
         }
     }
 }
