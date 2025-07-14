@@ -26,6 +26,8 @@ class ValidateAnnotationsTask implements CompilationTask {
                 .filter(e -> e.getAnnotation(Validated.class) != null)
                 .collect(Collectors.toSet());
 
+        System.out.println(validatedAnnotations);
+
         for (TypeElement annotationElement : validatedAnnotations) {
             Validator validator = this.getValidatorForAnnotation(annotationElement);
             if (validator == null) {
@@ -38,7 +40,7 @@ class ValidateAnnotationsTask implements CompilationTask {
 
             for (Element e : toValidate) {
                 if (!validator.test(e, processingEnv)) {
-                    processingEnv.getMessager().printError("Validation failed for element [" + e.getSimpleName().toString() + "]");
+                    throw new AnnotationValidationException();
                 }
             }
         }
@@ -85,5 +87,8 @@ class ValidateAnnotationsTask implements CompilationTask {
         } catch (ClassCastException classCastException) {
             return null;
         }
+    }
+
+    public static class AnnotationValidationException extends IllegalStateException {
     }
 }
