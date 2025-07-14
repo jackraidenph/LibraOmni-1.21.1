@@ -14,20 +14,22 @@ class ValidationUtils {
     }
 
     public static SequencedCollection<String> getAssignableTypes(Element e) {
-        TypeElement type = (TypeElement) e;
+        if (!(e instanceof TypeElement type)) {
+            throw new IllegalArgumentException();
+        }
+
         SequencedCollection<String> hierarchy = new LinkedHashSet<>();
 
-        try {
-            do {
-                for (TypeMirror i : type.getInterfaces()) {
-                    hierarchy.addLast(i.toString());
-                }
-                hierarchy.addLast(type.toString());
-                type = ((TypeElement) ((DeclaredType) type.getSuperclass()).asElement());
-            } while (!isObject(type));
-        } catch (ClassCastException castException) {
-            throw new IllegalArgumentException(castException);
-        }
+        do {
+            hierarchy.addLast(type.toString());
+            for (TypeMirror i : type.getInterfaces()) {
+                hierarchy.addLast(i.toString());
+            }
+            if (!(type.getSuperclass() instanceof DeclaredType declaredType) || !(declaredType instanceof TypeElement typeElement)) {
+                break;
+            }
+            type = typeElement;
+        } while (!isObject(type));
 
         hierarchy.addLast(OBJECT_STR);
 
