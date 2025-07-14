@@ -2,12 +2,14 @@ package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.InCreativeTab;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
 public class AddToCreativeTabsTask implements RuntimeTask {
@@ -21,7 +23,10 @@ public class AddToCreativeTabsTask implements RuntimeTask {
 
             AutoCreativeModeTabs autoCreativeModeTabs = modContext.getExtension(AutoCreativeModeTabs.class);
 
-            DeferredHolder<?, ?> holder = AutoRegisters.entry(modContext.modId(), e.unwrap()).orElse(null);
+            AnnotatedElement annotatedElement = e.unwrap();
+            String id = SafeReflectionUtil.idOrDefault(annotatedElement);
+            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(annotatedElement, true);
+            DeferredHolder<?, ?> holder = AutoRegisters.entry(modContext.modId(), clazz, id);
 
             if (holder == null) {
                 LibraOmni.LOGGER.error("Failed to add {} to creative tab, deferred holder not found", e);

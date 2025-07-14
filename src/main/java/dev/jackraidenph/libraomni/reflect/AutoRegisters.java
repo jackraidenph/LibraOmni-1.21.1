@@ -34,7 +34,7 @@ public class AutoRegisters extends AbstractModContextExtension {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
     }
 
-    public static <T> Optional<DeferredHolder<T, ? extends T>> entry(String modId, AnnotatedElement element) {
+    public static <T> DeferredHolder<T, ? extends T> entry(String modId, Class<?> element) {
         String className = SafeReflectionUtil.objectName(element);
         Registered registered = element.getAnnotation(Registered.class);
         String id = registered == null || registered.value().isBlank()
@@ -46,18 +46,22 @@ public class AutoRegisters extends AbstractModContextExtension {
         return entry(modId, clazz, id);
     }
 
-    public static <T> Optional<DeferredHolder<T, ? extends T>> entry(String modId, Class<?> entryType, String id) {
+    public static <T> DeferredHolder<T, ? extends T> entry(String modId, Class<?> entryType, String id) {
         AutoRegisters autoRegisters = mod(modId);
 
         //noinspection unchecked
         DeferredHolder<T, ? extends T> holder = (DeferredHolder<T, ? extends T>) autoRegisters.entryCache.get(id);
         if (holder != null) {
-            return Optional.of(holder);
+            return holder;
+        }
+
+        if (entryType == null) {
+            throw new IllegalArgumentException("Entry supertype is null");
         }
 
         DeferredRegister<T> register = autoRegisters.forClass(entryType);
         if (register == null) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Register for class [%s] doesn't exist".formatted(entryType));
         }
 
         ResourceLocation resourceLocation = ResourceLocation.tryBuild(modId, id);
@@ -70,13 +74,13 @@ public class AutoRegisters extends AbstractModContextExtension {
                 .collect(Collectors.toSet());
 
         if (holders.isEmpty()) {
-            return Optional.empty();
+            return DeferredHolder.create(register.getRegistryKey(), resourceLocation);
         }
 
         DeferredHolder<T, ? extends T> retrieved = holders.iterator().next();
         autoRegisters.entryCache.put(id, retrieved);
 
-        return Optional.of(retrieved);
+        return retrieved;
     }
 
     public AutoRegisters(ModContext modContext) {
