@@ -26,8 +26,6 @@ class ValidateAnnotationsTask implements CompilationTask {
                 .filter(e -> e.getAnnotation(Validated.class) != null)
                 .collect(Collectors.toSet());
 
-        System.out.println(validatedAnnotations);
-
         for (TypeElement annotationElement : validatedAnnotations) {
             Validator validator = this.getValidatorForAnnotation(annotationElement);
             if (validator == null) {
