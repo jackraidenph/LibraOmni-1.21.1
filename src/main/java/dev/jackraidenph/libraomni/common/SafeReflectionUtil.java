@@ -2,7 +2,6 @@ package dev.jackraidenph.libraomni.common;
 
 import dev.jackraidenph.libraomni.annotation.Registered;
 
-import javax.lang.model.element.VariableElement;
 import java.lang.annotation.ElementType;
 import java.lang.reflect.*;
 import java.util.Set;

@@ -15,7 +15,6 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.lang.reflect.AnnotatedElement;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
