@@ -39,8 +39,12 @@ class ValidateAnnotationsTask implements CompilationTask {
             Set<? extends Element> toValidate = roundEnv.getElementsAnnotatedWith(annotationElement);
 
             for (Element e : toValidate) {
-                if (!validator.test(e, processingEnv)) {
-                    throw new AnnotationValidationException();
+                try {
+                    if (!validator.test(e, processingEnv)) {
+                        throw new AnnotationValidationException(e);
+                    }
+                } catch (Exception innerException) {
+                    throw new AnnotationValidationException(e, innerException);
                 }
             }
         }
@@ -90,5 +94,13 @@ class ValidateAnnotationsTask implements CompilationTask {
     }
 
     public static class AnnotationValidationException extends IllegalStateException {
+        public AnnotationValidationException(Element e, Throwable cause) {
+            super("Validation failed for [%s]".formatted(e), cause);
+        }
+
+
+        public AnnotationValidationException(Element e) {
+            super("Validation failed for [%s]".formatted(e));
+        }
     }
 }
