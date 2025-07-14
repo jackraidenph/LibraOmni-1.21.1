@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.common;
 
 import dev.jackraidenph.libraomni.annotation.Registered;
 
+import javax.lang.model.element.VariableElement;
 import java.lang.annotation.ElementType;
 import java.lang.reflect.*;
 import java.util.Set;
@@ -11,6 +12,37 @@ import java.util.Set;
  * If throwing an exception is actually needed - null check should be used on the calling side
  */
 public class SafeReflectionUtil {
+
+    public static Class<?>[] inferTypes(Object... objects) {
+        Class<?>[] typesArray = new Class[objects.length];
+        for (int i = 0; i < objects.length; i++) {
+            typesArray[i] = objects[i].getClass();
+        }
+
+        return typesArray;
+    }
+
+    public static Type[] extractTypeArguments(AnnotatedElement element) {
+        if (!isExecutable(element)) {
+            return null;
+        }
+
+        if (element instanceof Field field) {
+            return extractTypeArgumentsFromFunctionalField(field);
+        }
+
+        if (element instanceof Executable executable) {
+            return executable.getParameterTypes();
+        }
+
+        return null;
+    }
+
+    public static boolean isExecutable(AnnotatedElement element) {
+        return (element instanceof Method)
+                || (element instanceof Constructor<?>)
+                || ((element instanceof Field) && isFunctionalInterface(selfOrReturnType(element)));
+    }
 
     public static Type[] extractTypeArgumentsFromFunctionalField(Field field) {
         Class<?> type = field.getType();
@@ -71,7 +103,9 @@ public class SafeReflectionUtil {
                 yield tryResolveFunctionalReturnType(field);
             }
             case Method method -> method.getReturnType();
-            case null, default -> throw new UnsupportedOperationException();
+            case null, default -> throw new UnsupportedOperationException(
+                    "Trying to resolve type from [%s]".formatted(element == null ? null : element.getClass())
+            );
         };
     }
 

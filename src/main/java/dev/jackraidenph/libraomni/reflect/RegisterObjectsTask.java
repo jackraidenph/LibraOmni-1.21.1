@@ -128,10 +128,22 @@ public class RegisterObjectsTask implements RuntimeTask {
         LibraOmni.LOGGER.info("Registered item [{}]", item.getId());
     }
 
-    private static <T> T nullFailingStaticInstantiate(AnnotatedElement element, Object... args) {
-        T created = UnsafeReflectionUtil.getValue(element, null, args);
-        if (created == null) {
-            throw new IllegalStateException("Failed to instantiate object from element [%s]".formatted(element.toString()));
+    private static <T> T nullFailingStaticInstantiate(TransitiveAnnotatedElement element, Object... args) {
+        try {
+            T created = UnsafeReflectionUtil.getValue(element, null, true, args);
+
+            if (created == null) {
+                throw new IllegalStateException("Failed to instantiate object from element [%s]".formatted(element.toString()));
+            }
+            return created;
+        } catch (IllegalArgumentException illegalArgumentException) {
+            AnnotatedElement unwrapped = element.unwrap();
+            if (SafeReflectionUtil.isExecutable(unwrapped)) {
+                String actual = Arrays.toString(SafeReflectionUtil.extractTypeArguments(unwrapped));
+                String expected = Arrays.toString(SafeReflectionUtil.inferTypes(args));
+                throw new IllegalStateException("Expected executable with parameters [%s], got [%s]".formatted(expected, actual));
+            }
+            throw new IllegalStateException(illegalArgumentException);
         }
     }
 

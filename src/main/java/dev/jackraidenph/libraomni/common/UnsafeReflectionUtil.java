@@ -84,19 +84,10 @@ public class UnsafeReflectionUtil {
 
     public static <T> T tryConstruct(Class<T> clazz, Object... args) {
         try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor(inferTypes(args));
+            Constructor<T> constructor = clazz.getDeclaredConstructor(SafeReflectionUtil.inferTypes(args));
             return getConstructorValue(constructor, args);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static Class<?>[] inferTypes(Object... objects) {
-        Class<?>[] typesArray = new Class[objects.length];
-        for (int i = 0; i < objects.length; i++) {
-            typesArray[i] = objects[i].getClass();
-        }
-
-        return typesArray;
     }
 }
