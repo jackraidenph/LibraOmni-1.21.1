@@ -141,7 +141,7 @@ public class RegisterObjectsTask implements RuntimeTask {
             if (SafeReflectionUtil.isExecutable(unwrapped)) {
                 String actual = Arrays.toString(SafeReflectionUtil.extractTypeArguments(unwrapped));
                 String expected = Arrays.toString(SafeReflectionUtil.inferTypes(args));
-                throw new IllegalStateException("Expected executable with parameters [%s], got [%s]".formatted(expected, actual));
+                throw new IllegalStateException("Expected executable with parameters %s, got %s".formatted(expected, actual));
             }
             throw new IllegalStateException(illegalArgumentException);
         }
