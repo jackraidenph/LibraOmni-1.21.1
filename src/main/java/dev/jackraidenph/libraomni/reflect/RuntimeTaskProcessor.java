@@ -199,7 +199,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         }
     }
 
-    private static class DuplicateTaskException extends IllegalArgumentException {
+    public static class DuplicateTaskException extends IllegalArgumentException {
         private final RuntimeTask duplicate;
 
         public DuplicateTaskException(RuntimeTask task) {
@@ -212,7 +212,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         }
     }
 
-    private static class AlreadySetupException extends IllegalStateException {
+    public static class AlreadySetupException extends IllegalStateException {
         @Override
         public String getMessage() {
             return "Setup was already performed";
