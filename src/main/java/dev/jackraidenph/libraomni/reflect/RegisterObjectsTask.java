@@ -103,7 +103,6 @@ public class RegisterObjectsTask implements RuntimeTask {
 
     private static void registerBlockItem(Item.Properties properties, DeferredBlock<?> block, DeferredRegister.Items items) {
         String id = block.getId().getPath();
-        id += "_item";
 
         DeferredItem<?> blockItem = items.registerSimpleBlockItem(
                 id,
