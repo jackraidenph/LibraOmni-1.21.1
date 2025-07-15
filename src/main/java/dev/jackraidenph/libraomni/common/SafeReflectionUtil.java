@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.common;
 
 import dev.jackraidenph.libraomni.annotation.Registered;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.ElementType;
 import java.lang.reflect.*;
@@ -127,6 +128,10 @@ public class SafeReflectionUtil {
     }
 
     public static String idOrDefault(AnnotatedElement element) {
+        if(element instanceof DeferredHolder<?,?> holder) {
+            return holder.getId().getPath();
+        }
+
         String className = objectName(element);
         Registered registered = element.getAnnotation(Registered.class);
         return registered == null || registered.value().isBlank()
