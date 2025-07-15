@@ -33,7 +33,7 @@ public class AutoRegisters extends AbstractModContextExtension {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
     }
 
-    public static <T> DeferredHolder<T, ? extends T> entry(String modId, Class<?> element) {
+    public static <T, R extends T> DeferredHolder<T, R> entry(String modId, Class<?> element) {
         String className = SafeReflectionUtil.objectName(element);
         Registered registered = element.getAnnotation(Registered.class);
         String id = registered == null || registered.value().isBlank()
@@ -45,11 +45,11 @@ public class AutoRegisters extends AbstractModContextExtension {
         return entry(modId, clazz, id);
     }
 
-    public static <T> DeferredHolder<T, ? extends T> entry(String modId, Class<?> entryType, String id) {
+    public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<?> entryType, String id) {
         AutoRegisters autoRegisters = mod(modId);
 
         //noinspection unchecked
-        DeferredHolder<T, ? extends T> holder = (DeferredHolder<T, ? extends T>) autoRegisters.entryCache.get(id);
+        DeferredHolder<R, T> holder = (DeferredHolder<R, T>) autoRegisters.entryCache.get(id);
         if (holder != null) {
             return holder;
         }
@@ -58,7 +58,7 @@ public class AutoRegisters extends AbstractModContextExtension {
             throw new IllegalArgumentException("Entry supertype is null");
         }
 
-        DeferredRegister<T> register = autoRegisters.forClass(entryType);
+        DeferredRegister<R> register = autoRegisters.forClass(entryType);
         if (register == null) {
             throw new IllegalStateException("Register for class [%s] doesn't exist".formatted(entryType));
         }
@@ -68,15 +68,17 @@ public class AutoRegisters extends AbstractModContextExtension {
             throw new IllegalArgumentException("Bad ResourceLocation [%s]".formatted(modId + ":" + id));
         }
 
-        Set<DeferredHolder<T, ? extends T>> holders = register.getEntries().stream()
+        //noinspection unchecked
+        Set<DeferredHolder<R, T>> holders = register.getEntries().stream()
                 .filter(entry -> entry.is(resourceLocation))
+                .map(e -> (DeferredHolder<R, T>) e)
                 .collect(Collectors.toSet());
 
         if (holders.isEmpty()) {
             return DeferredHolder.create(register.getRegistryKey(), resourceLocation);
         }
 
-        DeferredHolder<T, ? extends T> retrieved = holders.iterator().next();
+        DeferredHolder<R, T> retrieved = holders.iterator().next();
         autoRegisters.entryCache.put(id, retrieved);
 
         return retrieved;
