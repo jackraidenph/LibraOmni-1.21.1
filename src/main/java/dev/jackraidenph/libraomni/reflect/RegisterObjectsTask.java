@@ -2,7 +2,6 @@ package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.BlockPropertiesSupplier;
-import dev.jackraidenph.libraomni.annotation.GeneratesBlockItem;
 import dev.jackraidenph.libraomni.annotation.ItemPropertiesSupplier;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
@@ -70,7 +69,7 @@ public class RegisterObjectsTask implements RuntimeTask {
         );
     }
 
-    private static Item.Properties itemProperties(Class<?> blockOrItemClass) {
+    protected static Item.Properties itemProperties(Class<?> blockOrItemClass) {
         return getValueFromSingularMethod(
                 blockOrItemClass,
                 m -> (m.getAnnotation(ItemPropertiesSupplier.class) != null)
@@ -94,22 +93,6 @@ public class RegisterObjectsTask implements RuntimeTask {
                 properties
         );
         LibraOmni.LOGGER.info("Registered block [{}]", block.getId());
-
-        if (blockElement.getAnnotation(GeneratesBlockItem.class) != null) {
-            Item.Properties itemProperties = itemProperties(hosting);
-            registerBlockItem(itemProperties, block, register.items());
-        }
-    }
-
-    private static void registerBlockItem(Item.Properties properties, DeferredBlock<?> block, DeferredRegister.Items items) {
-        String id = block.getId().getPath();
-
-        DeferredItem<?> blockItem = items.registerSimpleBlockItem(
-                id,
-                block,
-                properties
-        );
-        LibraOmni.LOGGER.info("Registered block item [{}]", blockItem.getId());
     }
 
     private static void registerItem(ModContext modContext, TransitiveAnnotatedElement itemElement, Class<?> hosting) {
@@ -181,7 +164,6 @@ public class RegisterObjectsTask implements RuntimeTask {
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotations() {
         return Set.of(
-                GeneratesBlockItem.class,
                 Registered.class
         );
     }

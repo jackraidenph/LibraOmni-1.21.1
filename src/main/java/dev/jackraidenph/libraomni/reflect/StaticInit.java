@@ -11,10 +11,12 @@ public class StaticInit {
 
     private static final RuntimeTask REGISTER_OBJECTS = new RegisterObjectsTask();
     private static final RuntimeTask ADD_TO_CREATIVE_TABS = new AddToCreativeTabsTask();
+    private static final RuntimeTask GENERATE_BLOCK_ITEMS = new GenerateBlockItemsTask();
 
     public static void initRuntimeTasks(RuntimeTaskProcessor processor) {
         processor.registerTask(REGISTER_OBJECTS);
         processor.registerTask(ADD_TO_CREATIVE_TABS);
+        processor.registerTask(GENERATE_BLOCK_ITEMS);
     }
 
     //---
