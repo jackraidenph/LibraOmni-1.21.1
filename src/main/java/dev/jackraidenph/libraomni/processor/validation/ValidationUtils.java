@@ -2,7 +2,9 @@ package dev.jackraidenph.libraomni.processor.validation;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import java.util.*;
 
 class ValidationUtils {
@@ -43,6 +45,55 @@ class ValidationUtils {
             case VariableElement variableElement -> variableElement.asType();
             case null, default -> throw new UnsupportedOperationException();
         }).asElement();
+    }
+
+    public static List<ExecutableElement> methodsInElement(TypeElement element) {
+        return element.getEnclosedElements().stream()
+                .filter(e -> e.getKind().isExecutable())
+                .map(e -> (ExecutableElement) e)
+                .toList();
+    }
+
+    public static List<ExecutableElement> abstractMethods(TypeElement typeElement) {
+        return methodsInElement(typeElement).stream()
+                .filter(m -> m.getModifiers().contains(Modifier.ABSTRACT))
+                .toList();
+    }
+
+    public static boolean isFunctionalInterface(TypeElement typeElement) {
+        return typeElement.getKind().isInterface() && abstractMethods(typeElement).size() == 1;
+    }
+
+    public static ExecutableElement getFunction(TypeElement typeElement) {
+        if (!isFunctionalInterface(typeElement)) {
+            throw new IllegalArgumentException("Not a functional interface");
+        }
+
+        return abstractMethods(typeElement).getFirst();
+    }
+
+    public static TypeMirror resolveFunctionalReturnType(Element e, Types types) {
+        if (!(e.getKind().isField() && e.getModifiers().contains(Modifier.STATIC))) {
+            return null;
+        }
+
+        VariableElement variableElement = (VariableElement) e;
+        TypeMirror typeMirror = variableElement.asType();
+
+        if (!(typeMirror instanceof DeclaredType declaredType) || !(declaredType.asElement() instanceof TypeElement typeElement)) {
+            return null;
+        }
+
+        if (!ValidationUtils.isFunctionalInterface(typeElement)) {
+            return null;
+        }
+
+        return ValidationUtils.getFunctionalInterfaceReturnType(types, declaredType);
+    }
+
+    private static TypeMirror getFunctionalInterfaceReturnType(Types types, DeclaredType typeElement) {
+        TypeMirror memberType = types.asMemberOf(typeElement, ValidationUtils.getFunction((TypeElement) typeElement.asElement()));
+        return ((ExecutableType) memberType).getReturnType();
     }
 
     public static boolean elementImplementsOrExtendsAny(
