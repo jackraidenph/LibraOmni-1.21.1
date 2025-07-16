@@ -5,7 +5,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.ElementType;
 import java.lang.reflect.*;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Instead of throwing, methods return null.
@@ -46,22 +46,41 @@ public class SafeReflectionUtil {
 
     public static Type[] extractTypeArgumentsFromFunctionalField(Field field) {
         Class<?> type = field.getType();
-        Method function = type.getMethods()[0];
+        Method function = getAbstractMethods(type).getFirst();
         return function.getParameterTypes();
     }
 
-    public static Class<?> tryResolveFunctionalReturnType(Field functionalTypeField) {
-        Type genericType = functionalTypeField.getGenericType();
-        if (!(genericType instanceof ParameterizedType parameterizedType)) {
-            return null;
+    public static Map<String, Type> mapTypeParametersToArguments(ParameterizedType parameterizedType, Class<?> genericClass) {
+        Map<String, Type> map = new HashMap<>();
+
+        int i = 0;
+        for (TypeVariable<?> typeVariable : genericClass.getTypeParameters()) {
+            map.put(typeVariable.getName(), parameterizedType.getActualTypeArguments()[i]);
+            i++;
         }
 
-        Type[] types = parameterizedType.getActualTypeArguments();
-        if (types.length < 1) {
-            return null;
+        return map;
+    }
+
+    public static Class<?> tryResolveFunctionalReturnType(Type type) {
+        if (!(type instanceof ParameterizedType parameterizedType)) {
+            return getAbstractMethods((Class<?>) type).getFirst().getReturnType();
         }
 
-        return (Class<?>) types[types.length - 1];
+        Class<?> clazz = (Class<?>) parameterizedType.getRawType();
+
+        Method m = getAbstractMethods(clazz).getFirst();
+        Type returnType = m.getGenericReturnType();
+
+        return (Class<?>) mapTypeParametersToArguments(parameterizedType, clazz).get(returnType.getTypeName());
+    }
+
+    public static List<Method> getAbstractMethods(AnnotatedElement e) {
+        if (!(e instanceof Class<?> clazz)) {
+            throw new IllegalArgumentException();
+        }
+
+        return Arrays.stream(clazz.getMethods()).filter(m -> Modifier.isAbstract(m.getModifiers())).toList();
     }
 
     public static boolean isFunctionalInterface(AnnotatedElement element) {
@@ -73,19 +92,7 @@ public class SafeReflectionUtil {
             return false;
         }
 
-        Method[] methods = clazz.getMethods();
-        boolean encounteredAbstract = false;
-        for (Method m : methods) {
-            if (!Modifier.isAbstract(m.getModifiers())) {
-                continue;
-            }
-            if (encounteredAbstract) {
-                return false;
-            }
-            encounteredAbstract = true;
-        }
-
-        return encounteredAbstract;
+        return getAbstractMethods(element).size() == 1;
     }
 
     public static Class<?> selfOrReturnType(AnnotatedElement element) {
@@ -100,7 +107,7 @@ public class SafeReflectionUtil {
                 if (!resolveFunctionalInterfaces || !isFunctionalInterface(clazz)) {
                     yield clazz;
                 }
-                yield tryResolveFunctionalReturnType(field);
+                yield tryResolveFunctionalReturnType(field.getGenericType());
             }
             case Method method -> method.getReturnType();
             case null, default -> throw new UnsupportedOperationException(
@@ -128,7 +135,7 @@ public class SafeReflectionUtil {
     }
 
     public static String idOrDefault(AnnotatedElement element) {
-        if(element instanceof DeferredHolder<?,?> holder) {
+        if (element instanceof DeferredHolder<?, ?> holder) {
             return holder.getId().getPath();
         }
 
