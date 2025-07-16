@@ -1,6 +1,8 @@
-package dev.jackraidenph.libraomni.reflect;
+package dev.jackraidenph.libraomni.reflect.extension;
 
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.reflect.LifecycleSetup;
+import dev.jackraidenph.libraomni.reflect.ModContext;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;

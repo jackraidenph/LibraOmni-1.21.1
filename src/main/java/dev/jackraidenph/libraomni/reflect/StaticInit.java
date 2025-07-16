@@ -1,5 +1,12 @@
 package dev.jackraidenph.libraomni.reflect;
 
+import dev.jackraidenph.libraomni.reflect.extension.AutoRegisters;
+import dev.jackraidenph.libraomni.reflect.task.AddToCreativeTabsTask;
+import dev.jackraidenph.libraomni.reflect.extension.AutoCreativeModeTabs;
+import dev.jackraidenph.libraomni.reflect.task.GenerateBlockItemsTask;
+import dev.jackraidenph.libraomni.reflect.task.RegisterObjectsTask;
+import dev.jackraidenph.libraomni.reflect.task.RuntimeTask;
+
 public class StaticInit {
 
     public static void initContextExtensions(ModContextManager modContextManager) {

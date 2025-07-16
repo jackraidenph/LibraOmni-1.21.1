@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common;
+package dev.jackraidenph.libraomni.exception;
 
 public class AlreadyInitializedException extends IllegalStateException {
     @Override

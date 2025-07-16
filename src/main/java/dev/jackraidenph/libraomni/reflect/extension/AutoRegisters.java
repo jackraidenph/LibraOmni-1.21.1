@@ -1,11 +1,13 @@
-package dev.jackraidenph.libraomni.reflect;
+package dev.jackraidenph.libraomni.reflect.extension;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.Registered;
-import dev.jackraidenph.libraomni.common.AlreadyInitializedException;
+import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.reflect.ModContext;
+import dev.jackraidenph.libraomni.reflect.VanillaRegistriesAccess;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -88,7 +90,7 @@ public class AutoRegisters extends AbstractModContextExtension {
         return retrieved;
     }
 
-    protected static <R, T extends R> DeferredHolder<R, T> holder(ModContext modContext, AnnotatedElement element) {
+    public static <R, T extends R> DeferredHolder<R, T> holder(ModContext modContext, AnnotatedElement element) {
         DeferredHolder<?, ?> holder;
         if (
                 element instanceof Field field

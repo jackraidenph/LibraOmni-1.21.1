@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.reflect;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
+import dev.jackraidenph.libraomni.reflect.extension.AbstractModContextExtension;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;

@@ -1,7 +1,8 @@
-package dev.jackraidenph.libraomni.reflect;
+package dev.jackraidenph.libraomni.reflect.task;
 
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
+import dev.jackraidenph.libraomni.reflect.ModContext;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;

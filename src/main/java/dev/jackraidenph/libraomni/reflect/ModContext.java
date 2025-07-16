@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.reflect;
 
+import dev.jackraidenph.libraomni.reflect.extension.AbstractModContextExtension;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 

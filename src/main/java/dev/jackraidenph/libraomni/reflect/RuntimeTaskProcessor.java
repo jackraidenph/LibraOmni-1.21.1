@@ -2,14 +2,16 @@ package dev.jackraidenph.libraomni.reflect;
 
 import com.google.common.collect.Streams;
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.common.AlreadyInitializedException;
+import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.ModMetadata;
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
+import dev.jackraidenph.libraomni.exception.DuplicateTaskException;
 import dev.jackraidenph.libraomni.math.graph.HashDirectedGraph;
 import dev.jackraidenph.libraomni.math.graph.IndexedGraph;
+import dev.jackraidenph.libraomni.reflect.task.RuntimeTask;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -200,16 +202,4 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         }
     }
 
-    public static class DuplicateTaskException extends IllegalArgumentException {
-        private final RuntimeTask duplicate;
-
-        public DuplicateTaskException(RuntimeTask task) {
-            this.duplicate = task;
-        }
-
-        @Override
-        public String getMessage() {
-            return duplicate.getClass().getSimpleName();
-        }
-    }
 }

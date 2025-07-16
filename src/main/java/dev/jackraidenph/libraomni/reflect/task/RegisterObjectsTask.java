@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.reflect;
+package dev.jackraidenph.libraomni.reflect.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.BlockPropertiesSupplier;
@@ -8,6 +8,8 @@ import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
+import dev.jackraidenph.libraomni.reflect.ModContext;
+import dev.jackraidenph.libraomni.reflect.extension.AutoRegisters;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;

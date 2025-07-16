@@ -1,10 +1,12 @@
-package dev.jackraidenph.libraomni.reflect;
+package dev.jackraidenph.libraomni.reflect.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.GeneratesBlockItem;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
+import dev.jackraidenph.libraomni.reflect.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
+import dev.jackraidenph.libraomni.reflect.ModContext;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
