@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.processor;
 import dev.jackraidenph.libraomni.annotation.Composite;
 import dev.jackraidenph.libraomni.annotation.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.IsRuntimeTask;
-import dev.jackraidenph.libraomni.data.LibraOmniMetadata;
+import dev.jackraidenph.libraomni.data.ProjectMetadata;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -20,7 +20,7 @@ import java.util.*;
 
 class CreateMetadataTask implements CompilationTask {
 
-    private final LibraOmniMetadata libraOmniMetadata = new LibraOmniMetadata();
+    private final ProjectMetadata projectMetadata = new ProjectMetadata();
 
     private static boolean isRuntimeAnnotation(TypeElement annotationTypeElement) {
         Retention retention = annotationTypeElement.getAnnotation(Retention.class);
@@ -102,7 +102,7 @@ class CreateMetadataTask implements CompilationTask {
                 continue;
             }
 
-            libraOmniMetadata.getOrCreateModMetadata(modId).getAnnotatedData().addElement(e);
+            projectMetadata.getOrCreateModMetadata(modId).getAnnotatedData().addElement(e);
         }
 
         //Process user-defined runtime tasks
@@ -114,7 +114,7 @@ class CreateMetadataTask implements CompilationTask {
                 continue;
             }
 
-            libraOmniMetadata.getOrCreateModMetadata(modId).addRuntimeTask(name);
+            projectMetadata.getOrCreateModMetadata(modId).addRuntimeTask(name);
         }
 
         return Set.of();
@@ -123,9 +123,9 @@ class CreateMetadataTask implements CompilationTask {
     @Override
     public Set<Resource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         return Set.of(
-                Resource.json(libraOmniMetadata)
-                        .directory(LibraOmniMetadata.DIRECTORY)
-                        .name(LibraOmniMetadata.FILE_ROOT)
+                Resource.json(projectMetadata)
+                        .directory(ProjectMetadata.DIRECTORY)
+                        .name(ProjectMetadata.FILE_ROOT)
                         .build()
         );
     }

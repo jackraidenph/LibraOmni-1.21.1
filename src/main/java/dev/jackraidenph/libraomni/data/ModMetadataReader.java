@@ -12,17 +12,17 @@ import java.util.Map;
 
 public class ModMetadataReader {
 
-    private LibraOmniMetadata libraOmniMetadata = null;
+    private ProjectMetadata projectMetadata = null;
     private boolean init = false;
 
     public void readMetadataFile() {
-        try (InputStream inputStream = openResourceStream(LibraOmniMetadata.PATH)) {
+        try (InputStream inputStream = openResourceStream(ProjectMetadata.PATH)) {
             if (inputStream != null) {
                 String nativeMetadataJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                this.libraOmniMetadata = CommonGson.DEFAULT.fromJson(nativeMetadataJson, LibraOmniMetadata.class);
+                this.projectMetadata = CommonGson.DEFAULT.fromJson(nativeMetadataJson, ProjectMetadata.class);
             } else {
                 LibraOmni.LOGGER.error("Failed to fetch metadata file");
-                this.libraOmniMetadata = new LibraOmniMetadata();
+                this.projectMetadata = new ProjectMetadata();
             }
 
             init = true;
@@ -36,7 +36,7 @@ public class ModMetadataReader {
             throw new IllegalStateException("Reader was not initialized");
         }
 
-        return this.libraOmniMetadata.getModMetadataMap();
+        return this.projectMetadata.getModMetadataMap();
     }
 
     public ModMetadata getModMetadata(String modId) {
