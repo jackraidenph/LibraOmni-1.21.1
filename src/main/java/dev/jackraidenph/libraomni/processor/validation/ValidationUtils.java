@@ -25,7 +25,7 @@ class ValidationUtils {
             for (TypeMirror i : type.getInterfaces()) {
                 hierarchy.addLast(i.toString());
             }
-            if (!(type.getSuperclass() instanceof DeclaredType declaredType) || !(declaredType instanceof TypeElement typeElement)) {
+            if (!(type.getSuperclass() instanceof DeclaredType declaredType) || !(declaredType.asElement() instanceof TypeElement typeElement)) {
                 break;
             }
             type = typeElement;
