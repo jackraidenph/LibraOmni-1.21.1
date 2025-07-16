@@ -13,6 +13,12 @@ public class BlockItemGenerationValidator extends AssignabilityValidator {
     public boolean test(Element element, ProcessingEnvironment processingEnvironment) {
 
         String toExtendOrImplement = classNameToValidateAgainst();
+
+        Element deferredHolderType = ValidationUtils.tryResolveDeferredHolder(element);
+        if (deferredHolderType != null && ValidationUtils.elementImplementsOrExtendsAny(deferredHolderType, toExtendOrImplement)) {
+            return true;
+        }
+
         TypeMirror resolved = ValidationUtils.resolveFunctionalReturnType(element, processingEnvironment.getTypeUtils());
         if (resolved instanceof DeclaredType declaredType && ValidationUtils.elementImplementsOrExtendsAny(declaredType.asElement(), toExtendOrImplement)) {
             return true;

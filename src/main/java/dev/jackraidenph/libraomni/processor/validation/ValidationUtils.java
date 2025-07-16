@@ -72,6 +72,24 @@ class ValidationUtils {
         return abstractMethods(typeElement).getFirst();
     }
 
+    private static final String DEFERRED_HOLDER_CLASS = "net.neoforged.neoforge.registries.DeferredHolder";
+
+    public static Element tryResolveDeferredHolder(Element e) {
+        if (!(e instanceof VariableElement variableElement)) {
+            return null;
+        }
+
+        if (!(variableElement.asType() instanceof DeclaredType declaredType)) {
+            return null;
+        }
+
+        if (!(declaredType.asElement().toString().equals(DEFERRED_HOLDER_CLASS))) {
+            return null;
+        }
+
+        return ((DeclaredType) declaredType.getTypeArguments().getFirst()).asElement();
+    }
+
     public static TypeMirror resolveFunctionalReturnType(Element e, Types types) {
         if (!(e.getKind().isField() && e.getModifiers().contains(Modifier.STATIC))) {
             return null;
