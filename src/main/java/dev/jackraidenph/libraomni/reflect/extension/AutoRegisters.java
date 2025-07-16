@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class AutoRegisters extends AbstractModContextExtension {
 
-    private final Map<String, DeferredHolder<?, ?>> entryCache = new WeakHashMap<>();
+    private final Map<ResourceKey<?>, DeferredHolder<?, ?>> entryCache = new WeakHashMap<>();
 
     private final Map<Class<?>, DeferredRegister<?>> registersMap = new HashMap<>();
 
@@ -54,12 +54,6 @@ public class AutoRegisters extends AbstractModContextExtension {
     public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<?> entryType, String id) {
         AutoRegisters autoRegisters = mod(modId);
 
-        //noinspection unchecked
-        DeferredHolder<R, T> holder = (DeferredHolder<R, T>) autoRegisters.entryCache.get(id);
-        if (holder != null) {
-            return holder;
-        }
-
         if (entryType == null) {
             throw new IllegalArgumentException("Entry supertype is null");
         }
@@ -69,9 +63,12 @@ public class AutoRegisters extends AbstractModContextExtension {
             throw new IllegalStateException("Register for class [%s] doesn't exist".formatted(entryType));
         }
 
-        ResourceLocation resourceLocation = ResourceLocation.tryBuild(modId, id);
-        if (resourceLocation == null) {
-            throw new IllegalArgumentException("Bad ResourceLocation [%s]".formatted(modId + ":" + id));
+        ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(modId, id);
+
+        //noinspection unchecked
+        DeferredHolder<R, T> holder = (DeferredHolder<R, T>) autoRegisters.entryCache.get(ResourceKey.create(register.getRegistryKey(), resourceLocation));
+        if (holder != null) {
+            return holder;
         }
 
         //noinspection unchecked
@@ -85,7 +82,7 @@ public class AutoRegisters extends AbstractModContextExtension {
         }
 
         DeferredHolder<R, T> retrieved = holders.iterator().next();
-        autoRegisters.entryCache.put(id, retrieved);
+        autoRegisters.entryCache.put(retrieved.getKey(), retrieved);
 
         return retrieved;
     }
