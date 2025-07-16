@@ -63,13 +63,11 @@ public class CompilationTaskProcessor extends AbstractProcessor {
             createdResources.addAll(output);
         }
 
-        if (finishing) {
-            if (!createdResources.isEmpty()) {
-                messager.printNote("Saving resources " + createdResources);
-            }
-
-            saveAllResourcesToDisk(createdResources);
+        if (!createdResources.isEmpty()) {
+            messager.printNote("Saving resources " + createdResources);
         }
+
+        saveAllResourcesToDisk(createdResources);
 
         this.round++;
         return false;
