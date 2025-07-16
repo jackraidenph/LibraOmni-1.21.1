@@ -1,10 +1,8 @@
 package dev.jackraidenph.libraomni.reflect.extension;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.reflect.ModContext;
 import dev.jackraidenph.libraomni.reflect.VanillaRegistriesAccess;
@@ -39,19 +37,12 @@ public class AutoRegisters extends AbstractModContextExtension {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
     }
 
-    public static <T, R extends T> DeferredHolder<T, R> entry(String modId, Class<?> element) {
-        String className = SafeReflectionUtil.objectName(element);
-        Registered registered = element.getAnnotation(Registered.class);
-        String id = registered == null || registered.value().isBlank()
-                ? StringUtilities.snakeCase(className)
-                : registered.value();
-
-        Class<?> clazz = SafeReflectionUtil.selfOrReturnType(element);
-
-        return entry(modId, clazz, id);
+    public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<R> element) {
+        String id = SafeReflectionUtil.idOrDefault(element);
+        return entry(modId, element, id);
     }
 
-    public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<?> entryType, String id) {
+    public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<R> entryType, String id) {
         AutoRegisters autoRegisters = mod(modId);
 
         if (entryType == null) {
