@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-class ModIdGetter {
+public class ModIdGetter {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
 
     private static String getModId(Element e, String annotationName, String valueName) {
