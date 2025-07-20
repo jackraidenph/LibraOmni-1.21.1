@@ -9,8 +9,10 @@ import dev.jackraidenph.libraomni.reflect.VanillaRegistriesAccess;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -21,6 +23,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class AutoRegisters extends AbstractModContextExtension {
@@ -35,6 +39,28 @@ public class AutoRegisters extends AbstractModContextExtension {
 
     public static AutoRegisters mod(String modId) {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
+    }
+
+    public static DeferredHolder<Item, BlockItem> blockItem(DeferredHolder<Block, ? extends Block> blockHolder) {
+        return entry(blockHolder.getId().getNamespace(), Item.class, blockHolder.getId().getPath());
+    }
+
+    public static <T extends Block> DeferredHolder<Block, T> registerBlock(String modId, String id, Function<BlockBehaviour.Properties, Block> func) {
+        AutoRegisters autoRegisters = mod(modId);
+        //noinspection unchecked
+        return (DeferredHolder<Block, T>) autoRegisters.blocks().registerBlock(id, func);
+    }
+
+    public static <T extends Item> DeferredHolder<Item, T> registerItem(String modId, String id, Function<Item.Properties, Item> func) {
+        AutoRegisters autoRegisters = mod(modId);
+        //noinspection unchecked
+        return (DeferredHolder<Item, T>) autoRegisters.items().registerItem(id, func);
+    }
+
+    public static <R, T extends R> DeferredHolder<R, T> register(String modId, String id, Class<R> clazz, Supplier<T> supplier) {
+        AutoRegisters autoRegisters = mod(modId);
+        //noinspection unchecked
+        return (DeferredHolder<R, T>) autoRegisters.forClass(clazz).register(id, supplier);
     }
 
     public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<R> element) {
