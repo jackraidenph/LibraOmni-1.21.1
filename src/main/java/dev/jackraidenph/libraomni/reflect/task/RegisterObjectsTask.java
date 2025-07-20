@@ -131,7 +131,7 @@ public class RegisterObjectsTask implements RuntimeTask {
         }
     }
 
-    private static <T> void registerArbitrary(ModContext modContext, TransitiveAnnotatedElement element, Class<?> clazz) {
+    private static <T> void registerArbitrary(ModContext modContext, TransitiveAnnotatedElement element, Class<T> clazz) {
         if (clazz == null || Block.class.isAssignableFrom(clazz) || Item.class.isAssignableFrom(clazz)) {
             return;
         }
@@ -140,11 +140,9 @@ public class RegisterObjectsTask implements RuntimeTask {
 
         String id = SafeReflectionUtil.idOrDefault(element.unwrap());
 
-        //noinspection unchecked
-        Class<T> genericClass = (Class<T>) clazz;
-        DeferredRegister<? super T> register = autoRegisters.getOrCreateRegister(genericClass);
+        DeferredRegister<? super T> register = autoRegisters.getOrCreateRegister(clazz);
         if (register == null) {
-            LibraOmni.LOGGER.warn("Failed to get register for [{}], skipping", genericClass.getSimpleName());
+            LibraOmni.LOGGER.warn("Failed to get register for [{}], skipping", clazz.getSimpleName());
             return;
         }
 

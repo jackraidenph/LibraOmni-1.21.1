@@ -45,22 +45,19 @@ public class AutoRegisters extends AbstractModContextExtension {
         return entry(blockHolder.getId().getNamespace(), Item.class, blockHolder.getId().getPath());
     }
 
-    public static <T extends Block> DeferredHolder<Block, T> registerBlock(String modId, String id, Function<BlockBehaviour.Properties, Block> func) {
+    public static <T extends Block> DeferredHolder<Block, T> registerBlock(String modId, String id, Function<BlockBehaviour.Properties, T> func) {
         AutoRegisters autoRegisters = mod(modId);
-        //noinspection unchecked
-        return (DeferredHolder<Block, T>) autoRegisters.blocks().registerBlock(id, func);
+        return autoRegisters.blocks().registerBlock(id, func);
     }
 
-    public static <T extends Item> DeferredHolder<Item, T> registerItem(String modId, String id, Function<Item.Properties, Item> func) {
+    public static <T extends Item> DeferredHolder<Item, T> registerItem(String modId, String id, Function<Item.Properties, T> func) {
         AutoRegisters autoRegisters = mod(modId);
-        //noinspection unchecked
-        return (DeferredHolder<Item, T>) autoRegisters.items().registerItem(id, func);
+        return autoRegisters.items().registerItem(id, func);
     }
 
     public static <R, T extends R> DeferredHolder<R, T> register(String modId, String id, Class<R> clazz, Supplier<T> supplier) {
         AutoRegisters autoRegisters = mod(modId);
-        //noinspection unchecked
-        return (DeferredHolder<R, T>) autoRegisters.forClass(clazz).register(id, supplier);
+        return autoRegisters.forClass(clazz).register(id, supplier);
     }
 
     public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<R> element) {
@@ -163,7 +160,7 @@ public class AutoRegisters extends AbstractModContextExtension {
         this.registersMap.put(clazz, register);
     }
 
-    public <T> DeferredRegister<T> forClass(Class<?> clazz) {
+    public <T> DeferredRegister<T> forClass(Class<T> clazz) {
         if (Block.class.isAssignableFrom(clazz)) {
             //noinspection unchecked
             return (DeferredRegister<T>) blocks();
