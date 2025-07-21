@@ -5,8 +5,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,11 +55,26 @@ public class CompilationTaskProcessor extends AbstractProcessor {
 
             messager.printNote(op + " [" + compilationTask.getClass().getSimpleName() + "]");
 
-            Collection<Resource> output = !finishing
-                    ? compilationTask.processRound(modIdGetter, roundEnvironment, this.processingEnv)
-                    : compilationTask.finish(modIdGetter, roundEnvironment, this.processingEnv);
-
-            createdResources.addAll(output);
+            try {
+                Collection<Resource> output = !finishing
+                        ? compilationTask.processRound(modIdGetter, roundEnvironment, this.processingEnv)
+                        : compilationTask.finish(modIdGetter, roundEnvironment, this.processingEnv);
+                createdResources.addAll(output);
+            } catch (Exception e) {
+                try (
+                        StringWriter stringWriter = new StringWriter();
+                        PrintWriter printWriter = new PrintWriter(stringWriter);
+                ) {
+                    e.printStackTrace(printWriter);
+                    messager.printNote(stringWriter.getBuffer());
+                } catch (IOException ioException) {
+                    throw new IllegalStateException(ioException);
+                }
+                throw new RuntimeException(
+                        "Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()),
+                        e
+                );
+            }
         }
 
         if (!createdResources.isEmpty()) {
