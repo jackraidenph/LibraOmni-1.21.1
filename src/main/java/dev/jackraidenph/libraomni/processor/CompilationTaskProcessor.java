@@ -63,7 +63,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
             } catch (Exception e) {
                 try (
                         StringWriter stringWriter = new StringWriter();
-                        PrintWriter printWriter = new PrintWriter(stringWriter);
+                        PrintWriter printWriter = new PrintWriter(stringWriter)
                 ) {
                     e.printStackTrace(printWriter);
                     messager.printNote(stringWriter.getBuffer());
