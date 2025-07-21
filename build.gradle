@@ -165,7 +165,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.register('sourceJar', Jar) {
-    from sourceSets.main.allJava
+    from sourceSets.main.allSource
 }
 
 publishing {
@@ -175,8 +175,13 @@ publishing {
             artifactId = project.mod_id
             version = project.mod_version
 
-            artifact(shadowJar) {
-                classifier = ""
+            artifacts {
+                artifact(shadowJar) {
+                    classifier = ""
+                }
+                artifact(sourceJar){
+                    classifier = 'sources'
+                }
             }
         }
     }
