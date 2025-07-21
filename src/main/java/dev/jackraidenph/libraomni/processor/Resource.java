@@ -4,6 +4,9 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import dev.jackraidenph.libraomni.common.CommonGson;
 
+import javax.annotation.processing.Filer;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
@@ -28,6 +31,22 @@ public class Resource {
         this.dir = resourceDirectory.endsWith("/") ? resourceDirectory : (resourceDirectory + "/");
         this.name = name;
         this.extension = extension;
+    }
+
+    public boolean exists(Filer filer) {
+        return fileObject(filer).getLastModified() > 0;
+    }
+
+    public FileObject fileObject(Filer filer) {
+        try {
+            return filer.getResource(
+                    StandardLocation.SOURCE_OUTPUT,
+                    "",
+                    getPath()
+            );
+        } catch (IOException ioException) {
+            throw new IllegalStateException(ioException);
+        }
     }
 
     public byte[] getContents() {
@@ -133,6 +152,10 @@ public class Resource {
 
         public OutputFileBuilder(byte[] fileContents) {
             this.fileContents = fileContents;
+        }
+
+        public OutputFileBuilder asset(String modId, String path) {
+            return directory("assets/" + modId + "/" + path);
         }
 
         public OutputFileBuilder directory(String path) {
