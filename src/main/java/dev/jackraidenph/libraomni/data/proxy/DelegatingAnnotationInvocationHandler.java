@@ -5,22 +5,20 @@ import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DelegatingAnnotationInvocationHandler implements InvocationHandler {
+public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvocationHandler<Annotation> {
 
     private final Annotation parent;
-    private final Annotation child;
     private final Map<String, Method> delegateCache = new HashMap<>();
 
     public DelegatingAnnotationInvocationHandler(
             Annotation child,
             Annotation parent
     ) {
-        this.child = child;
+        super(child);
         this.parent = parent;
     }
 
@@ -41,6 +39,7 @@ public class DelegatingAnnotationInvocationHandler implements InvocationHandler 
     }
 
     private Method findDelegate(Annotation child, Annotation parent, String name) {
+        System.out.println(delegateCache);
         if (delegateCache.containsKey(name)) {
             return delegateCache.get(name);
         }
@@ -65,11 +64,11 @@ public class DelegatingAnnotationInvocationHandler implements InvocationHandler 
             throw new IllegalArgumentException("Can't invoke annotation-specific InvocationHandler for non-annotation");
         }
         String name = method.getName();
-        Method delegate = findDelegate(child, parent, name);
+        Method delegate = findDelegate(original, parent, name);
         if (delegate != null) {
             return safeBoxOrThrow(method.getReturnType(), parent, delegate);
         }
 
-        return UnsafeReflectionUtil.getMethodValue(method, child, args);
+        return UnsafeReflectionUtil.getMethodValue(method, original, args);
     }
 }
