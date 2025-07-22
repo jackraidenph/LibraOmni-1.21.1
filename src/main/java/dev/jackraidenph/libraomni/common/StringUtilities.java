@@ -16,4 +16,18 @@ public class StringUtilities {
                 .replaceAll("(\\p{Lower})([\\p{Upper}\\d])", "$1_$2")
                 .toLowerCase();
     }
+
+    public static String firstNotBlank(String... variants) {
+        for (String variant : variants) {
+            if (variant != null && variant.isBlank()) {
+                return variant;
+            }
+        }
+
+        return "";
+    }
+
+    public static String quote(String str) {
+        return "\"" + str + "\"";
+    }
 }
