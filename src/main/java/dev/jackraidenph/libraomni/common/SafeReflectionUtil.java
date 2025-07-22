@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.common;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
-import java.lang.annotation.ElementType;
+import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -20,6 +20,39 @@ public class SafeReflectionUtil {
         }
 
         return typesArray;
+    }
+
+    private static boolean secondTargetFitsFirst(Target first, Target second) {
+        if (second.value().length == 0) {
+            return true;
+        }
+        Set<ElementType> firstSet = Set.of(first.value());
+        Set<ElementType> secondSet = Set.of(second.value());
+        return firstSet.containsAll(secondSet) || secondSet.containsAll(firstSet);
+    }
+
+    private static boolean secondRetentionFitsFirst(Retention first, Retention second) {
+        RetentionPolicy secondPolicy = second.value();
+        return switch (first.value()) {
+            case SOURCE -> true;
+            case CLASS -> !secondPolicy.equals(RetentionPolicy.SOURCE);
+            case RUNTIME -> secondPolicy.equals(RetentionPolicy.RUNTIME);
+        };
+    }
+
+    public static boolean sameRetentionAndTarget(Annotation parent, Annotation meta) {
+        Class<? extends Annotation> firstType = parent.annotationType();
+        Class<? extends Annotation> secondType = meta.annotationType();
+
+        Retention firstRetention = firstType.getAnnotation(Retention.class);
+        Target firstTarget = firstType.getAnnotation(Target.class);
+
+        Retention secondRetention = secondType.getAnnotation(Retention.class);
+        Target secondTarget = secondType.getAnnotation(Target.class);
+
+        return (firstRetention != null && firstTarget != null)
+                && secondRetentionFitsFirst(firstRetention, secondRetention)
+                && secondTargetFitsFirst(firstTarget, secondTarget);
     }
 
     public static Type[] extractTypeArguments(AnnotatedElement element) {
