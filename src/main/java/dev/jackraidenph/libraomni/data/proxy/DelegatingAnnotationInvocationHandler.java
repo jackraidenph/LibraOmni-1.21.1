@@ -1,13 +1,18 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.Delegate;
+import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvocationHandler<Annotation> {
 
@@ -39,7 +44,6 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
     }
 
     private Method findDelegate(Annotation child, Annotation parent, String name) {
-        System.out.println(delegateCache);
         if (delegateCache.containsKey(name)) {
             return delegateCache.get(name);
         }
@@ -60,15 +64,66 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
-        if (!(proxy instanceof Annotation)) {
-            throw new IllegalArgumentException("Can't invoke annotation-specific InvocationHandler for non-annotation");
-        }
         String name = method.getName();
+
+        if (name.equals("toString")) {
+            return toStringProxy((Annotation) proxy);
+        }
+
         Method delegate = findDelegate(original, parent, name);
         if (delegate != null) {
             return safeBoxOrThrow(method.getReturnType(), parent, delegate);
         }
 
         return UnsafeReflectionUtil.getMethodValue(method, original, args);
+    }
+
+    private String toStringProxy(Annotation proxy) {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append('@').append(proxy.annotationType().getName());
+
+        StringJoiner joiner = new StringJoiner(",", "(", ")");
+        for (Method method : proxy.annotationType().getDeclaredMethods()) {
+            if (Modifier.isAbstract(method.getModifiers())) {
+                joiner.add(methodToString(proxy, method));
+            }
+        }
+
+        builder.append(joiner);
+        return builder.toString();
+    }
+
+    private String methodToString(Annotation proxy, Method annotationMethod) {
+        String name = annotationMethod.getName();
+        Object val = invoke(proxy, annotationMethod, new Object[0]);
+
+        String str;
+        if (val.getClass().isArray()) {
+            str = arrayToString((Object[]) val);
+        } else {
+            str = objToStr(val);
+        }
+
+        return name + "=" + str;
+    }
+
+
+    private String arrayToString(Object[] arr) {
+        if (arr.length == 0) {
+            return "{}";
+        }
+
+        return Arrays.stream(arr).map(this::objToStr).collect(Collectors.joining(",", "{", "}"));
+    }
+
+    private String objToStr(Object o) {
+        if (o instanceof String str) {
+            return StringUtilities.quote(str);
+        } else if (o instanceof Class<?> clazz) {
+            return clazz.getName();
+        }
+
+        return String.valueOf(o);
     }
 }
