@@ -22,14 +22,19 @@ public class AnnotationInvocationHandler implements InvocationHandler, Annotatio
     public Object invoke(Object proxy, Method method, Object[] args) {
         String name = method.getName();
 
-        if (name.equals("toString")) {
-            return toString();
-        } else if (name.equals("hashCode")) {
-            return hashCode();
-        } else if (name.equals("equals")) {
-            return equals(args[0]);
-        } else if (name.equals("annotationType")) {
-            return annotationType();
+        switch (name) {
+            case "toString" -> {
+                return toString();
+            }
+            case "hashCode" -> {
+                return hashCode();
+            }
+            case "equals" -> {
+                return equals(args[0]);
+            }
+            case "annotationType" -> {
+                return annotationType();
+            }
         }
 
         Object val = attributes.get(name);
