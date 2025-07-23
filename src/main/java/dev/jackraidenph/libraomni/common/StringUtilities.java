@@ -19,7 +19,7 @@ public class StringUtilities {
 
     public static String firstNotBlank(String... variants) {
         for (String variant : variants) {
-            if (variant != null && variant.isBlank()) {
+            if (variant != null && !variant.isBlank()) {
                 return variant;
             }
         }
