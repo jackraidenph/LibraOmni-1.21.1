@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.data;
 
-import dev.jackraidenph.libraomni.annotation.Composite;
+import dev.jackraidenph.libraomni.annotation.Composed;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,10 +59,10 @@ public class TransitiveAnnotatedElement implements AnnotatedElement {
         if (applicableToElement(annotation)) {
             out.add(annotation);
         }
-        Composite composite = annotation.annotationType().getAnnotation(Composite.class);
-        if (composite != null) {
+        Composed composed = annotation.annotationType().getAnnotation(Composed.class);
+        if (composed != null) {
             for (Annotation transitive : annotation.annotationType().getAnnotations()) {
-                if (!transitive.equals(composite)) {
+                if (!transitive.equals(composed)) {
                     recursiveGatherTransitiveStep(transitive, out);
                 }
             }

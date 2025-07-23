@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.annotation.Composite;
+import dev.jackraidenph.libraomni.annotation.Composed;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 
 import java.lang.annotation.Annotation;
@@ -34,14 +34,14 @@ public abstract class AnnotationCachingInvocationHandler<T> extends ObjectPreser
 
         annotationMap.put(type, parentAnnotation);
 
-        Composite composite = type.getAnnotation(Composite.class);
+        Composed composed = type.getAnnotation(Composed.class);
 
-        if (composite == null) {
+        if (composed == null) {
             return;
         }
 
         for (Annotation metaAnnotation : type.getAnnotations()) {
-            if (!(metaAnnotation instanceof Composite)
+            if (!(metaAnnotation instanceof Composed)
                     && SafeReflectionUtil.sameRetentionAndTarget(parentAnnotation, metaAnnotation)
             ) {
                 Annotation metaProxy = ProxyFactory.proxifyAnnotation(metaAnnotation, parentAnnotation);

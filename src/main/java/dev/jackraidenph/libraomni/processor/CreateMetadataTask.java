@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.processor;
 
-import dev.jackraidenph.libraomni.annotation.Composite;
+import dev.jackraidenph.libraomni.annotation.Composed;
 import dev.jackraidenph.libraomni.annotation.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.IsRuntimeTask;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
@@ -32,7 +32,7 @@ class CreateMetadataTask implements CompilationTask {
     }
 
     private static boolean isNotService(AnnotationMirror annotationMirror) {
-        return mirrorIsNot(annotationMirror, Composite.class) && mirrorIsNot(annotationMirror, Target.class) && mirrorIsNot(annotationMirror, Retention.class);
+        return mirrorIsNot(annotationMirror, Composed.class) && mirrorIsNot(annotationMirror, Target.class) && mirrorIsNot(annotationMirror, Retention.class);
     }
 
     private static boolean mirrorIsNot(AnnotationMirror mirror, Class<? extends Annotation> annotation) {
@@ -45,9 +45,9 @@ class CreateMetadataTask implements CompilationTask {
             return true;
         }
 
-        Composite composite = annotated.getAnnotation(Composite.class);
+        Composed composed = annotated.getAnnotation(Composed.class);
 
-        if (composite != null) {
+        if (composed != null) {
             boolean recursiveNeedsProcessing = false;
             for (AnnotationMirror annotationMirror : annotated.getAnnotationMirrors()) {
                 if (isNotService(annotationMirror)) {
