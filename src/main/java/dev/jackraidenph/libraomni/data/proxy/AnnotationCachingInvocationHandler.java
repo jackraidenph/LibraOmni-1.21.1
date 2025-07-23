@@ -29,7 +29,7 @@ public abstract class AnnotationCachingInvocationHandler<T> extends ObjectPreser
     private void step(Annotation parentAnnotation) {
         Class<? extends Annotation> type = parentAnnotation.annotationType();
         if (annotationMap.containsKey(type)) {
-            throw new IllegalArgumentException("Duplicate annotation type encountered during recursive lookup");
+            throw new IllegalArgumentException("Duplicate annotation type [%s] encountered during recursive lookup".formatted(type.getName()));
         }
 
         annotationMap.put(type, parentAnnotation);
