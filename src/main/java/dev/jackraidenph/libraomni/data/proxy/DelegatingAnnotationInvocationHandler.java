@@ -1,6 +1,8 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.Delegate;
+import dev.jackraidenph.libraomni.annotation.Delegate.NoOpTransformer;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
@@ -11,13 +13,15 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.StringJoiner;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvocationHandler<Annotation> {
 
     private final Annotation parent;
-    private final Map<String, Method> delegateCache = new HashMap<>();
+    private final Map<String, Entry<Delegate, Method>> delegateCache = new HashMap<>();
 
     public DelegatingAnnotationInvocationHandler(
             Annotation child,
@@ -27,23 +31,18 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
         this.parent = parent;
     }
 
-    private Object safeBoxOrThrow(Class<?> expected, Object context, Method m) {
-        Class<?> returnType = m.getReturnType();
-        if (expected.isArray() && !returnType.isArray() && expected.componentType().isAssignableFrom(returnType)) {
-            Object arr = Array.newInstance(returnType, 1);
-            Object val = UnsafeReflectionUtil.getMethodValue(m, context);
+    private Object tryBox(Class<?> expected, Object val) {
+        Class<?> type = SafeReflectionUtil.selfOrAnnotationType(val);
+        if (expected.isArray() && !type.isArray() && expected.componentType().isAssignableFrom(type)) {
+            Object arr = Array.newInstance(type, 1);
             Array.set(arr, 0, val);
             return arr;
-        } else if (expected.isAssignableFrom(returnType)) {
-            return UnsafeReflectionUtil.getMethodValue(m, context);
         } else {
-            throw new IllegalArgumentException("Can't delegate attribute of type [%s] to type [%s] (From [%s] to [%s])".formatted(
-                    returnType, expected, m.getDeclaringClass(), context.getClass()
-            ));
+            return val;
         }
     }
 
-    private Method findDelegate(Annotation child, Annotation parent, String name) {
+    private Entry<Delegate, Method> findDelegate(Annotation child, Annotation parent, String name) {
         if (delegateCache.containsKey(name)) {
             return delegateCache.get(name);
         }
@@ -55,8 +54,9 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
                     && delegate.annotation().equals(child.annotationType())
                     && delegate.attribute().equals(name)
             ) {
-                delegateCache.put(name, m);
-                return m;
+                Entry<Delegate, Method> pair = Map.entry(delegate, m);
+                delegateCache.put(name, pair);
+                return pair;
             }
         }
         return null;
@@ -70,12 +70,51 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
             return toStringProxy((Annotation) proxy);
         }
 
-        Method delegate = findDelegate(original, parent, name);
-        if (delegate != null) {
-            return safeBoxOrThrow(method.getReturnType(), parent, delegate);
+        Entry<Delegate, Method> delegatePair = findDelegate(original, parent, name);
+        if (delegatePair != null) {
+            Object val = UnsafeReflectionUtil.getMethodValue(delegatePair.getValue(), parent);
+            return tryBox(method.getReturnType(), tryTransform(val, method, delegatePair.getKey()));
         }
 
         return UnsafeReflectionUtil.getMethodValue(method, original, args);
+    }
+
+    private Object tryTransform(Object original, Method childMethod, Delegate delegate) throws IllegalStateException {
+        Class<? extends Function<Object, Object>> transformerType = delegate.transformer();
+
+        Object val = original;
+        if (!transformerType.equals(NoOpTransformer.class)) {
+            try {
+                Function<Object, Object> transformer = UnsafeReflectionUtil.tryConstruct(transformerType);
+                val = transformer.apply(original);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to construct transformer [%s] for [%s]"
+                        .formatted(transformerType.getName(), parent.annotationType().getName())
+                );
+            }
+        }
+
+        Class<?> originalReturnType = childMethod.getReturnType();
+
+        Class<?> newReturnType = (val instanceof Annotation annotation)
+                ? annotation.annotationType()
+                : val.getClass();
+
+        boolean isApplicable = originalReturnType.isAssignableFrom(newReturnType)
+                | (originalReturnType.isArray() && originalReturnType.componentType().isAssignableFrom(newReturnType));
+
+        if (!isApplicable) {
+            throw new IllegalStateException("[Transformer %s] Value of type [%s] is not applicable to [%s] of [%s]"
+                    .formatted(
+                            transformerType.getDeclaringClass().getSimpleName() + "$" + transformerType.getSimpleName(),
+                            newReturnType.getName(),
+                            originalReturnType.getName(),
+                            childMethod.getDeclaringClass()
+                    )
+            );
+        }
+
+        return val;
     }
 
     private String toStringProxy(Annotation proxy) {

@@ -5,6 +5,7 @@ import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Proxy;
+import java.util.Map;
 
 public abstract class ProxyFactory {
 
@@ -33,6 +34,15 @@ public abstract class ProxyFactory {
                 construct.getClass().getClassLoader(),
                 construct.getClass().getInterfaces(),
                 new AnnotatedConstructInvocationHandler(construct, elementUtils)
+        );
+    }
+
+    public static <T extends Annotation> T makeValueAnnotation(Class<T> type, Map<String, Object> attributes) {
+        //noinspection unchecked
+        return (T) Proxy.newProxyInstance(
+                type.getClassLoader(),
+                new Class[]{type},
+                new AnnotationInvocationHandler(type, attributes)
         );
     }
 }

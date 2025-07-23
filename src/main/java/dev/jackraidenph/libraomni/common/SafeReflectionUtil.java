@@ -22,6 +22,10 @@ public class SafeReflectionUtil {
         return typesArray;
     }
 
+    public static Class<?> selfOrAnnotationType(Object obj) {
+        return (obj instanceof Annotation annotation) ? annotation.annotationType() : obj.getClass();
+    }
+
     private static boolean secondTargetFitsFirst(Target first, Target second) {
         if (second.value().length == 0) {
             return true;
