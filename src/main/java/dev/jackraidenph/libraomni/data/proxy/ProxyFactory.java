@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
@@ -43,6 +45,14 @@ public abstract class ProxyFactory {
                 type.getClassLoader(),
                 new Class[]{type},
                 new AnnotationInvocationHandler(type, attributes)
+        );
+    }
+
+    public static RoundEnvironment proxifyRuntimeEnvironment(RoundEnvironment environment, ProcessingEnvironment processingEnvironment) {
+        return (RoundEnvironment) Proxy.newProxyInstance(
+                environment.getClass().getClassLoader(),
+                environment.getClass().getInterfaces(),
+                new RoundEnvironmentInvocationHandler(environment, processingEnvironment)
         );
     }
 }

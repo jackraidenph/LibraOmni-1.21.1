@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.processor;
 
+import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
@@ -56,9 +58,10 @@ public class CompilationTaskProcessor extends AbstractProcessor {
             messager.printNote(op + " [" + compilationTask.getClass().getSimpleName() + "]");
 
             try {
+                RoundEnvironment proxyEnvironment = ProxyFactory.proxifyRuntimeEnvironment(roundEnvironment, processingEnv);
                 Collection<Resource> output = !finishing
-                        ? compilationTask.processRound(modIdGetter, roundEnvironment, this.processingEnv)
-                        : compilationTask.finish(modIdGetter, roundEnvironment, this.processingEnv);
+                        ? compilationTask.processRound(modIdGetter, proxyEnvironment, this.processingEnv)
+                        : compilationTask.finish(modIdGetter, proxyEnvironment, this.processingEnv);
                 createdResources.addAll(output);
             } catch (Exception e) {
                 try (
