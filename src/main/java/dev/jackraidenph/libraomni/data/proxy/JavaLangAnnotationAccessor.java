@@ -20,18 +20,14 @@ public class JavaLangAnnotationAccessor implements AnnotationAccessor<AnnotatedC
 
     @Override
     public Collection<Annotation> getAnnotations() {
-        try {
-            List<Annotation> annotations = new ArrayList<>();
-            for (AnnotationMirror mirror : this.annotatedConstruct.getAnnotationMirrors()) {
-                TypeElement typeElement = (TypeElement) mirror.getAnnotationType().asElement();
-                Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(typeElement.getQualifiedName().toString(), Annotation.class);
-                Annotation annotation = annotatedConstruct.getAnnotation(clazz);
-                annotations.add(annotation);
-            }
-            return annotations;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        List<Annotation> annotations = new ArrayList<>();
+        for (AnnotationMirror mirror : this.annotatedConstruct.getAnnotationMirrors()) {
+            TypeElement typeElement = (TypeElement) mirror.getAnnotationType().asElement();
+            Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(typeElement.getQualifiedName().toString(), Annotation.class);
+            Annotation annotation = annotatedConstruct.getAnnotation(clazz);
+            annotations.add(annotation);
         }
+        return annotations;
     }
 
     @Override
