@@ -1,17 +1,19 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
+import dev.jackraidenph.libraomni.annotation.Composed;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AnnotatedConstructInvocationHandler extends AnnotationCachingInvocationHandler<AnnotatedConstruct> {
 
@@ -43,21 +45,36 @@ public class AnnotatedConstructInvocationHandler extends AnnotationCachingInvoca
         return arr[0];
     }
 
-    private List<? extends AnnotationMirror> annotationMirrors() {
-        List<AnnotationMirror> mirrors = new ArrayList<>();
-        for (Class<? extends Annotation> annotationClazz : annotationMap.keySet()) {
-            String name = annotationClazz.getName();
-            TypeElement typeElement = elementUtils.getTypeElement(name);
-            if (typeElement == null) {
-                continue;
-            }
-            TypeMirror typeMirror = typeElement.asType();
-            if (typeMirror instanceof AnnotationMirror annotationMirror) {
-                mirrors.add(annotationMirror);
-            }
+    private void getAnnotationMirrorsRecursiveStep(AnnotationMirror mirror, List<AnnotationMirror> out, Set<AnnotationMirror> encountered) {
+        //Prevent StackOverflow
+        DeclaredType type = mirror.getAnnotationType();
+        if (encountered.contains(mirror)) {
+            return;
         }
 
-        return mirrors;
+        out.add(mirror);
+        encountered.add(mirror);
+
+        if (type.getAnnotation(Composed.class) == null) {
+            return;
+        }
+
+        for (AnnotationMirror mirror1 : elementUtils.getAllAnnotationMirrors(type.asElement())) {
+            getAnnotationMirrorsRecursiveStep(mirror1, out, encountered);
+        }
+    }
+
+    private List<? extends AnnotationMirror> getAnnotationMirrorsRecursive() {
+        List<AnnotationMirror> res = new ArrayList<>();
+        Set<AnnotationMirror> encountered = new HashSet<>();
+        for (AnnotationMirror mirror : original.getAnnotationMirrors()) {
+            getAnnotationMirrorsRecursiveStep(mirror, res, encountered);
+        }
+        return res;
+    }
+
+    private List<? extends AnnotationMirror> annotationMirrors() {
+        return getAnnotationMirrorsRecursive();
     }
 
     @SuppressWarnings("unchecked")
