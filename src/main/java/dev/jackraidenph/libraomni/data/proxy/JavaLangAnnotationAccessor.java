@@ -18,12 +18,19 @@ public class JavaLangAnnotationAccessor implements AnnotationAccessor<AnnotatedC
         this.annotatedConstruct = construct;
     }
 
+    /**
+     * @return In this particular case, ONLY annotations compiled and loaded during annotation processor run are returned
+     */
     @Override
     public Collection<Annotation> getAnnotations() {
         List<Annotation> annotations = new ArrayList<>();
         for (AnnotationMirror mirror : this.annotatedConstruct.getAnnotationMirrors()) {
             TypeElement typeElement = (TypeElement) mirror.getAnnotationType().asElement();
-            Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(typeElement.getQualifiedName().toString(), Annotation.class);
+            String name = typeElement.getQualifiedName().toString();
+            Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(name, Annotation.class);
+            if (clazz == null) {
+                continue;
+            }
             Annotation annotation = annotatedConstruct.getAnnotation(clazz);
             annotations.add(annotation);
         }
