@@ -1,15 +1,11 @@
 package dev.jackraidenph.libraomni.common;
 
-import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
-
 import java.lang.reflect.*;
 
 public class UnsafeReflectionUtil {
 
     public static <T> T getValue(AnnotatedElement annotatedElement, Object context, boolean resolveFunctionalFields, Object... args) {
         return switch (annotatedElement) {
-            case TransitiveAnnotatedElement transitiveAnnotatedElement ->
-                    getValue(transitiveAnnotatedElement.unwrap(), context, resolveFunctionalFields, args);
             case AccessibleObject accessibleObject ->
                     getValueFromAccessible(accessibleObject, context, resolveFunctionalFields, args);
             case Class<?> clazz -> {
