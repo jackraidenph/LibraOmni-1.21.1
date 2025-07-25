@@ -25,8 +25,8 @@ public abstract class ProxyFactory {
 
     public static AnnotatedElement proxifyAnnotatedElement(AnnotatedElement element) {
         return (AnnotatedElement) Proxy.newProxyInstance(
-                element.getClass().getClassLoader(),
-                element.getClass().getInterfaces(),
+                ProxyFactory.class.getClassLoader(),
+                new Class[]{AnnotatedElement.class, AnnotationAccessor.class},
                 new AnnotatedElementInvocationHandler(element)
         );
     }
