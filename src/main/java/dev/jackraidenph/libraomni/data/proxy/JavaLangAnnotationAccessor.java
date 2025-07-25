@@ -22,7 +22,7 @@ public class JavaLangAnnotationAccessor implements AnnotationAccessor<AnnotatedC
      * @return In this particular case, ONLY annotations compiled and loaded during annotation processor run are returned
      */
     @Override
-    public Collection<Annotation> getAnnotations() {
+    public Collection<Annotation> getAllAnnotations() {
         List<Annotation> annotations = new ArrayList<>();
         for (AnnotationMirror mirror : this.annotatedConstruct.getAnnotationMirrors()) {
             TypeElement typeElement = (TypeElement) mirror.getAnnotationType().asElement();
@@ -38,7 +38,7 @@ public class JavaLangAnnotationAccessor implements AnnotationAccessor<AnnotatedC
     }
 
     @Override
-    public AnnotatedConstruct unwrap() {
+    public AnnotatedConstruct annotatedObject() {
         return this.annotatedConstruct;
     }
 }

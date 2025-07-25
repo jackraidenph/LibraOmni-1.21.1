@@ -14,12 +14,12 @@ public class ReflectionAnnotationAccessor implements AnnotationAccessor<Annotate
     }
 
     @Override
-    public Collection<Annotation> getAnnotations() {
+    public Collection<Annotation> getAllAnnotations() {
         return Arrays.asList(element.getDeclaredAnnotations());
     }
 
     @Override
-    public AnnotatedElement unwrap() {
+    public AnnotatedElement annotatedObject() {
         return this.element;
     }
 }
