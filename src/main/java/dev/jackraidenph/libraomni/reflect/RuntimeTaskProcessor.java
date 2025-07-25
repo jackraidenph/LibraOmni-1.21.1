@@ -2,11 +2,12 @@ package dev.jackraidenph.libraomni.reflect;
 
 import com.google.common.collect.Streams;
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
+import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.ModMetadata;
-import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.exception.DuplicateTaskException;
 import dev.jackraidenph.libraomni.math.graph.HashDirectedGraph;
@@ -99,24 +100,28 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         return tasks;
     }
 
-    private Set<TransitiveAnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
+    private Set<AnnotationAccessor<AnnotatedElement>> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
         if (annotations.isEmpty()) {
             return Set.of();
         }
-        return this.getTransitiveAnnotatedElements(modId).stream()
+        return this.getAnnotationAccessors(modId).stream()
                 .filter(e -> anyAnnotationPresent(e, annotations))
                 .collect(Collectors.toSet());
     }
 
-    private Set<TransitiveAnnotatedElement> getTransitiveAnnotatedElements(String modId) {
-        return getElements(modId).stream().map(TransitiveAnnotatedElement::new).collect(Collectors.toSet());
+    @SuppressWarnings("unchecked")
+    private Set<AnnotationAccessor<AnnotatedElement>> getAnnotationAccessors(String modId) {
+        return getElements(modId).stream()
+                .map(ProxyFactory::proxifyAnnotatedElement)
+                .map(proxy -> (AnnotationAccessor<AnnotatedElement>) proxy)
+                .collect(Collectors.toSet());
     }
 
     private Set<AnnotatedElement> getElements(String modId) {
         return modMetadataReader.getModMetadata(modId).getAnnotatedData().getElements();
     }
 
-    private static boolean anyAnnotationPresent(AnnotatedElement e, Set<Class<? extends Annotation>> annotations) {
+    private static boolean anyAnnotationPresent(AnnotationAccessor<AnnotatedElement> e, Set<Class<? extends Annotation>> annotations) {
         return annotations.stream().anyMatch(e::isAnnotationPresent);
     }
 
@@ -190,7 +195,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                     continue;
                 }
 
-                Set<TransitiveAnnotatedElement> elements = this.elementsAnnotatedWith(
+                Set<AnnotationAccessor<AnnotatedElement>> elements = this.elementsAnnotatedWith(
                         modContext.modId(),
                         runtimeTask.getSupportedAnnotations()
                 );

@@ -6,7 +6,7 @@ import dev.jackraidenph.libraomni.annotation.ItemPropertiesSupplier;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.data.TransitiveAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
 import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.reflect.ModContext;
 import dev.jackraidenph.libraomni.reflect.extension.AutoRegisters;
@@ -28,9 +28,9 @@ import java.util.stream.Collectors;
 public class RegisterObjectsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<TransitiveAnnotatedElement> elements) {
-        for (TransitiveAnnotatedElement e : elements) {
-            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(e.unwrap(), true);
+    public void process(ModContext modContext, Set<AnnotationAccessor<AnnotatedElement>> elements) {
+        for (AnnotationAccessor<AnnotatedElement> e : elements) {
+            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(e.annotatedObject(), true);
             if (clazz == null) {
                 throw new IllegalStateException("Resolved class for [%s] is null".formatted(e));
             }
@@ -82,10 +82,10 @@ public class RegisterObjectsTask implements RuntimeTask {
         );
     }
 
-    private static void registerBlock(ModContext modContext, TransitiveAnnotatedElement blockElement, Class<?> hosting) {
+    private static void registerBlock(ModContext modContext, AnnotationAccessor<AnnotatedElement> blockElement, Class<?> hosting) {
         AutoRegisters register = modContext.getExtension(AutoRegisters.class);
 
-        String id = SafeReflectionUtil.idOrDefault(blockElement.unwrap());
+        String id = SafeReflectionUtil.idOrDefault(blockElement);
 
         BlockBehaviour.Properties properties = blockProperties(hosting);
 
@@ -97,10 +97,10 @@ public class RegisterObjectsTask implements RuntimeTask {
         LibraOmni.LOGGER.info("Registered block [{}]", block.getId());
     }
 
-    private static void registerItem(ModContext modContext, TransitiveAnnotatedElement itemElement, Class<?> hosting) {
+    private static void registerItem(ModContext modContext, AnnotationAccessor<AnnotatedElement> itemElement, Class<?> hosting) {
         AutoRegisters register = modContext.getExtension(AutoRegisters.class);
 
-        String id = SafeReflectionUtil.idOrDefault(itemElement.unwrap());
+        String id = SafeReflectionUtil.idOrDefault(itemElement);
 
         Item.Properties properties = itemProperties(hosting);
 
@@ -112,18 +112,18 @@ public class RegisterObjectsTask implements RuntimeTask {
         LibraOmni.LOGGER.info("Registered item [{}]", item.getId());
     }
 
-    private static <T> T nullFailingStaticInstantiate(TransitiveAnnotatedElement element, Object... args) {
+    private static <T> T nullFailingStaticInstantiate(AnnotationAccessor<AnnotatedElement> element, Object... args) {
+        AnnotatedElement object = element.annotatedObject();
         try {
-            T created = UnsafeReflectionUtil.getValue(element, null, true, args);
+            T created = UnsafeReflectionUtil.getValue(object, null, true, args);
 
             if (created == null) {
-                throw new IllegalStateException("Failed to instantiate object from element [%s]".formatted(element.toString()));
+                throw new IllegalStateException("Failed to instantiate object from element [%s]".formatted(object.toString()));
             }
             return created;
         } catch (IllegalArgumentException illegalArgumentException) {
-            AnnotatedElement unwrapped = element.unwrap();
-            if (SafeReflectionUtil.isExecutable(unwrapped)) {
-                String actual = Arrays.toString(SafeReflectionUtil.extractTypeArguments(unwrapped));
+            if (SafeReflectionUtil.isExecutable(object)) {
+                String actual = Arrays.toString(SafeReflectionUtil.extractTypeArguments(object));
                 String expected = Arrays.toString(SafeReflectionUtil.inferTypes(args));
                 throw new IllegalStateException("Expected executable with parameters %s, got %s".formatted(expected, actual));
             }
@@ -131,14 +131,14 @@ public class RegisterObjectsTask implements RuntimeTask {
         }
     }
 
-    private static <T> void registerArbitrary(ModContext modContext, TransitiveAnnotatedElement element, Class<T> clazz) {
+    private static <T> void registerArbitrary(ModContext modContext, AnnotationAccessor<AnnotatedElement> element, Class<T> clazz) {
         if (clazz == null || Block.class.isAssignableFrom(clazz) || Item.class.isAssignableFrom(clazz)) {
             return;
         }
 
         AutoRegisters autoRegisters = modContext.getExtension(AutoRegisters.class);
 
-        String id = SafeReflectionUtil.idOrDefault(element.unwrap());
+        String id = SafeReflectionUtil.idOrDefault(element);
 
         DeferredRegister<? super T> register = autoRegisters.getOrCreateRegister(clazz);
         if (register == null) {
