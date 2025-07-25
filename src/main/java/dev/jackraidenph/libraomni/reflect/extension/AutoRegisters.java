@@ -60,9 +60,11 @@ public class AutoRegisters extends AbstractModContextExtension {
         return autoRegisters.forClass(clazz).register(id, supplier);
     }
 
-    public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<R> element) {
+    public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<T> element) {
         String id = SafeReflectionUtil.idOrDefault(element);
-        return entry(modId, element, id);
+        //Supertype for child type T is later scanned for, so R will be at least T upon cast, or actual supertype
+        //noinspection unchecked
+        return (DeferredHolder<R, T>) entry(modId, element, id);
     }
 
     public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<R> entryType, String id) {
