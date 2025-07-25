@@ -148,7 +148,8 @@ public class SafeReflectionUtil {
             }
             case Method method -> method.getReturnType();
             case null, default -> throw new UnsupportedOperationException(
-                    "Trying to resolve type from [%s]".formatted(element == null ? null : element.getClass())
+                    "Trying to resolve type from [%s] (Element %s)"
+                            .formatted(element == null ? null : element.getClass(), element)
             );
         };
     }
@@ -166,7 +167,9 @@ public class SafeReflectionUtil {
                 switch (element) {
                     case Class<?> clazz -> clazz.getSimpleName();
                     case Member otherMember -> otherMember.getName();
-                    case null, default -> throw new UnsupportedOperationException();
+                    case null, default ->
+                            throw new UnsupportedOperationException("Can't derive name from [%s] (Element %s)]"
+                                    .formatted(element == null ? null : element.getClass().getName(), element));
                 }
         );
     }
