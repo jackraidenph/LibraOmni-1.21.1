@@ -1,6 +1,8 @@
 package dev.jackraidenph.libraomni.common;
 
 import dev.jackraidenph.libraomni.annotation.Registered;
+import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
+import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.*;
@@ -175,15 +177,27 @@ public class SafeReflectionUtil {
     }
 
     public static String idOrDefault(AnnotatedElement element) {
-        if (element instanceof DeferredHolder<?, ?> holder) {
+        return idOrDefault(tryProxify(element));
+    }
+
+    public static AnnotationAccessor<AnnotatedElement> tryProxify(AnnotatedElement element) {
+        //Proxy handler implements AnnotationAccessor
+        //noinspection unchecked
+        return (AnnotationAccessor<AnnotatedElement>) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element));
+    }
+
+    public static String idOrDefault(AnnotationAccessor<AnnotatedElement> element) {
+        AnnotatedElement object = element.annotatedObject();
+        if (object instanceof DeferredHolder<?, ?> holder) {
             return holder.getId().getPath();
         }
 
-        String className = objectName(element);
-        Registered registered = element.getAnnotation(Registered.class);
-        return registered == null || registered.value().isBlank()
-                ? StringUtilities.snakeCase(className)
-                : registered.value();
+        Registered registered = element.getAnnotationByClass(Registered.class);
+        if (registered != null && !registered.value().isBlank()) {
+            return registered.value();
+        }
+
+        return StringUtilities.snakeCase(objectName(object));
     }
 
     public static <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<?> child) {
