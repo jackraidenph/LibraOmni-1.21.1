@@ -86,7 +86,7 @@ public class AnnotatedConstructInvocationHandler extends AnnotationCachingInvoca
             case "getAnnotation" -> byTypeSingular((Class<? extends Annotation>) args[0]);
             case "getAnnotationsByType" -> byType((Class<? extends Annotation>) args[0]);
             case null -> throw new IllegalStateException();
-            default -> UnsafeReflectionUtil.getMethodValue(method, original, args);
+            default -> super.invoke(proxy, method, args);
         };
     }
 }

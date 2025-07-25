@@ -76,7 +76,7 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
             return tryBox(method.getReturnType(), tryTransform(val, method, delegatePair.getKey()));
         }
 
-        return UnsafeReflectionUtil.getMethodValue(method, original, args);
+        return super.invoke(proxy, method, args);
     }
 
     private Object tryTransform(Object original, Method childMethod, Delegate delegate) throws IllegalStateException {

@@ -1,7 +1,5 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
-
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 
@@ -18,6 +16,6 @@ public class AnnotatedElementInvocationHandler extends AnnotationCachingInvocati
             return getProxiedRecursiveAnnotations();
         }
 
-        return UnsafeReflectionUtil.getMethodValue(method, original, args);
+        return super.invoke(proxy, method, args);
     }
 }

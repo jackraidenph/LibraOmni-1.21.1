@@ -93,7 +93,7 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
             }
         }
 
-        return UnsafeReflectionUtil.getMethodValue(method, original, args);
+        return super.invoke(proxy, method, args);
     }
 
     private Element tryProxify(Element e) {
