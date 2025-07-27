@@ -24,13 +24,10 @@ public class AnnotatedConstructInvocationHandler extends AnnotationCachingInvoca
     }
 
     private <A extends Annotation> A[] byType(Class<A> clazz) {
-        Object arr;
-        Object annotation = annotationMap.get(clazz);
-        if (annotation != null) {
-            arr = Array.newInstance(clazz, 1);
-            Array.set(arr, 0, annotation);
+        List<Annotation> annotation = annotationMap.get(clazz);
+        if (annotation != null && !annotation.isEmpty()) {
             //noinspection unchecked
-            return (A[]) arr;
+            return (A[]) annotation.toArray(Annotation[]::new);
         }
         //noinspection unchecked
         return (A[]) Array.newInstance(clazz, 0);
