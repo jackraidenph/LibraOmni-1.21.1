@@ -11,13 +11,15 @@ import java.util.Map;
 
 public abstract class ProxyFactory {
 
+    private static final ClassLoader CLASSLOADER = ProxyFactory.class.getClassLoader();
+
     public static <T extends Annotation, R extends Annotation> T proxifyAnnotation(T child, R parent) {
         if (parent == null) {
             return child;
         }
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(
-                child.getClass().getClassLoader(),
+                CLASSLOADER,
                 new Class[]{child.annotationType()},
                 new DelegatingAnnotationInvocationHandler(child, parent)
         );
@@ -25,7 +27,7 @@ public abstract class ProxyFactory {
 
     public static AnnotatedElement proxifyAnnotatedElement(AnnotatedElement element) {
         return (AnnotatedElement) Proxy.newProxyInstance(
-                ProxyFactory.class.getClassLoader(),
+                CLASSLOADER,
                 new Class[]{AnnotatedElement.class, AnnotationAccessor.class},
                 new AnnotatedElementInvocationHandler(element)
         );
@@ -33,7 +35,7 @@ public abstract class ProxyFactory {
 
     public static AnnotatedConstruct proxifyAnnotatedConstruct(AnnotatedConstruct construct, Elements elementUtils) {
         return (AnnotatedConstruct) Proxy.newProxyInstance(
-                construct.getClass().getClassLoader(),
+                CLASSLOADER,
                 construct.getClass().getInterfaces(),
                 new AnnotatedConstructInvocationHandler(construct, elementUtils)
         );
@@ -42,7 +44,7 @@ public abstract class ProxyFactory {
     public static <T extends Annotation> T makeValueAnnotation(Class<T> type, Map<String, Object> attributes) {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(
-                type.getClassLoader(),
+                CLASSLOADER,
                 new Class[]{type},
                 new AnnotationInvocationHandler(type, attributes)
         );
@@ -50,7 +52,7 @@ public abstract class ProxyFactory {
 
     public static RoundEnvironment proxifyRuntimeEnvironment(RoundEnvironment environment, ProcessingEnvironment processingEnvironment) {
         return (RoundEnvironment) Proxy.newProxyInstance(
-                environment.getClass().getClassLoader(),
+                CLASSLOADER,
                 environment.getClass().getInterfaces(),
                 new RoundEnvironmentInvocationHandler(environment, processingEnvironment)
         );
