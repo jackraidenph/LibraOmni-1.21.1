@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.data;
 
 import javax.lang.model.element.*;
+import javax.lang.model.util.Elements;
 import java.lang.reflect.AnnotatedElement;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,14 +11,14 @@ public class ModAnnotatedData {
 
     private final Set<AnnotatedReflectionData<?>> annotatedReflectionData = new HashSet<>();
 
-    public void addElement(Element element) {
+    public void addElement(Element element, Elements elementUtils) {
         AnnotatedReflectionData<?> dataObject =
                 switch (element) {
-                    case TypeElement clazz -> new ClassData(clazz);
-                    case VariableElement field -> new FieldData(field);
+                    case TypeElement clazz -> new ClassData(clazz, elementUtils);
+                    case VariableElement field -> new FieldData(field, elementUtils);
                     case ExecutableElement executable -> switch (executable.getKind()) {
-                        case METHOD -> new MethodData(executable);
-                        case CONSTRUCTOR -> new ConstructorData(executable);
+                        case METHOD -> new MethodData(executable, elementUtils);
+                        case CONSTRUCTOR -> new ConstructorData(executable, elementUtils);
                         default -> throw new UnsupportedOperationException();
                     };
                     default -> throw new UnsupportedOperationException();

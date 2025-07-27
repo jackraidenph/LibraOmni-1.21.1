@@ -4,22 +4,24 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.Elements;
 import java.lang.reflect.Constructor;
 import java.util.List;
 
-public record ConstructorData(ClassData parent, ClassData... paramTypes) implements AnnotatedReflectionData<Constructor<?>> {
-    public ConstructorData(ExecutableElement element) {
+public record ConstructorData(ClassData parent,
+                              ClassData... paramTypes) implements AnnotatedReflectionData<Constructor<?>> {
+    public ConstructorData(ExecutableElement element, Elements elementUtils) {
         this(
-                new ClassData((TypeElement) element.getEnclosingElement()),
-                paramsFromElement(element)
+                new ClassData((TypeElement) element.getEnclosingElement(), elementUtils),
+                paramsFromElement(element, elementUtils)
         );
     }
 
-    private static ClassData[] paramsFromElement(ExecutableElement e) {
+    private static ClassData[] paramsFromElement(ExecutableElement e, Elements elementUtils) {
         List<? extends VariableElement> l = e.getParameters();
         ClassData[] paramsArray = new ClassData[l.size()];
         for (int i = 0; i < l.size(); i++) {
-            paramsArray[i] = new ClassData((TypeElement) l.get(i));
+            paramsArray[i] = new ClassData((TypeElement) l.get(i), elementUtils);
         }
 
         return paramsArray;

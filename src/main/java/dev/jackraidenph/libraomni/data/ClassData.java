@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.data;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -9,8 +10,16 @@ public record ClassData(String name) implements AnnotatedReflectionData<Class<?>
 
     private static final Map<String, Class<?>> CACHE = new WeakHashMap<>();
 
-    public ClassData(TypeElement element) {
-        this(element.getQualifiedName().toString());
+    public ClassData(TypeElement element, Elements elementUtils) {
+        this(binaryName(element, elementUtils));
+    }
+
+    private static String binaryName(TypeElement typeElement, Elements elementUtils) {
+        try {
+            return elementUtils.getBinaryName(typeElement).toString();
+        } catch (IllegalArgumentException e) {
+            return typeElement.getQualifiedName().toString();
+        }
     }
 
     private static final Map<String, Class<?>> PRIMITIVE_TYPES_MAP = Map.of(

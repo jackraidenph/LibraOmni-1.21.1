@@ -102,7 +102,7 @@ class CreateMetadataTask implements CompilationTask {
                 continue;
             }
 
-            projectMetadata.getOrCreateModMetadata(modId).getAnnotatedData().addElement(e);
+            projectMetadata.getOrCreateModMetadata(modId).getAnnotatedData().addElement(e, processingEnv.getElementUtils());
         }
 
         //Process user-defined runtime tasks
