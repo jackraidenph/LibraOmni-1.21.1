@@ -11,8 +11,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -26,6 +25,9 @@ public class Resource {
      */
     private final String dir;
 
+    public static final String JSON_EXT = "json";
+    public static final String PNG_EXT = "png";
+
     private Resource(byte[] contents, String resourceDirectory, String name, String extension) {
         this.contents = contents;
         this.dir = resourceDirectory.endsWith("/") ? resourceDirectory : (resourceDirectory + "/");
@@ -34,19 +36,42 @@ public class Resource {
     }
 
     public boolean exists(Filer filer) {
-        return fileObject(filer).getLastModified() > 0;
+        FileObject fileObject = fileObject(filer);
+        return fileObject != null && fileObject.getLastModified() > 0;
     }
 
-    public FileObject fileObject(Filer filer) {
+    public void saveToDisk(Filer filer) {
         try {
-            return filer.getResource(
+            FileObject fileObject = filer.createResource(
                     StandardLocation.SOURCE_OUTPUT,
                     "",
                     getPath()
             );
+
+            try (OutputStream fileObjectWrite = fileObject.openOutputStream()) {
+                fileObjectWrite.write(getContents());
+            }
         } catch (IOException ioException) {
-            throw new IllegalStateException(ioException);
+            throw new RuntimeException("Failed to create resource [" + getPath() + "]", ioException);
         }
+    }
+
+    private static FileObject fileObjectFromPath(Filer filer, String dir, String file) {
+        try {
+            return filer.getResource(
+                    StandardLocation.SOURCE_PATH,
+                    "",
+                    "resources/" + dir + file
+            );
+        } catch (FileNotFoundException fileNotFoundException) {
+            return null;
+        } catch (IOException generalIO) {
+            throw new IllegalStateException(generalIO);
+        }
+    }
+
+    public FileObject fileObject(Filer filer) {
+        return fileObjectFromPath(filer, getDirectory(), getFileName());
     }
 
     public byte[] getContents() {
@@ -135,6 +160,10 @@ public class Resource {
         return raster(bufferedImage.getData());
     }
 
+    public static OutputFileBuilder readIfExistsOrNull(Filer filer) {
+        return new OutputFileBuilder(filer);
+    }
+
     @Override
     public String toString() {
         return getPath();
@@ -143,6 +172,7 @@ public class Resource {
     public static class OutputFileBuilder {
 
         private final byte[] fileContents;
+        private final Filer filer;
         /**
          * A path relative to resource-set
          */
@@ -150,8 +180,25 @@ public class Resource {
         private String fileName;
         private String fileExtension;
 
-        public OutputFileBuilder(byte[] fileContents) {
+        private final boolean readIfExists;
+
+        private OutputFileBuilder(Filer filer) {
+            this.fileContents = null;
+            this.readIfExists = true;
+            this.filer = filer;
+        }
+
+        private OutputFileBuilder(byte[] fileContents) {
             this.fileContents = fileContents;
+            this.readIfExists = false;
+            this.filer = null;
+        }
+
+        public OutputFileBuilder copyMetadata(Resource resource) {
+            this.filePath = resource.dir;
+            this.fileName = resource.name;
+            this.fileExtension = resource.extension;
+            return this;
         }
 
         public OutputFileBuilder asset(String modId, String path) {
@@ -182,7 +229,27 @@ public class Resource {
         }
 
         public Resource build() {
-            return new Resource(fileContents, filePath, fileName, fileExtension);
+            byte[] contents;
+            if (readIfExists) {
+                if (filer == null) {
+                    throw new IllegalArgumentException("Read if exists is set to true, but Filer is null");
+                }
+
+                FileObject fileObject = fileObjectFromPath(filer, filePath, fileName + '.' + fileExtension);
+                if (fileObject == null) {
+                    return null;
+                }
+
+                try (InputStream inputStream = fileObject.openInputStream()) {
+                    contents = inputStream.readAllBytes();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                contents = fileContents;
+            }
+
+            return new Resource(contents, filePath, fileName, fileExtension);
         }
 
     }
