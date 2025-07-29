@@ -56,12 +56,12 @@ public class Resource {
         }
     }
 
-    private static FileObject fileObjectFromPath(Filer filer, String dir, String file) {
+    private static FileObject fileObjectFromPath(Filer filer, String dir, String file, String extension) {
         try {
             return filer.getResource(
                     StandardLocation.SOURCE_PATH,
                     "",
-                    "resources/" + dir + file
+                    "resources/" + dir + file + '.' + extension
             );
         } catch (FileNotFoundException fileNotFoundException) {
             return null;
@@ -71,7 +71,7 @@ public class Resource {
     }
 
     public FileObject fileObject(Filer filer) {
-        return fileObjectFromPath(filer, getDirectory(), getFileName());
+        return fileObjectFromPath(filer, getDirectory(), getName(), getExtension());
     }
 
     public byte[] getContents() {
@@ -235,7 +235,7 @@ public class Resource {
                     throw new IllegalArgumentException("Read if exists is set to true, but Filer is null");
                 }
 
-                FileObject fileObject = fileObjectFromPath(filer, filePath, fileName + '.' + fileExtension);
+                FileObject fileObject = fileObjectFromPath(filer, filePath, fileName, fileExtension);
                 if (fileObject == null) {
                     return null;
                 }
