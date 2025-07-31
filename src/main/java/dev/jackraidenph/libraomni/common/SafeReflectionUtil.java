@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.common;
 
-import dev.jackraidenph.libraomni.annotation.Registered;
+import dev.jackraidenph.libraomni.annotation.Id;
 import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -192,9 +192,9 @@ public class SafeReflectionUtil {
             return holder.getId().getPath();
         }
 
-        Registered registered = element.getAnnotationByClass(Registered.class);
-        if (registered != null && !registered.value().isBlank()) {
-            return registered.value();
+        Id id = element.getAnnotationByClass(Id.class);
+        if (id != null && !id.value().isBlank()) {
+            return id.value();
         }
 
         return StringUtilities.snakeCase(objectName(object));
