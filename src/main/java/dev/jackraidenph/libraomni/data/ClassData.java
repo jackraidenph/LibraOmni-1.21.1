@@ -55,4 +55,9 @@ public record ClassData(String name) implements AnnotatedReflectionData<Class<?>
     public Class<?> construct() {
         return CACHE.computeIfAbsent(this.name(), ClassData::classOrPrimitive);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ClassData(String otherName) && otherName.equals(this.name);
+    }
 }

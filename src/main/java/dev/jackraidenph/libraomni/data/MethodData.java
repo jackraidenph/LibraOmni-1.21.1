@@ -8,6 +8,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 public record MethodData(String name, ClassData parent,
@@ -55,5 +56,13 @@ public record MethodData(String name, ClassData parent,
         } catch (NoSuchMethodException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof MethodData(String otherName, ClassData otherParent, ClassData[] otherTypes)
+                && otherName.equals(name)
+                && otherParent.equals(parent)
+                && Arrays.equals(otherTypes, paramTypes);
     }
 }

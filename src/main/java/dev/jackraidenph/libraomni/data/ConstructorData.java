@@ -6,6 +6,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.util.List;
 
 public record ConstructorData(ClassData parent,
@@ -48,5 +49,12 @@ public record ConstructorData(ClassData parent,
         } catch (NoSuchMethodException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ConstructorData(ClassData otherParent, ClassData[] otherTypes)
+                && otherParent.equals(parent)
+                && Arrays.equals(otherTypes, paramTypes);
     }
 }

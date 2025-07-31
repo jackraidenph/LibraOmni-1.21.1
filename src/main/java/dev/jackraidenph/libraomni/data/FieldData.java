@@ -27,4 +27,11 @@ public record FieldData(String name, ClassData parent) implements AnnotatedRefle
             throw new IllegalStateException(e);
         }
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof FieldData(String otherName, ClassData otherParent)
+                && otherName.equals(name)
+                && otherParent.equals(parent);
+    }
 }
