@@ -1,8 +1,6 @@
 package dev.jackraidenph.libraomni.reflect.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.BlockPropertiesSupplier;
-import dev.jackraidenph.libraomni.annotation.ItemPropertiesSupplier;
 import dev.jackraidenph.libraomni.annotation.Registered;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
@@ -10,110 +8,100 @@ import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
 import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.reflect.ModContext;
 import dev.jackraidenph.libraomni.reflect.extension.AutoRegisters;
+import dev.jackraidenph.libraomni.reflect.extension.PropertiesPool;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.neoforged.neoforge.registries.DeferredBlock;
-import net.neoforged.neoforge.registries.DeferredItem;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class RegisterObjectsTask implements RuntimeTask {
 
     @Override
     public void process(ModContext modContext, Set<AnnotationAccessor<AnnotatedElement>> elements) {
         for (AnnotationAccessor<AnnotatedElement> e : elements) {
-            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(e.annotatedObject(), true);
-            if (clazz == null) {
-                throw new IllegalStateException("Resolved class for [%s] is null".formatted(e));
-            }
-
-            if (Block.class.isAssignableFrom(clazz)) {
-                registerBlock(modContext, e, clazz);
-            } else if (Item.class.isAssignableFrom(clazz)) {
-                registerItem(modContext, e, clazz);
-            } else {
-                registerArbitrary(modContext, e, clazz);
+            DeferredHolder<?, ?> registered = registerArbitrary(modContext, e);
+            if ((e.annotatedObject() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {
+                tryInjectDeferredHolder(field, registered);
             }
         }
     }
 
-    private static <T> T getValueFromSingularMethod(Class<?> clazz, Predicate<Method> predicate, Supplier<T> defaultValue, Object... args) {
-        Set<Method> suppliers = Arrays.stream(clazz.getMethods())
-                .filter(predicate)
-                .collect(Collectors.toSet());
-        if (suppliers.size() > 1) {
-            throw new IllegalStateException("Found multiple matching methods for [%s]".formatted(clazz.getName()));
-        } else if (suppliers.isEmpty()) {
-            return defaultValue.get();
+    private static void tryInjectDeferredHolder(Field holderField, DeferredHolder<?, ?> holder) {
+        int mods = holderField.getModifiers();
+        if (!Modifier.isStatic(mods)) {
+            throw new UnsupportedOperationException("""
+                    Trying to inject [%s] into a non-static field [%s],
+                    make it static
+                    """.formatted(holder, holderField.getName()));
         }
 
-        Method supplier = suppliers.iterator().next();
+        if (Modifier.isFinal(mods)) {
+            throw new UnsupportedOperationException("""
+                    Trying to inject [%s] into a final field [%s],
+                    make it not final
+                    """.formatted(holder, holderField.getName()));
+        }
 
-        return UnsafeReflectionUtil.getValue(supplier, null, true, args);
+        try {
+            holderField.setAccessible(true);
+            holderField.set(null, holder);
+        } catch (IllegalAccessException illegalAccessException) {
+            throw new RuntimeException();
+        }
     }
 
-    private static BlockBehaviour.Properties blockProperties(Class<?> blockClass) {
-        return getValueFromSingularMethod(
-                blockClass,
-                m -> (m.getAnnotation(BlockPropertiesSupplier.class) != null)
-                        && BlockBehaviour.Properties.class.isAssignableFrom(m.getReturnType())
-                        && Modifier.isStatic(m.getModifiers())
-                ,
-                BlockBehaviour.Properties::of
-        );
+    @SuppressWarnings("unchecked") //A lot of unchecked warnings are actually checked via Class#isAssignableFrom
+    private static <T> DeferredHolder<? super T, T> registerArbitrary(ModContext modContext, AnnotationAccessor<AnnotatedElement> element) {
+        String modId = modContext.modId();
+        String id = SafeReflectionUtil.idOrDefault(element);
+
+        AnnotatedElement tempObject = element.annotatedObject();
+        final AnnotatedElement object;
+        if (tempObject instanceof Field field && DeferredHolder.class.isAssignableFrom(field.getType())) {
+            object = (Class<T>) SafeReflectionUtil.extractTypeArguments(tempObject)[1];
+        } else {
+            object = tempObject;
+        }
+
+        Class<T> clazz = (Class<T>) SafeReflectionUtil.selfOrReturnType(object);
+
+        if (Block.class.isAssignableFrom(clazz)) {
+            DeferredHolder<? super T, T> block = (DeferredHolder<? super T, T>) AutoRegisters.registerBlock(
+                    modId,
+                    id,
+                    (props) -> nullFailingStaticInstantiate(object, props)
+            );
+            LibraOmni.LOGGER.info("Registered block [{}]", block);
+            return block;
+        } else if (Item.class.isAssignableFrom(clazz)) {
+            DeferredHolder<? super T, T> item = (DeferredHolder<? super T, T>) AutoRegisters.registerItem(
+                    modId,
+                    id,
+                    (props) -> nullFailingStaticInstantiate(object, props)
+            );
+            LibraOmni.LOGGER.info("Registered item [{}]", item);
+            return item;
+        }
+
+        DeferredHolder<? super T, T> holder = AutoRegisters.register(modId, id, clazz, () -> nullFailingStaticInstantiate(object));
+        LibraOmni.LOGGER.info("Registered [{}] from [{}]", holder, element);
+        return holder;
     }
 
-    protected static Item.Properties itemProperties(Class<?> blockOrItemClass) {
-        return getValueFromSingularMethod(
-                blockOrItemClass,
-                m -> (m.getAnnotation(ItemPropertiesSupplier.class) != null)
-                        && Item.Properties.class.isAssignableFrom(m.getReturnType())
-                        && Modifier.isStatic(m.getModifiers())
-                ,
-                Item.Properties::new
-        );
+    private static BlockBehaviour.Properties getBlockProperties(String id, ModContext modContext) {
+        return modContext.getExtension(PropertiesPool.class).getBlockProperties(id);
     }
 
-    private static void registerBlock(ModContext modContext, AnnotationAccessor<AnnotatedElement> blockElement, Class<?> hosting) {
-        AutoRegisters register = modContext.getExtension(AutoRegisters.class);
-
-        String id = SafeReflectionUtil.idOrDefault(blockElement);
-
-        BlockBehaviour.Properties properties = blockProperties(hosting);
-
-        DeferredBlock<?> block = register.blocks().registerBlock(
-                id,
-                (props) -> nullFailingStaticInstantiate(blockElement, props),
-                properties
-        );
-        LibraOmni.LOGGER.info("Registered block [{}]", block.getId());
+    private static Item.Properties getItemProperties(String id, ModContext modContext) {
+        return modContext.getExtension(PropertiesPool.class).getItemProperties(id);
     }
 
-    private static void registerItem(ModContext modContext, AnnotationAccessor<AnnotatedElement> itemElement, Class<?> hosting) {
-        AutoRegisters register = modContext.getExtension(AutoRegisters.class);
-
-        String id = SafeReflectionUtil.idOrDefault(itemElement);
-
-        Item.Properties properties = itemProperties(hosting);
-
-        DeferredItem<?> item = register.items().registerItem(
-                id,
-                (props) -> nullFailingStaticInstantiate(itemElement, props),
-                properties
-        );
-        LibraOmni.LOGGER.info("Registered item [{}]", item.getId());
-    }
-
-    private static <T> T nullFailingStaticInstantiate(AnnotationAccessor<AnnotatedElement> element, Object... args) {
-        AnnotatedElement object = element.annotatedObject();
+    private static <T> T nullFailingStaticInstantiate(AnnotatedElement object, Object... args) {
         try {
             T created = UnsafeReflectionUtil.getValue(object, null, true, args);
 
@@ -131,29 +119,9 @@ public class RegisterObjectsTask implements RuntimeTask {
         }
     }
 
-    private static <T> void registerArbitrary(ModContext modContext, AnnotationAccessor<AnnotatedElement> element, Class<T> clazz) {
-        if (clazz == null || Block.class.isAssignableFrom(clazz) || Item.class.isAssignableFrom(clazz)) {
-            return;
-        }
-
-        AutoRegisters autoRegisters = modContext.getExtension(AutoRegisters.class);
-
-        String id = SafeReflectionUtil.idOrDefault(element);
-
-        DeferredRegister<? super T> register = autoRegisters.getOrCreateRegister(clazz);
-        if (register == null) {
-            LibraOmni.LOGGER.warn("Failed to get register for [{}], skipping", clazz.getSimpleName());
-            return;
-        }
-
-        T toRegister = nullFailingStaticInstantiate(element);
-        register.register(id, () -> toRegister);
-        LibraOmni.LOGGER.info("Registered [{}:{}] to [{}] from [{}]",
-                modContext.modId(),
-                id,
-                register.getRegistryName(),
-                element
-        );
+    @Override
+    public Set<Class<? extends RuntimeTask>> dependsOn() {
+        return Set.of(GatherPropertiesTask.class);
     }
 
     @Override
@@ -163,8 +131,6 @@ public class RegisterObjectsTask implements RuntimeTask {
 
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotations() {
-        return Set.of(
-                Registered.class
-        );
+        return Set.of(Registered.class);
     }
 }
