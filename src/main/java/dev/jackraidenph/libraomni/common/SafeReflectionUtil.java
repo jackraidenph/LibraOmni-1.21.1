@@ -61,11 +61,7 @@ public class SafeReflectionUtil {
                 && secondTargetFitsFirst(firstTarget, secondTarget);
     }
 
-    public static Type[] extractTypeArguments(AnnotatedElement element) {
-        if (!isExecutable(element)) {
-            return null;
-        }
-
+    public static Type[] getMethodParameters(AnnotatedElement element) {
         if (element instanceof Field field) {
             return extractTypeArgumentsFromFunctionalField(field);
         }
@@ -74,6 +70,17 @@ public class SafeReflectionUtil {
             return executable.getParameterTypes();
         }
 
+        return null;
+    }
+
+    public static Type[] extractTypeArguments(AnnotatedElement element) {
+        if (element instanceof ParameterizedType parameterizedType) {
+            return parameterizedType.getActualTypeArguments();
+        }
+
+        if (element instanceof Field field && field.getGenericType() instanceof ParameterizedType parameterizedType) {
+            return parameterizedType.getActualTypeArguments();
+        }
         return null;
     }
 
