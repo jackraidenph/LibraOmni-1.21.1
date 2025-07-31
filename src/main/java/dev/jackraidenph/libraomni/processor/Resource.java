@@ -43,7 +43,7 @@ public class Resource {
     public void saveToDisk(Filer filer) {
         try {
             FileObject fileObject = filer.createResource(
-                    StandardLocation.SOURCE_OUTPUT,
+                    StandardLocation.CLASS_OUTPUT,
                     "",
                     getPath()
             );
