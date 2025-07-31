@@ -57,7 +57,7 @@ public class AutoRegisters extends AbstractModContextExtension {
 
     public static <R, T extends R> DeferredHolder<R, T> register(String modId, String id, Class<R> clazz, Supplier<T> supplier) {
         AutoRegisters autoRegisters = mod(modId);
-        return autoRegisters.forClass(clazz).register(id, supplier);
+        return autoRegisters.getOrCreateRegister(clazz).register(id, supplier);
     }
 
     public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<T> element) {
