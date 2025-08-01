@@ -15,5 +15,5 @@ public @interface GeneratesBlockItem {
     /**
      * Properties ID
      */
-    String value() default "";
+    String propertiesId() default "";
 }
