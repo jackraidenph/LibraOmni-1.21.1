@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.annotation.Composed;
 
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.type.DeclaredType;
+import javax.lang.model.element.Element;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -43,7 +43,7 @@ public class AnnotatedConstructInvocationHandler extends AnnotationCachingInvoca
 
     private void getAnnotationMirrorsRecursiveStep(AnnotationMirror mirror, List<AnnotationMirror> out, Set<AnnotationMirror> encountered) {
         //Prevent StackOverflow
-        DeclaredType type = mirror.getAnnotationType();
+        Element type = mirror.getAnnotationType().asElement();
         if (encountered.contains(mirror)) {
             return;
         }
@@ -55,7 +55,7 @@ public class AnnotatedConstructInvocationHandler extends AnnotationCachingInvoca
             return;
         }
 
-        for (AnnotationMirror mirror1 : elementUtils.getAllAnnotationMirrors(type.asElement())) {
+        for (AnnotationMirror mirror1 : elementUtils.getAllAnnotationMirrors(type)) {
             getAnnotationMirrorsRecursiveStep(mirror1, out, encountered);
         }
     }
