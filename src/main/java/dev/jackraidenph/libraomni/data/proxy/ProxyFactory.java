@@ -3,7 +3,6 @@ package dev.jackraidenph.libraomni.data.proxy;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Proxy;
@@ -33,11 +32,11 @@ public abstract class ProxyFactory {
         );
     }
 
-    public static AnnotatedConstruct proxifyAnnotatedConstruct(AnnotatedConstruct construct, Elements elementUtils) {
+    public static AnnotatedConstruct proxifyAnnotatedConstruct(AnnotatedConstruct construct) {
         return (AnnotatedConstruct) Proxy.newProxyInstance(
                 CLASSLOADER,
                 construct.getClass().getInterfaces(),
-                new AnnotatedConstructInvocationHandler(construct, elementUtils)
+                new AnnotatedConstructInvocationHandler(construct)
         );
     }
 

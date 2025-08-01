@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.util.*;
 
 public interface AnnotationAccessor<T> {
@@ -20,5 +21,5 @@ public interface AnnotationAccessor<T> {
         return getAnnotationByClass(annotationType) != null;
     }
 
-    T annotatedObject();
+    AnnotatedElement annotatedObject();
 }

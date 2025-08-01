@@ -22,7 +22,7 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
         super(original);
         this.elementUtils = processingEnvironment.getElementUtils();
         for (Element e : original.getRootElements()) {
-            Element proxy = (Element) ProxyFactory.proxifyAnnotatedConstruct(e, elementUtils);
+            Element proxy = tryProxify(e);
             proxiedElements.add(proxy);
         }
     }
@@ -95,7 +95,7 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
     }
 
     private Element tryProxify(Element e) {
-        return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e, elementUtils);
+        return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e);
     }
 
     private class RecursiveAnnotationScanner extends ElementScanner14<Set<Element>, TypeElement> {

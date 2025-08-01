@@ -3,10 +3,10 @@ package dev.jackraidenph.libraomni.data.proxy;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 
-public class AnnotatedElementInvocationHandler extends AnnotationCachingInvocationHandler<AnnotatedElement> {
+public class AnnotatedElementInvocationHandler extends AnnotationCachingInvocationHandler {
 
     public AnnotatedElementInvocationHandler(AnnotatedElement original) {
-        super(original, new ReflectionAnnotationAccessor(original));
+        super(original);
     }
 
     @Override
