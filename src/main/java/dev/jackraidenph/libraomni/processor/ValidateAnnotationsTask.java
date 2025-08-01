@@ -7,10 +7,7 @@ import dev.jackraidenph.libraomni.processor.validation.Validator;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,7 +34,7 @@ class ValidateAnnotationsTask implements CompilationTask {
 
             for (Element e : toValidate) {
                 try {
-                    if (!validator.test(e, processingEnv)) {
+                    if (!e.getKind().equals(ElementKind.ANNOTATION_TYPE) && !validator.test(e, processingEnv)) {
                         throw new AnnotationValidationException(e);
                     }
                 } catch (Exception innerException) {
