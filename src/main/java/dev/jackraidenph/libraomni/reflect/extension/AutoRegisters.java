@@ -45,6 +45,11 @@ public class AutoRegisters extends AbstractModContextExtension {
         return entry(blockHolder.getId().getNamespace(), Item.class, blockHolder.getId().getPath());
     }
 
+    public static DeferredHolder<Item, BlockItem> registerBlockItem(String modId, DeferredHolder<Block, ? extends Block> blockHolder, Item.Properties properties) {
+        AutoRegisters autoRegisters = mod(modId);
+        return autoRegisters.items().registerSimpleBlockItem(blockHolder, properties);
+    }
+
     public static <T extends Block> DeferredHolder<Block, T> registerBlock(String modId, String id, Function<BlockBehaviour.Properties, T> func) {
         AutoRegisters autoRegisters = mod(modId);
         return autoRegisters.blocks().registerBlock(id, func);
