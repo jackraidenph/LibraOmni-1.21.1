@@ -15,11 +15,9 @@ import java.util.*;
 public abstract class AnnotationCachingInvocationHandler<T> extends ObjectPreservingInvocationHandler<T> implements AnnotationAccessor<T> {
 
     protected final Map<Class<? extends Annotation>, List<Annotation>> annotationMap = new HashMap<>();
-    private final AnnotationAccessor<T> accessor;
 
     public AnnotationCachingInvocationHandler(T original, AnnotationAccessor<T> accessor) {
         super(original);
-        this.accessor = accessor;
         cacheRecursive(accessor);
     }
 
@@ -30,11 +28,11 @@ public abstract class AnnotationCachingInvocationHandler<T> extends ObjectPreser
 
     @Override
     public Collection<Annotation> getAllAnnotations() {
-        return accessor.getAllAnnotations();
+        return annotationMap.values().stream().flatMap(List::stream).toList();
     }
 
     protected Annotation[] getProxiedRecursiveAnnotations() {
-        return annotationMap.values().stream().flatMap(List::stream).toArray(Annotation[]::new);
+        return getAllAnnotations().toArray(Annotation[]::new);
     }
 
     private void cacheRecursive(AnnotationAccessor<T> accessor) {
