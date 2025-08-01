@@ -12,87 +12,28 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import javax.lang.model.util.ElementScanner14;
+import javax.lang.model.util.Elements;
 import java.util.*;
 
 class CreateMetadataTask implements CompilationTask {
 
     private final ProjectMetadata projectMetadata = new ProjectMetadata();
 
-    private static boolean isRuntimeAnnotation(TypeElement annotationTypeElement) {
-        Retention retention = annotationTypeElement.getAnnotation(Retention.class);
-        if (retention == null) {
-            return false;
-        }
-
-        return retention.value().equals(RetentionPolicy.RUNTIME);
-    }
-
-    private static boolean isNotService(AnnotationMirror annotationMirror) {
-        return mirrorIsNot(annotationMirror, Composed.class) && mirrorIsNot(annotationMirror, Target.class) && mirrorIsNot(annotationMirror, Retention.class);
-    }
-
-    private static boolean mirrorIsNot(AnnotationMirror mirror, Class<? extends Annotation> annotation) {
-        return !((TypeElement) mirror.getAnnotationType().asElement()).getQualifiedName().contentEquals(annotation.getName());
-    }
-
-    private static boolean needsRuntimeProcessing(AnnotatedConstruct annotated) {
-        NeedsRuntimeProcessing needsProcessingDirect = annotated.getAnnotation(NeedsRuntimeProcessing.class);
-        if (needsProcessingDirect != null) {
-            return true;
-        }
-
-        Composed composed = annotated.getAnnotation(Composed.class);
-
-        if (composed != null) {
-            boolean recursiveNeedsProcessing = false;
-            for (AnnotationMirror annotationMirror : annotated.getAnnotationMirrors()) {
-                if (isNotService(annotationMirror)) {
-                    recursiveNeedsProcessing = needsRuntimeProcessing(annotationMirror.getAnnotationType().asElement());
-                    if (recursiveNeedsProcessing) {
-                        return true;
-                    }
-                }
-            }
-            return recursiveNeedsProcessing;
-        }
-
-        return false;
-    }
-
-    //Find custom annotations that need to be processed at runtime
-    private TypeElement[] findRuntimeAnnotations(RoundEnvironment roundEnvironment) {
-        //See if the need to be processed in runtime
-        return roundEnvironment
-                //Get ALL round elements
-                .getRootElements()
-                .stream()
-                //Get ALL the element's annotations
-                .flatMap(e -> e.getAnnotationMirrors().stream())
-                //Transform them to TypeElement-s
-                .map(am -> (TypeElement) am.getAnnotationType().asElement())
-                //Reject duplicates
-                .distinct()
-                .filter(CreateMetadataTask::needsRuntimeProcessing)
-                //Check if the annotation actually has RUNTIME retention
-                .filter(CreateMetadataTask::isRuntimeAnnotation)
-                //Collect to array for later use in RoundEnvironment#getElementsAnnotatedWithAny
-                .toArray(TypeElement[]::new);
-    }
-
     @Override
     public Collection<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         //Find annotations to use for processing runtime data
-        TypeElement[] runtimeAnnotations = findRuntimeAnnotations(roundEnv);
-        if (runtimeAnnotations.length > 0) {
-            processingEnv.getMessager().printNote("Found runtime annotations " + Arrays.toString(runtimeAnnotations));
+        RuntimeAnnotatedElementsScanner scanner = new RuntimeAnnotatedElementsScanner();
+        for (Element e : roundEnv.getRootElements()) {
+            scanner.scan(e);
         }
 
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWithAny(runtimeAnnotations);
-        for (Element e : annotatedElements) {
+        Set<TypeElement> runtimeAnnotations = scanner.annotations;
+        if (!runtimeAnnotations.isEmpty()) {
+            processingEnv.getMessager().printNote("Found runtime annotations " + runtimeAnnotations);
+        }
+
+        for (Element e : scanner.elements) {
             if (e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
                 continue;
             }
@@ -128,5 +69,48 @@ class CreateMetadataTask implements CompilationTask {
                         .name(ProjectMetadata.FILE_ROOT)
                         .build()
         );
+    }
+
+    private static class RuntimeAnnotatedElementsScanner extends ElementScanner14<Set<Element>, Void> {
+
+        private final Set<Element> elements = new HashSet<>();
+        private final Set<TypeElement> annotations = new HashSet<>();
+
+        @Override
+        public Set<Element> scan(Element e, Void nothing) {
+            e.accept(this, null);
+            if (e.getAnnotationMirrors().isEmpty()) {
+                return elements;
+            }
+            for (AnnotationMirror mirror : e.getAnnotationMirrors()) {
+                TypeElement typeElement = (TypeElement) mirror.getAnnotationType().asElement();
+                if (needsRuntimeProcessing(typeElement)) {
+                    if (!e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
+                        elements.add(e);
+                    }
+                    annotations.add(typeElement);
+                }
+            }
+
+
+            return elements;
+        }
+
+        private static boolean needsRuntimeProcessing(AnnotatedConstruct annotated) {
+            if (annotated.getAnnotation(NeedsRuntimeProcessing.class) != null) {
+                return true;
+            }
+
+            if (annotated.getAnnotation(Composed.class) == null) {
+                return false;
+            }
+
+            for (AnnotationMirror annotationMirror : annotated.getAnnotationMirrors()) {
+                if (needsRuntimeProcessing(annotationMirror.getAnnotationType().asElement())) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
