@@ -1,11 +1,11 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.ElementScanner14;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
@@ -32,12 +32,11 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
     }
 
     public Set<? extends Element> getElementsAnnotatedWithProxy(TypeElement a) {
-        Set<Element> elements = new LinkedHashSet<>();
         RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner();
         for (Element e : getRootElementsProxy()) {
-            elements.addAll(scanner.scan(e, a));
+            scanner.scan(e, a);
         }
-        return elements;
+        return scanner.elements;
     }
 
     public Set<? extends Element> getElementsAnnotatedWithProxy(Class<? extends Annotation> a) {
@@ -105,25 +104,18 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
 
         @Override
         public Set<Element> scan(Element e, TypeElement annotation) {
-            checkViaTypeElement(e, annotation);
-            e.accept(this, annotation);
+            Element toCheck = tryProxify(e);
+            checkViaTypeElement(toCheck, annotation);
+            toCheck.accept(this, annotation);
             return elements;
         }
 
         public void checkViaTypeElement(Element e, TypeElement a) {
-            Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(a.getQualifiedName().toString(), Annotation.class);
-            if (clazz == null) {
-                return;
-            }
-
-            checkViaClass(e, clazz);
-        }
-
-        //This might be EXTREMELY slow. Needs checking.
-        private void checkViaClass(Element e, Class<? extends Annotation> a) {
-            Element toCheck = tryProxify(e);
-            if (toCheck.getAnnotation(a) != null) {
-                elements.add(toCheck);
+            for (AnnotationMirror mirror : e.getAnnotationMirrors()) {
+                DeclaredType type = mirror.getAnnotationType();
+                if (type.asElement() instanceof TypeElement typeElement && typeElement.equals(a)) {
+                    elements.add(e);
+                }
             }
         }
     }
