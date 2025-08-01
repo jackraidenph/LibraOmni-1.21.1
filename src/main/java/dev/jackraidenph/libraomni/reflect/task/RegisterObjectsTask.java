@@ -59,6 +59,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     private static <T> DeferredHolder<? super T, T> registerArbitrary(ModContext modContext, AnnotationAccessor<AnnotatedElement> element) {
         String modId = modContext.modId();
         String id = SafeReflectionUtil.idOrDefault(element);
+        String propertiesId = element.getAnnotationByClass(Registered.class).propertiesId();
 
         AnnotatedElement tempObject = element.annotatedObject();
         final AnnotatedElement object;
@@ -74,7 +75,7 @@ public class RegisterObjectsTask implements RuntimeTask {
             DeferredHolder<? super T, T> block = (DeferredHolder<? super T, T>) AutoRegisters.registerBlock(
                     modId,
                     id,
-                    (props) -> nullFailingStaticInstantiate(object, props)
+                    (props) -> nullFailingStaticInstantiate(object, getBlockProperties(propertiesId, modContext))
             );
             LibraOmni.LOGGER.info("Registered block [{}]", block);
             return block;
@@ -82,7 +83,7 @@ public class RegisterObjectsTask implements RuntimeTask {
             DeferredHolder<? super T, T> item = (DeferredHolder<? super T, T>) AutoRegisters.registerItem(
                     modId,
                     id,
-                    (props) -> nullFailingStaticInstantiate(object, props)
+                    (props) -> nullFailingStaticInstantiate(object, getItemProperties(propertiesId, modContext))
             );
             LibraOmni.LOGGER.info("Registered item [{}]", item);
             return item;

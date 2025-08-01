@@ -5,7 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@NeedsRuntimeProcessing
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @Composed
@@ -14,4 +13,6 @@ public @interface Registered {
 
     @Delegate(annotation = Id.class, attribute = "value")
     String value() default "";
+
+    String propertiesId() default "";
 }

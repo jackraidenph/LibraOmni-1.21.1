@@ -12,4 +12,8 @@ import java.lang.annotation.Target;
 @NeedsRuntimeProcessing
 @Validated(BlockItemGenerationValidator.class)
 public @interface GeneratesBlockItem {
+    /**
+     * Properties ID
+     */
+    String value() default "";
 }
