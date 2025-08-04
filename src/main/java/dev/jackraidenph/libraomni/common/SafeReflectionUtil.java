@@ -24,6 +24,17 @@ public class SafeReflectionUtil {
         return typesArray;
     }
 
+    public static Object selfOrSingletonArray(Class<?> destinationClass, Object val) {
+        Class<?> type = SafeReflectionUtil.selfOrAnnotationType(val);
+        if (destinationClass.isArray() && !type.isArray() && destinationClass.componentType().isAssignableFrom(type)) {
+            Object arr = Array.newInstance(type, 1);
+            Array.set(arr, 0, val);
+            return arr;
+        } else {
+            return val;
+        }
+    }
+
     public static Class<?> selfOrAnnotationType(Object obj) {
         return (obj instanceof Annotation annotation) ? annotation.annotationType() : obj.getClass();
     }

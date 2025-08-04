@@ -22,7 +22,7 @@ public abstract class ProxyFactory {
 
     private static final ClassLoader CLASSLOADER = ProxyFactory.class.getClassLoader();
 
-    public static Annotation proxifyAnnotation(Annotation annotation, Map<String, Entry<Delegate, Object>> delegates) {
+    public static Annotation proxifyAnnotation(Annotation annotation, DelegateContainer delegates) {
         if (annotation instanceof Composed || annotation.annotationType().getPackageName().startsWith("java.lang.annotation")) {
             return annotation;
         }
@@ -36,24 +36,24 @@ public abstract class ProxyFactory {
         );
     }
 
-    private static Map<String, Entry<Delegate, Object>> mapDelegatesFromAnnotation(Class<? extends Annotation> childType, Annotation parent) {
-        Map<String, Entry<Delegate, Object>> map = new HashMap<>();
+    private static DelegateContainer mapDelegatesFromAnnotation(Class<? extends Annotation> childType, Annotation parent) {
+        DelegateContainer container = new DelegateContainer();
         for (Method attribute : parent.annotationType().getDeclaredMethods()) {
             Delegate delegate = attribute.getAnnotation(Delegate.class);
             if (delegate == null || !delegate.annotation().equals(childType)) {
                 continue;
             }
             Object val = UnsafeReflectionUtil.getMethodValue(attribute, parent);
-            map.put(delegate.attribute(), Map.entry(delegate, val));
+            container.add(delegate.attribute(), delegate, val);
         }
-        return map;
+        return container;
     }
 
     public static Annotation proxifyAnnotation(Annotation child, Annotation parent) {
         if (parent == null) {
             return child;
         }
-        Map<String, Entry<Delegate, Object>> delegates = mapDelegatesFromAnnotation(child.annotationType(), parent);
+        DelegateContainer delegates = mapDelegatesFromAnnotation(child.annotationType(), parent);
         return proxifyAnnotation(child, delegates);
     }
 
@@ -67,12 +67,12 @@ public abstract class ProxyFactory {
         throw new IllegalStateException();
     }
 
-    public static Map<String, Entry<Delegate, Object>> mapDelegatesFromAnnotationMirror(String childTypeName, AnnotationMirror parent) {
+    public static DelegateContainer mapDelegatesFromAnnotationMirror(String childTypeName, AnnotationMirror parent) {
         return mapDelegatesFromAnnotationMirror(childTypeName, parent, null);
     }
 
-    public static Map<String, Entry<Delegate, Object>> mapDelegatesFromAnnotationMirror(String childTypeName, AnnotationMirror parent, Map<String, Entry<Delegate, Object>> contextDelegates) {
-        Map<String, Entry<Delegate, Object>> map = new HashMap<>();
+    public static DelegateContainer mapDelegatesFromAnnotationMirror(String childTypeName, AnnotationMirror parent, DelegateContainer contextDelegates) {
+        DelegateContainer container = new DelegateContainer();
 
         Map<ExecutableElement, AnnotationValue> values = new HashMap<>(parent.getElementValues());
         parent.getAnnotationType()
@@ -97,19 +97,19 @@ public abstract class ProxyFactory {
             }
 
             String name = executableElement.getSimpleName().toString();
-            Object attributeVal = contextDelegates != null && contextDelegates.containsKey(name)
-                    ? contextDelegates.get(name).getValue()
+            Object attributeVal = contextDelegates != null && contextDelegates.hasDelegateFor(name)
+                    ? contextDelegates.getDelegatedValue(name)
                     : annotationValue.getValue();
-            map.put(delegate.attribute(), Map.entry(delegate, attributeVal));
+            container.add(delegate.attribute(), delegate, attributeVal);
         }
-        return map;
+        return container;
     }
 
     public static Annotation proxifyAnnotation(Annotation child, AnnotationMirror parent) {
         if (parent == null) {
             return child;
         }
-        Map<String, Entry<Delegate, Object>> delegates = mapDelegatesFromAnnotationMirror(child.annotationType().getName(), parent);
+        DelegateContainer delegates = mapDelegatesFromAnnotationMirror(child.annotationType().getName(), parent);
         return proxifyAnnotation(child, delegates);
     }
 
