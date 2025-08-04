@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.Composed;
+import dev.jackraidenph.libraomni.annotation.Delegate;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 
 import javax.lang.model.AnnotatedConstruct;
@@ -8,6 +9,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.TypeElement;
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.Map.Entry;
 
 public abstract class AnnotationMirrorCachingInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedConstruct> {
 
@@ -33,30 +35,30 @@ public abstract class AnnotationMirrorCachingInvocationHandler extends ObjectPre
         return typeElement;
     }
 
-    //FIX Delegation at compile-time
-    private void addAnnotation(Class<? extends Annotation> type, Annotation parent, Annotation annotation) {
-        if (!(annotation instanceof Composed)) {
-            Annotation proxyOrSelf = parent == null ? annotation : ProxyFactory.proxifyAnnotation(annotation, parent);
-            annotationMap.computeIfAbsent(type, k -> new ArrayList<>()).add(proxyOrSelf);
-        }
+    private void addAnnotation(Map<String, Entry<Delegate, Object>> delegates, Annotation annotation) {
+        boolean delegated = delegates != null && !delegates.isEmpty();
+        Annotation proxyOrSelf = delegated ? ProxyFactory.proxifyAnnotation(annotation, delegates) : annotation;
+        annotationMap.computeIfAbsent(annotation.annotationType(), k -> new ArrayList<>()).add(proxyOrSelf);
     }
 
-    private void cacheStep(AnnotatedConstruct construct, Annotation parentOrNull, AnnotationMirror parentAnnotation) {
-        TypeElement typeElement = addAnnotationMirror(parentAnnotation);
-        Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(typeElement.getQualifiedName().toString(), Annotation.class);
-        Annotation annotation = null;
+    private void cacheStep(AnnotatedConstruct construct, Map<String, Entry<Delegate, Object>> delegates, AnnotationMirror current) {
+        TypeElement currentElement = addAnnotationMirror(current);
+        Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(currentElement.getQualifiedName().toString(), Annotation.class);
         if (clazz != null) {
-            annotation = construct.getAnnotation(clazz);
-            addAnnotation(clazz, parentOrNull, annotation);
+            Annotation annotation = construct.getAnnotation(clazz);
+            addAnnotation(delegates, annotation);
         }
 
-        Composed composed = typeElement.getAnnotation(Composed.class);
+        Composed composed = currentElement.getAnnotation(Composed.class);
         if (composed == null) {
             return;
         }
 
-        for (AnnotationMirror metaAnnotation : typeElement.getAnnotationMirrors()) {
-            cacheStep(typeElement, annotation, metaAnnotation);
+        for (AnnotationMirror child : currentElement.getAnnotationMirrors()) {
+            TypeElement childElement = (TypeElement) child.getAnnotationType().asElement();
+            String childName = childElement.getQualifiedName().toString();
+            Map<String, Entry<Delegate, Object>> map = ProxyFactory.mapDelegatesFromAnnotationMirror(childName, current, delegates);
+            cacheStep(currentElement, map, child);
         }
     }
 }

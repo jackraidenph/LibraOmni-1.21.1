@@ -6,12 +6,13 @@ import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringJoiner;
@@ -20,15 +21,14 @@ import java.util.stream.Collectors;
 
 public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvocationHandler<Annotation> {
 
-    private final Annotation parent;
-    private final Map<String, Entry<Delegate, Method>> delegateCache = new HashMap<>();
+    private final Map<String, Entry<Delegate, Object>> delegates;
 
     public DelegatingAnnotationInvocationHandler(
             Annotation child,
-            Annotation parent
+            Map<String, Entry<Delegate, Object>> delegates
     ) {
         super(child);
-        this.parent = parent;
+        this.delegates = delegates;
     }
 
     private Object tryBox(Class<?> expected, Object val) {
@@ -42,45 +42,49 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
         }
     }
 
-    private Entry<Delegate, Method> findDelegate(Annotation child, Annotation parent, String name) {
-        if (delegateCache.containsKey(name)) {
-            return delegateCache.get(name);
-        }
-
-        Class<? extends Annotation> type = parent.annotationType();
-        for (Method m : type.getDeclaredMethods()) {
-            Delegate delegate = m.getAnnotation(Delegate.class);
-            if (delegate != null
-                    && delegate.annotation().equals(child.annotationType())
-                    && delegate.attribute().equals(name)
-            ) {
-                Entry<Delegate, Method> pair = Map.entry(delegate, m);
-                delegateCache.put(name, pair);
-                return pair;
-            }
-        }
-        return null;
-    }
-
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
         String name = method.getName();
 
         if (name.equals("toString")) {
             return toStringProxy((Annotation) proxy);
+        } else if (name.equals("annotationType")) {
+            return original.annotationType();
         }
 
-        Entry<Delegate, Method> delegatePair = findDelegate(original, parent, name);
-        if (delegatePair != null) {
-            Object val = UnsafeReflectionUtil.getMethodValue(delegatePair.getValue(), parent);
-            return tryBox(method.getReturnType(), tryTransform(val, method, delegatePair.getKey()));
+        Entry<Delegate, Object> delegate = delegates.get(name);
+        if (delegate != null) {
+            Object val = delegate.getValue();
+            Object transformed = tryTransform(val, method, delegate.getKey());
+            return tryBox(method.getReturnType(), transformed);
         }
 
         return super.invoke(proxy, method, args);
     }
 
+    @SuppressWarnings("unchecked")
     private Object tryTransform(Object original, Method childMethod, Delegate delegate) throws IllegalStateException {
-        Class<? extends Function<Object, Object>> transformerType = delegate.transformer();
+        Class<? extends Function<Object, Object>> transformerType;
+        try {
+            transformerType = delegate.transformer();
+        } catch (MirroredTypeException mirroredTypeException) {
+            TypeMirror typeMirror = mirroredTypeException.getTypeMirror();
+            String name = typeMirror.toString();
+            transformerType = (Class<? extends Function<Object, Object>>) SafeReflectionUtil.forName(name);
+            if (transformerType == null) {
+                int lastDot = name.lastIndexOf('.');
+                name = name.substring(0, lastDot) + '$' + name.substring(lastDot + 1);
+                transformerType = (Class<? extends Function<Object, Object>>) SafeReflectionUtil.forName(name);
+            }
+            if (transformerType == null) {
+                throw new UnsupportedOperationException("""
+                        Transformer class [%s] not found.
+                        Most probably, you are trying to use custom transformer implementation
+                        for a compile-time annotation.
+                        This won't work, your transformer is not yet compiled.
+                        """.formatted(typeMirror.toString()));
+            }
+        }
 
         Object val = original;
         if (!transformerType.equals(NoOpTransformer.class)) {
@@ -88,9 +92,7 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
                 Function<Object, Object> transformer = UnsafeReflectionUtil.tryConstruct(transformerType);
                 val = transformer.apply(original);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to construct transformer [%s] for [%s]"
-                        .formatted(transformerType.getName(), parent.annotationType().getName())
-                );
+                throw new RuntimeException("Failed to construct transformer [%s]".formatted(transformerType.getName()));
             }
         }
 
