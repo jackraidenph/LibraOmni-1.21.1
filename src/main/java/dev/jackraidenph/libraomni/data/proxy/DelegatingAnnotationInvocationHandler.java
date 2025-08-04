@@ -15,7 +15,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,34 +47,68 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
 
         if (name.equals("toString")) {
             return toStringProxy((Annotation) proxy);
-        } else if (name.equals("annotationType")) {
-            return original.annotationType();
         }
 
-        Entry<Delegate, Object> delegate = delegates.get(name);
-        if (delegate != null) {
-            Object val = delegate.getValue();
-            Object transformed = tryTransform(val, method, delegate.getKey());
-            return tryBox(method.getReturnType(), transformed);
+        Entry<Delegate, Object> delegateEntry = delegates.get(name);
+        if (delegateEntry == null) {
+            return super.invoke(proxy, method, args);
         }
 
-        return super.invoke(proxy, method, args);
+        Delegate delegate = delegateEntry.getKey();
+
+        Object val = delegateEntry.getValue();
+        Object transformed = tryTransform(val, delegate);
+        if (!val.equals(transformed)) {
+            Class<?> oldReturnType = method.getReturnType();
+            Class<?> newReturnType = (transformed instanceof Annotation annotation) ? annotation.annotationType() : transformed.getClass();
+            if (!checkReturnType(oldReturnType, newReturnType)) {
+                throw new IllegalStateException("Couldn't transform value [%s] of [%s], value of type [%s] is not applicable to [%s] "
+                        .formatted(
+                                delegate.attribute(),
+                                original.annotationType(),
+                                newReturnType.getName(),
+                                oldReturnType.getName()
+                        ));
+            }
+        }
+
+        return tryBox(method.getReturnType(), transformed);
     }
 
-    @SuppressWarnings("unchecked")
-    private Object tryTransform(Object original, Method childMethod, Delegate delegate) throws IllegalStateException {
+    private boolean checkReturnType(Class<?> oldReturnType, Class<?> newReturnType) {
+        return oldReturnType.isAssignableFrom(newReturnType)
+                | (oldReturnType.isArray() && oldReturnType.componentType().isAssignableFrom(newReturnType));
+    }
+
+    private static Class<?> tryGetClass(TypeMirror typeMirror) {
+        String name = typeMirror.toString();
+        Class<?> clazz = SafeReflectionUtil.forName(name);
+        //Might be an inner class
+        if (clazz == null) {
+            int lastDot = name.lastIndexOf('.');
+            if (lastDot < 0) {
+                return clazz;
+            }
+            name = name.substring(0, lastDot) + '$' + name.substring(lastDot + 1);
+            clazz = SafeReflectionUtil.forName(name);
+        }
+        return clazz;
+    }
+
+    private Object tryTransform(Object original, Delegate delegate) throws IllegalStateException {
         Class<? extends Function<Object, Object>> transformerType;
         try {
             transformerType = delegate.transformer();
+            if (transformerType.equals(NoOpTransformer.class)) {
+                return original;
+            }
         } catch (MirroredTypeException mirroredTypeException) {
             TypeMirror typeMirror = mirroredTypeException.getTypeMirror();
-            String name = typeMirror.toString();
-            transformerType = (Class<? extends Function<Object, Object>>) SafeReflectionUtil.forName(name);
-            if (transformerType == null) {
-                int lastDot = name.lastIndexOf('.');
-                name = name.substring(0, lastDot) + '$' + name.substring(lastDot + 1);
-                transformerType = (Class<? extends Function<Object, Object>>) SafeReflectionUtil.forName(name);
+            if (typeMirror.toString().equals(NoOpTransformer.class.getCanonicalName())) {
+                return original;
             }
+            //noinspection unchecked
+            transformerType = (Class<? extends Function<Object, Object>>) tryGetClass(typeMirror);
             if (transformerType == null) {
                 throw new UnsupportedOperationException("""
                         Transformer class [%s] not found.
@@ -86,76 +119,32 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
             }
         }
 
-        Object val = original;
-        if (!transformerType.equals(NoOpTransformer.class)) {
-            try {
-                Function<Object, Object> transformer = UnsafeReflectionUtil.tryConstruct(transformerType);
-                val = transformer.apply(original);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to construct transformer [%s]".formatted(transformerType.getName()));
-            }
+        try {
+            Function<Object, Object> transformer = UnsafeReflectionUtil.tryConstruct(transformerType);
+            return transformer.apply(original);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to construct transformer [%s]".formatted(transformerType.getName()), e);
         }
-
-        Class<?> originalReturnType = childMethod.getReturnType();
-
-        Class<?> newReturnType = (val instanceof Annotation annotation)
-                ? annotation.annotationType()
-                : val.getClass();
-
-        boolean isApplicable = originalReturnType.isAssignableFrom(newReturnType)
-                | (originalReturnType.isArray() && originalReturnType.componentType().isAssignableFrom(newReturnType));
-
-        if (!isApplicable) {
-            throw new IllegalStateException("[Transformer %s] Value of type [%s] is not applicable to [%s] of [%s]"
-                    .formatted(
-                            transformerType.getDeclaringClass().getSimpleName() + "$" + transformerType.getSimpleName(),
-                            newReturnType.getName(),
-                            originalReturnType.getName(),
-                            childMethod.getDeclaringClass()
-                    )
-            );
-        }
-
-        return val;
     }
 
     private String toStringProxy(Annotation proxy) {
         StringBuilder builder = new StringBuilder();
-
         builder.append('@').append(proxy.annotationType().getName());
-
-        StringJoiner joiner = new StringJoiner(",", "(", ")");
-        for (Method method : proxy.annotationType().getDeclaredMethods()) {
-            if (Modifier.isAbstract(method.getModifiers())) {
-                joiner.add(methodToString(proxy, method));
-            }
-        }
-
-        builder.append(joiner);
-        return builder.toString();
+        String methods = Arrays.stream(proxy.annotationType().getDeclaredMethods())
+                .filter(m -> Modifier.isAbstract(m.getModifiers()))
+                .map(m -> methodToString(proxy, m))
+                .collect(Collectors.joining(",", "(", ")"));
+        return builder.append(methods).toString();
     }
 
     private String methodToString(Annotation proxy, Method annotationMethod) {
-        String name = annotationMethod.getName();
         Object val = invoke(proxy, annotationMethod, new Object[0]);
-
-        String str;
-        if (val.getClass().isArray()) {
-            str = arrayToString((Object[]) val);
-        } else {
-            str = objToStr(val);
-        }
-
-        return name + "=" + str;
+        String str = val.getClass().isArray() ? arrayToString((Object[]) val) : objToStr(val);
+        return annotationMethod.getName() + "=" + str;
     }
 
-
     private String arrayToString(Object[] arr) {
-        if (arr.length == 0) {
-            return "{}";
-        }
-
-        return Arrays.stream(arr).map(this::objToStr).collect(Collectors.joining(",", "{", "}"));
+        return arr.length == 0 ? "{}" : Arrays.stream(arr).map(this::objToStr).collect(Collectors.joining(",", "{", "}"));
     }
 
     private String objToStr(Object o) {
