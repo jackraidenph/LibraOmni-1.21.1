@@ -14,6 +14,8 @@ import java.awt.image.RenderedImage;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.*;
 
 public class Resource {
 
@@ -21,7 +23,7 @@ public class Resource {
     private final String name;
     private final String extension;
     /**
-     * A path relative to resource-set
+     * A directory relative to resource-set
      */
     private final String dir;
 
@@ -30,14 +32,13 @@ public class Resource {
 
     private Resource(byte[] contents, String resourceDirectory, String name, String extension) {
         this.contents = contents;
-        this.dir = resourceDirectory.endsWith("/") ? resourceDirectory : (resourceDirectory + "/");
+        this.dir = resourceDirectory;
         this.name = name;
         this.extension = extension;
     }
 
-    public boolean exists(Filer filer) {
-        FileObject fileObject = fileObject(filer);
-        return fileObject != null && fileObject.getLastModified() > 0;
+    public boolean exists(Collection<String> resourceLocations) {
+        return fileFromPath(resourceLocations, getPath()).isPresent();
     }
 
     public void saveToDisk(Filer filer) {
@@ -56,22 +57,11 @@ public class Resource {
         }
     }
 
-    private static FileObject fileObjectFromPath(Filer filer, String dir, String file, String extension) {
-        try {
-            return filer.getResource(
-                    StandardLocation.SOURCE_PATH,
-                    "",
-                    "resources/" + dir + file + '.' + extension
-            );
-        } catch (FileNotFoundException fileNotFoundException) {
-            return null;
-        } catch (IOException generalIO) {
-            throw new IllegalStateException(generalIO);
-        }
-    }
-
-    public FileObject fileObject(Filer filer) {
-        return fileObjectFromPath(filer, getDirectory(), getName(), getExtension());
+    private static Optional<File> fileFromPath(Collection<String> resourceLocations, String relativePath) {
+        return resourceLocations.stream()
+                .map(resLoc -> Path.of(resLoc, relativePath).toFile())
+                .filter(File::exists)
+                .findFirst();
     }
 
     public byte[] getContents() {
@@ -160,8 +150,12 @@ public class Resource {
         return raster(bufferedImage.getData());
     }
 
-    public static OutputFileBuilder readIfExistsOrNull(Filer filer) {
-        return new OutputFileBuilder(filer);
+    public static OutputFileBuilder readIfExists(Collection<String> resourceLocations) {
+        return new OutputFileBuilder(resourceLocations);
+    }
+
+    public static OutputFileBuilder readIfExists(String... resourceLocations) {
+        return readIfExists(List.of(resourceLocations));
     }
 
     @Override
@@ -169,10 +163,19 @@ public class Resource {
         return getPath();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Resource other && this.getPath().equals(other.getPath());
+    }
+
+    public boolean contentEquals(Resource other) {
+        return Arrays.equals(contents, other.contents);
+    }
+
     public static class OutputFileBuilder {
 
         private final byte[] fileContents;
-        private final Filer filer;
+        private final Collection<String> resourceLocations;
         /**
          * A path relative to resource-set
          */
@@ -182,16 +185,16 @@ public class Resource {
 
         private final boolean readIfExists;
 
-        private OutputFileBuilder(Filer filer) {
+        private OutputFileBuilder(Collection<String> resourceLocations) {
             this.fileContents = null;
             this.readIfExists = true;
-            this.filer = filer;
+            this.resourceLocations = resourceLocations;
         }
 
         private OutputFileBuilder(byte[] fileContents) {
             this.fileContents = fileContents;
             this.readIfExists = false;
-            this.filer = null;
+            this.resourceLocations = Set.of();
         }
 
         public OutputFileBuilder copyMetadata(Resource resource) {
@@ -206,7 +209,7 @@ public class Resource {
         }
 
         public OutputFileBuilder directory(String path) {
-            this.filePath = path;
+            this.filePath = path.endsWith("/") ? path : (path + "/");
             return this;
         }
 
@@ -220,27 +223,26 @@ public class Resource {
             return this;
         }
 
+        private String getRelativePath() {
+            return filePath + fileName + '.' + fileExtension;
+        }
+
         public OutputFileBuilder json() {
-            return extension("json");
+            return extension(JSON_EXT);
         }
 
         public OutputFileBuilder png() {
-            return extension("png");
+            return extension(PNG_EXT);
         }
 
         public Resource build() {
             byte[] contents;
             if (readIfExists) {
-                if (filer == null) {
-                    throw new IllegalArgumentException("Read if exists is set to true, but Filer is null");
+                Optional<File> file = fileFromPath(resourceLocations, getRelativePath());
+                if (file.isEmpty()) {
+                    throw new IllegalStateException("File [%s] does not exist".formatted(getRelativePath()));
                 }
-
-                FileObject fileObject = fileObjectFromPath(filer, filePath, fileName, fileExtension);
-                if (fileObject == null) {
-                    return null;
-                }
-
-                try (InputStream inputStream = fileObject.openInputStream()) {
+                try (InputStream inputStream = new FileInputStream(file.get())) {
                     contents = inputStream.readAllBytes();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -251,7 +253,5 @@ public class Resource {
 
             return new Resource(contents, filePath, fileName, fileExtension);
         }
-
     }
-
 }
