@@ -1,30 +1,84 @@
 package dev.jackraidenph.libraomni.processor;
 
+import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.common.CommonGson;
+import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.processor.JsonMergeHelper.JsonMergeConflictPolicy;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.*;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class CompilationTaskProcessor extends AbstractProcessor {
 
+    public static final Set<String> PROCESSED_RESOURCES = Set.of(
+            "data/*/tags/**",
+            "assets/*/blockstatess/**",
+            "assets/*/models/**"
+    );
+
     public static final String NF_MOD_ANNOTATION_CLASS_NAME = "net.neoforged.fml.common.Mod";
+
+    public static final String RESOURCE_LOCATIONS_OPTION = "resources";
+    public static final String CONFIG_LOCATION_OPTION = "config";
+
+    public static final String CONFIG_NAME = LibraOmni.MOD_ID + ".apconfig";
 
     private final Set<CompilationTask> tasks = new HashSet<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
+    private final Set<String> resourceDirs = new HashSet<>();
+    private final Map<Pattern, JsonMergeConflictPolicy> defaultConfig = Map.of(
+            Pattern.compile("data/.*"), JsonMergeConflictPolicy.PREFER_EXISTING,
+            Pattern.compile("assets/.*"), JsonMergeConflictPolicy.OVERWRITE
+    );
+    private final Map<Pattern, JsonMergeConflictPolicy> config = new HashMap<>();
     private int round = 0;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
+        gatherResourceDirs();
+        gatherConfig();
         CompilationTasks.init(this);
+    }
+
+    private void gatherResourceDirs() {
+        String resourcesPaths = processingEnv.getOptions().get(RESOURCE_LOCATIONS_OPTION);
+        if (resourcesPaths != null) {
+            resourceDirs.addAll(Arrays.asList(resourcesPaths.split(";")));
+        }
+    }
+
+    private void gatherConfig() {
+        String configLoc = processingEnv.getOptions().get(CONFIG_LOCATION_OPTION);
+        if (configLoc != null) {
+            processingEnv.getMessager().printNote("Got Annotation Processor config location [%s]".formatted(configLoc));
+        } else {
+            configLoc = ProjectMetadata.DIRECTORY;
+            processingEnv.getMessager().printNote("Annotation Processor config location not specified, assuming [%s]".formatted(configLoc));
+        }
+        try {
+            Resource configResource = Resource.readIfExists(resourceDirs)
+                    .directory(configLoc)
+                    .name(CONFIG_NAME)
+                    .json()
+                    .build();
+            String configStr = new String(configResource.getContents(), StandardCharsets.UTF_8);
+            //noinspection unchecked
+            CommonGson.DEFAULT.fromJson(configStr, Map.class).forEach((path, policy) ->
+                    config.put(Pattern.compile((String) path), JsonMergeConflictPolicy.valueOf((String) policy))
+            );
+            processingEnv.getMessager().printNote("Annotation Processor config found and processed: %s".formatted(config));
+        } catch (IllegalStateException stateException) {
+            processingEnv.getMessager().printNote("Annotation Processor config not found, assuming default values %s".formatted(defaultConfig));
+        }
     }
 
     void registerTask(CompilationTask task) {
@@ -92,43 +146,69 @@ public class CompilationTaskProcessor extends AbstractProcessor {
 
     private void saveAllResourcesToDisk(Collection<Resource> resources) {
         for (Resource resource : resources) {
-            if (resourceExists(resource)) {
-                this.processingEnv.getMessager().printWarning("Resource [" + resource.getPath() + "] already exists, skipping");
+            Resource mergeResult = resolveConflictIfPresent(resource);
+            if (mergeResult == null) {
                 continue;
             }
-
-            saveResourceToDisk(resource);
+            mergeResult.saveToDisk(processingEnv.getFiler());
         }
     }
 
-    private void saveResourceToDisk(Resource resource) {
-        Filer filer = this.processingEnv.getFiler();
+    private JsonMergeConflictPolicy getConflictPolicy(Resource resource) {
+        JsonMergeConflictPolicy policy = getConflictPolicy(resource, config);
+        if (policy == null) {
+            policy = getConflictPolicy(resource, defaultConfig);
+        }
+        if (policy == null) {
+            policy = JsonMergeConflictPolicy.OVERWRITE;
+            processingEnv.getMessager().printWarning("Failed to get conflict resolution policy for [%s], assuming [%s]".formatted(resource, policy));
+        }
+        return policy;
+    }
 
-        try {
-            FileObject fileObject = filer.createResource(
-                    StandardLocation.SOURCE_OUTPUT,
-                    "",
-                    resource.getPath()
-            );
-
-            try (OutputStream fileObjectWrite = fileObject.openOutputStream()) {
-                fileObjectWrite.write(resource.getContents());
+    private static JsonMergeConflictPolicy getConflictPolicy(Resource resource, Map<Pattern, JsonMergeConflictPolicy> conf) {
+        String path = resource.getPath();
+        for (Entry<Pattern, JsonMergeConflictPolicy> e : conf.entrySet()) {
+            Pattern regex = e.getKey();
+            if (regex.matcher(path).matches()) {
+                return e.getValue();
             }
-        } catch (IOException ioException) {
-            this.processingEnv.getMessager().printError("Failed to create resource [" + resource.getPath() + "]:\n" + ioException.getLocalizedMessage());
+        }
+
+        return null;
+    }
+
+    private Resource resolveConflictIfPresent(Resource toSave) {
+        Messager messager = processingEnv.getMessager();
+
+        if (!toSave.exists(resourceDirs)) {
+            return toSave;
+        }
+
+        Resource existing;
+        try {
+            existing = Resource.readIfExists(resourceDirs).copyMetadata(toSave).build();
+        } catch (IllegalStateException stateException) {
+            return toSave;
+        }
+
+        String ext = toSave.getExtension();
+        if (ext.equals(Resource.JSON_EXT)) {
+            JsonMergeConflictPolicy conflictPolicy = getConflictPolicy(toSave);
+            messager.printNote("Resource [%s] already exists, trying to merge with policy [%s]".formatted(toSave, conflictPolicy));
+            return JsonMergeHelper.mergeJson(existing, toSave, conflictPolicy);
+        } else {
+            messager.printNote("Resources [%s] already exists, but no merge methods are known for [%s] extension, skipping".formatted(toSave, ext));
+            return null;
         }
     }
 
-    private boolean resourceExists(Resource resource) {
-        try {
-            return this.processingEnv.getFiler().getResource(
-                    StandardLocation.SOURCE_OUTPUT,
-                    "",
-                    resource.getPath()
-            ).getLastModified() > 0;
-        } catch (IOException ioException) {
-            return false;
-        }
+    @Override
+    public Set<String> getSupportedOptions() {
+        return Set.of(
+                RESOURCE_LOCATIONS_OPTION,
+                CONFIG_LOCATION_OPTION
+        );
     }
 
     @Override

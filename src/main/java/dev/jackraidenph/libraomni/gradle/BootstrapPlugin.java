@@ -1,0 +1,68 @@
+package dev.jackraidenph.libraomni.gradle;
+
+import dev.jackraidenph.libraomni.processor.CompilationTaskProcessor;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.language.jvm.tasks.ProcessResources;
+
+import javax.inject.Inject;
+import java.io.File;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class BootstrapPlugin implements Plugin<Project> {
+
+    private static final String COMPILE_JAVA = "compileJava";
+    private static final String PROCESS_RESOURCES = "processResources";
+
+    private final FileSystemOperations fs;
+
+    @Inject
+    public BootstrapPlugin(FileSystemOperations fileSystemOperations) {
+        this.fs = fileSystemOperations;
+    }
+
+    @Override
+    public void apply(Project project) {
+        TaskContainer tasks = project.getTasks();
+
+        JavaCompile javaCompile = (JavaCompile) tasks.getByName(COMPILE_JAVA);
+
+        ExtensionContainer extensions = project.getExtensions();
+        JavaPluginExtension javaExt = extensions.getByType(JavaPluginExtension.class);
+
+        String compileTaskName = javaCompile.getName();
+        Set<File> resourceDirs = javaExt.getSourceSets()
+                .stream()
+                .filter(s -> s.getCompileJavaTaskName().equals(compileTaskName))
+                .flatMap(s -> s.getResources().getSrcDirs().stream())
+                .collect(Collectors.toSet());
+
+        String resourceDirsArg = resourceDirs.toString().replaceAll("[\\[\\]\\s]", "");
+        javaCompile.getOptions().getCompilerArgs().add("-A" + CompilationTaskProcessor.RESOURCE_LOCATIONS_OPTION + '=' + resourceDirsArg);
+
+        ProcessResources processResources = (ProcessResources) tasks.getByName(PROCESS_RESOURCES);
+        processResources.exclude(CompilationTaskProcessor.PROCESSED_RESOURCES);
+
+        javaCompile.doLast("copyResources", task -> fs.copy(copy -> {
+                    File destination = ((JavaCompile) task).getDestinationDirectory().get().getAsFile();
+                    copy
+                            .from(resourceDirs)
+                            .into(destination)
+                            .eachFile(file -> {
+                                if (file.getRelativePath().getFile(destination).exists()) {
+                                    file.exclude();
+                                }
+                            })
+                            .filesNotMatching(CompilationTaskProcessor.PROCESSED_RESOURCES, FileCopyDetails::exclude);
+                    copy.setIncludeEmptyDirs(false);
+                })
+        );
+    }
+}

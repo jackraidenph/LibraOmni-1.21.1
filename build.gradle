@@ -7,6 +7,7 @@ plugins {
     id 'maven-publish'
     id 'net.neoforged.moddev' version '1.0.23'
     id 'com.gradleup.shadow' version '9.0.0-beta15'
+    id 'java-gradle-plugin'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -114,6 +115,7 @@ configurations {
 }
 
 dependencies {
+    compileOnly gradleApi()
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
     requiredForProcessing 'com.google.code.gson:gson:2.13.1'
 }
@@ -168,6 +170,24 @@ tasks.register('sourceJar', Jar) {
     from sourceSets.main.allSource
 }
 
+tasks.withType(PublishToMavenLocal).configureEach {
+    dependsOn jar
+    dependsOn shadowJar
+    dependsOn sourceJar
+}
+
+gradlePlugin {
+    plugins {
+        libraomniBootstrap {
+            id = 'dev.jackraidenph.libraomni-bootstrap'
+            displayName = 'LibraOmni Bootstrap Plugin'
+            implementationClass = 'dev.jackraidenph.libraomni.gradle.BootstrapPlugin'
+            setGroup('dev.jackraidenph')
+            setVersion('1.0.0')
+        }
+    }
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
@@ -179,7 +199,7 @@ publishing {
                 artifact(shadowJar) {
                     classifier = ""
                 }
-                artifact(sourceJar){
+                artifact(sourceJar) {
                     classifier = 'sources'
                 }
             }
