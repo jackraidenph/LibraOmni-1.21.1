@@ -63,9 +63,10 @@ class CreateMetadataTask implements CompilationTask {
     @Override
     public Set<Resource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         return Set.of(
-                Resource.json(projectMetadata)
+                Resource.builder()
                         .setDirectory(ProjectMetadata.DIRECTORY)
                         .setNameRoot(ProjectMetadata.FILE_ROOT)
+                        .setJsonContents(projectMetadata)
                         .build()
         );
     }

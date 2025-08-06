@@ -31,9 +31,10 @@ public class JsonMergeHelper {
         JsonObject obj0 = CommonGson.DEFAULT.fromJson(json0, JsonObject.class);
         JsonObject obj1 = CommonGson.DEFAULT.fromJson(json1, JsonObject.class);
 
-        return Resource.json(mergeObjects(obj0, obj1, policy))
+        return Resource.builder()
                 .setNameRoot(existing.getNameRoot())
                 .setDirectory(existing.getDirectory())
+                .setJsonContents(mergeObjects(obj0, obj1, policy))
                 .build();
     }
 

@@ -53,9 +53,10 @@ public class ImageTransformHelper {
 
         raster.setDataElements(0, 0, width, height, pixels);
 
-        return Resource.png(out)
+        return Resource.builder()
                 .setNameRoot(existing.getNameRoot())
                 .setDirectory(existing.getDirectory())
+                .setPngContents(out)
                 .build();
     }
 
@@ -74,9 +75,10 @@ public class ImageTransformHelper {
         g.drawImage(image0, 0, 0, null);
         g.drawImage(image1, 0, 0, null);
 
-        return Resource.png(out)
+        return Resource.builder()
                 .setNameRoot(existing.getNameRoot())
                 .setDirectory(existing.getDirectory())
+                .setPngContents(out)
                 .build();
     }
 

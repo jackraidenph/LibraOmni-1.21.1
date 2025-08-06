@@ -64,19 +64,20 @@ public class CompilationTaskProcessor extends AbstractProcessor {
             configLoc = ProjectMetadata.DIRECTORY;
             processingEnv.getMessager().printNote("Annotation Processor config location not specified, assuming [%s]".formatted(configLoc));
         }
-        try {
-            Resource configResource = Resource.readIfExists(resourceDirs)
-                    .setDirectory(configLoc)
-                    .setNameRoot(CONFIG_NAME)
-                    .setJsonExtension()
-                    .build();
-            String configStr = new String(configResource.getContents(), StandardCharsets.UTF_8);
+        Optional<Resource> configResource = Resource.builder()
+                .setDirectory(configLoc)
+                .setNameRoot(CONFIG_NAME)
+                .setJsonExtension()
+                .tryRead(resourceDirs);
+
+        if (configResource.isPresent()) {
+            String configStr = new String(configResource.get().getContents(), StandardCharsets.UTF_8);
             //noinspection unchecked
             CommonGson.DEFAULT.fromJson(configStr, Map.class).forEach((path, policy) ->
                     config.put(Pattern.compile((String) path), JsonMergeConflictPolicy.valueOf((String) policy))
             );
             processingEnv.getMessager().printNote("Annotation Processor config found and processed: %s".formatted(config));
-        } catch (IllegalStateException stateException) {
+        } else {
             processingEnv.getMessager().printNote("Annotation Processor config not found, assuming default values %s".formatted(defaultConfig));
         }
     }
@@ -181,14 +182,12 @@ public class CompilationTaskProcessor extends AbstractProcessor {
     private Resource resolveConflictIfPresent(Resource toSave) {
         Messager messager = processingEnv.getMessager();
 
-        if (!toSave.exists(resourceDirs)) {
+        if (!toSave.resourceExistsOnDisk(resourceDirs)) {
             return toSave;
         }
 
-        Resource existing;
-        try {
-            existing = Resource.readIfExists(resourceDirs).copyFilePathFrom(toSave).build();
-        } catch (IllegalStateException stateException) {
+        Optional<Resource> existing = Resource.builder().copyFilePathFrom(toSave).tryRead(resourceDirs);
+        if (existing.isEmpty()) {
             return toSave;
         }
 
@@ -196,7 +195,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
         if (ext.equals(Resource.JSON_EXT)) {
             JsonMergeConflictPolicy conflictPolicy = getConflictPolicy(toSave);
             messager.printNote("Resource [%s] already exists, trying to merge with policy [%s]".formatted(toSave, conflictPolicy));
-            return JsonMergeHelper.mergeJson(existing, toSave, conflictPolicy);
+            return JsonMergeHelper.mergeJson(existing.get(), toSave, conflictPolicy);
         } else {
             messager.printNote("Resources [%s] already exists, but no merge methods are known for [%s] extension, skipping".formatted(toSave, ext));
             return null;
