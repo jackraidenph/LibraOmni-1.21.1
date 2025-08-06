@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Id
 @Composed
-public @interface PropertiesEntry {
+public @interface PropertiesSupplier {
     @Delegate(annotation = Id.class, attribute = "value")
     String value();
 }

@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.reflect.task;
 
-import dev.jackraidenph.libraomni.annotation.PropertiesEntry;
+import dev.jackraidenph.libraomni.annotation.PropertiesSupplier;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
@@ -45,6 +45,6 @@ public class GatherPropertiesTask implements RuntimeTask {
 
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotations() {
-        return Set.of(PropertiesEntry.class);
+        return Set.of(PropertiesSupplier.class);
     }
 }
