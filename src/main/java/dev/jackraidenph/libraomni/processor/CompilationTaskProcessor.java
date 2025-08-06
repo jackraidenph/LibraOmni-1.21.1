@@ -66,9 +66,9 @@ public class CompilationTaskProcessor extends AbstractProcessor {
         }
         try {
             Resource configResource = Resource.readIfExists(resourceDirs)
-                    .directory(configLoc)
-                    .name(CONFIG_NAME)
-                    .json()
+                    .setDirectory(configLoc)
+                    .setNameRoot(CONFIG_NAME)
+                    .setJsonExtension()
                     .build();
             String configStr = new String(configResource.getContents(), StandardCharsets.UTF_8);
             //noinspection unchecked
@@ -150,7 +150,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
             if (mergeResult == null) {
                 continue;
             }
-            mergeResult.saveToDisk(processingEnv.getFiler());
+            mergeResult.saveToClassOutput(processingEnv.getFiler());
         }
     }
 
@@ -167,7 +167,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
     }
 
     private static JsonMergeConflictPolicy getConflictPolicy(Resource resource, Map<Pattern, JsonMergeConflictPolicy> conf) {
-        String path = resource.getPath();
+        String path = resource.getFilePath();
         for (Entry<Pattern, JsonMergeConflictPolicy> e : conf.entrySet()) {
             Pattern regex = e.getKey();
             if (regex.matcher(path).matches()) {
@@ -187,7 +187,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
 
         Resource existing;
         try {
-            existing = Resource.readIfExists(resourceDirs).copyMetadata(toSave).build();
+            existing = Resource.readIfExists(resourceDirs).copyFilePathFrom(toSave).build();
         } catch (IllegalStateException stateException) {
             return toSave;
         }

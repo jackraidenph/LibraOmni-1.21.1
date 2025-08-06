@@ -20,40 +20,40 @@ import java.util.*;
 public class Resource {
 
     private final byte[] contents;
-    private final String name;
+    private final String nameRoot;
     private final String extension;
     /**
      * A directory relative to resource-set
      */
-    private final String dir;
+    private final String directory;
 
     public static final String JSON_EXT = "json";
     public static final String PNG_EXT = "png";
 
-    private Resource(byte[] contents, String resourceDirectory, String name, String extension) {
+    private Resource(byte[] contents, String resourceDirectory, String nameRoot, String extension) {
         this.contents = contents;
-        this.dir = resourceDirectory;
-        this.name = name;
+        this.directory = resourceDirectory;
+        this.nameRoot = nameRoot;
         this.extension = extension;
     }
 
     public boolean exists(Collection<String> resourceLocations) {
-        return fileFromPath(resourceLocations, getPath()).isPresent();
+        return fileFromPath(resourceLocations, getFilePath()).isPresent();
     }
 
-    public void saveToDisk(Filer filer) {
+    public void saveToClassOutput(Filer filer) {
         try {
             FileObject fileObject = filer.createResource(
                     StandardLocation.CLASS_OUTPUT,
                     "",
-                    getPath()
+                    getFilePath()
             );
 
             try (OutputStream fileObjectWrite = fileObject.openOutputStream()) {
                 fileObjectWrite.write(getContents());
             }
         } catch (IOException ioException) {
-            throw new RuntimeException("Failed to create resource [" + getPath() + "]", ioException);
+            throw new RuntimeException("Failed to create resource [" + getFilePath() + "]", ioException);
         }
     }
 
@@ -69,11 +69,11 @@ public class Resource {
     }
 
     public String getDirectory() {
-        return dir;
+        return directory;
     }
 
-    public String getName() {
-        return name;
+    public String getNameRoot() {
+        return nameRoot;
     }
 
     public String getExtension() {
@@ -81,31 +81,31 @@ public class Resource {
     }
 
     public String getFileName() {
-        return getName() + "." + getExtension();
+        return getNameRoot() + "." + getExtension();
     }
 
-    public String getPath() {
+    public String getFilePath() {
         return getDirectory() + getFileName();
     }
 
-    public static OutputFileBuilder raw(byte[] bytes) {
-        return new OutputFileBuilder(bytes);
+    public static ResourceBuilder raw(byte[] bytes) {
+        return new ResourceBuilder(bytes);
     }
 
-    public static OutputFileBuilder string(String str, Charset charset) {
+    public static ResourceBuilder string(String str, Charset charset) {
         return raw(str.getBytes(charset));
     }
 
-    public static OutputFileBuilder string(String str) {
+    public static ResourceBuilder string(String str) {
         return string(str, StandardCharsets.UTF_8);
     }
 
-    public static OutputFileBuilder text(String text) {
-        return string(text).extension("txt");
+    public static ResourceBuilder text(String text) {
+        return string(text).setExtension("txt");
     }
 
-    public static OutputFileBuilder text(String text, Charset charset) {
-        return string(text, charset).extension("txt");
+    public static ResourceBuilder text(String text, Charset charset) {
+        return string(text, charset).setExtension("txt");
     }
 
     private static boolean isValidJson(String input) {
@@ -117,28 +117,28 @@ public class Resource {
         }
     }
 
-    public static OutputFileBuilder json(String rawJson) {
+    public static ResourceBuilder json(String rawJson) {
         if (!isValidJson(rawJson)) {
             throw new IllegalArgumentException("Malformed JSON");
         }
 
-        return string(rawJson).json();
+        return string(rawJson).setJsonExtension();
     }
 
-    public static OutputFileBuilder json(Object object) {
+    public static ResourceBuilder json(Object object) {
         //Validity check is not necessary
-        return string(CommonGson.DEFAULT.toJson(object)).json();
+        return string(CommonGson.DEFAULT.toJson(object)).setJsonExtension();
     }
 
-    public static OutputFileBuilder png(RenderedImage image) {
-        return image(image).png();
+    public static ResourceBuilder png(RenderedImage image) {
+        return image(image).setPngExtension();
     }
 
-    public static OutputFileBuilder png(Raster raster) {
-        return raster(raster).png();
+    public static ResourceBuilder png(Raster raster) {
+        return raster(raster).setPngExtension();
     }
 
-    public static OutputFileBuilder raster(Raster raster) {
+    public static ResourceBuilder raster(Raster raster) {
         DataBuffer dataBuffer = raster.getDataBuffer();
         if (dataBuffer.getDataType() != DataBuffer.TYPE_BYTE) {
             throw new UnsupportedOperationException("Failed to get raw byte contents for non-byte image buffer type");
@@ -146,101 +146,101 @@ public class Resource {
         return raw(((DataBufferByte) dataBuffer).getData());
     }
 
-    public static OutputFileBuilder image(RenderedImage bufferedImage) {
+    public static ResourceBuilder image(RenderedImage bufferedImage) {
         return raster(bufferedImage.getData());
     }
 
-    public static OutputFileBuilder readIfExists(Collection<String> resourceLocations) {
-        return new OutputFileBuilder(resourceLocations);
+    public static ResourceBuilder readIfExists(Collection<String> resourceLocations) {
+        return new ResourceBuilder(resourceLocations);
     }
 
-    public static OutputFileBuilder readIfExists(String... resourceLocations) {
+    public static ResourceBuilder readIfExists(String... resourceLocations) {
         return readIfExists(List.of(resourceLocations));
     }
 
     @Override
     public String toString() {
-        return getPath();
+        return getFilePath();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Resource other && this.getPath().equals(other.getPath());
+        return obj instanceof Resource other && this.getFilePath().equals(other.getFilePath());
     }
 
     public boolean contentEquals(Resource other) {
         return Arrays.equals(contents, other.contents);
     }
 
-    public static class OutputFileBuilder {
+    public static class ResourceBuilder {
 
         private final byte[] fileContents;
         private final Collection<String> resourceLocations;
         /**
          * A path relative to resource-set
          */
-        private String filePath;
-        private String fileName;
+        private String fileDirectory;
+        private String fileNameRoot;
         private String fileExtension;
 
         private final boolean readIfExists;
 
-        private OutputFileBuilder(Collection<String> resourceLocations) {
+        private ResourceBuilder(Collection<String> resourceLocations) {
             this.fileContents = null;
             this.readIfExists = true;
             this.resourceLocations = resourceLocations;
         }
 
-        private OutputFileBuilder(byte[] fileContents) {
+        private ResourceBuilder(byte[] fileContents) {
             this.fileContents = fileContents;
             this.readIfExists = false;
             this.resourceLocations = Set.of();
         }
 
-        public OutputFileBuilder copyMetadata(Resource resource) {
-            this.filePath = resource.dir;
-            this.fileName = resource.name;
+        public ResourceBuilder copyFilePathFrom(Resource resource) {
+            this.fileDirectory = resource.directory;
+            this.fileNameRoot = resource.nameRoot;
             this.fileExtension = resource.extension;
             return this;
         }
 
-        public OutputFileBuilder asset(String modId, String path) {
-            return directory("assets/" + modId + "/" + path);
+        public ResourceBuilder setAssetDirectory(String modId, String path) {
+            return setDirectory("assets/" + modId + "/" + path);
         }
 
-        public OutputFileBuilder directory(String path) {
-            this.filePath = path.endsWith("/") ? path : (path + "/");
+        public ResourceBuilder setDirectory(String path) {
+            this.fileDirectory = path.endsWith("/") ? path : (path + "/");
             return this;
         }
 
-        public OutputFileBuilder name(String name) {
-            this.fileName = name;
+        public ResourceBuilder setNameRoot(String name) {
+            this.fileNameRoot = name;
             return this;
         }
 
-        public OutputFileBuilder extension(String extension) {
+        public ResourceBuilder setExtension(String extension) {
             this.fileExtension = extension;
             return this;
         }
 
-        private String getRelativePath() {
-            return filePath + fileName + '.' + fileExtension;
+        private String filePath() {
+            return fileDirectory + fileNameRoot + '.' + fileExtension;
         }
 
-        public OutputFileBuilder json() {
-            return extension(JSON_EXT);
+        public ResourceBuilder setJsonExtension() {
+            return setExtension(JSON_EXT);
         }
 
-        public OutputFileBuilder png() {
-            return extension(PNG_EXT);
+        public ResourceBuilder setPngExtension() {
+            return setExtension(PNG_EXT);
         }
 
         public Resource build() {
             byte[] contents;
             if (readIfExists) {
-                Optional<File> file = fileFromPath(resourceLocations, getRelativePath());
+                Optional<File> file = fileFromPath(resourceLocations, filePath());
                 if (file.isEmpty()) {
-                    throw new IllegalStateException("File [%s] does not exist".formatted(getRelativePath()));
+                    throw new IllegalStateException("File [%s] does not exist".formatted(filePath()));
                 }
                 try (InputStream inputStream = new FileInputStream(file.get())) {
                     contents = inputStream.readAllBytes();
@@ -251,7 +251,7 @@ public class Resource {
                 contents = fileContents;
             }
 
-            return new Resource(contents, filePath, fileName, fileExtension);
+            return new Resource(contents, fileDirectory, fileNameRoot, fileExtension);
         }
     }
 }
