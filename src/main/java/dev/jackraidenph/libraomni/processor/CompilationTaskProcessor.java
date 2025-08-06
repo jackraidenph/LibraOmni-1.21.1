@@ -35,7 +35,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
     private final ModIdGetter modIdGetter = new ModIdGetter();
     private final Set<String> resourceDirs = new HashSet<>();
     private final Map<Pattern, JsonMergeConflictPolicy> defaultConfig = Map.of(
-            Pattern.compile("data/.*"), JsonMergeConflictPolicy.PREFER_EXISTING,
+            Pattern.compile("data/.*"), JsonMergeConflictPolicy.PREFER_NEW,
             Pattern.compile("assets/.*"), JsonMergeConflictPolicy.OVERWRITE
     );
     private final Map<Pattern, JsonMergeConflictPolicy> config = new HashMap<>();
@@ -76,7 +76,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
             CommonGson.DEFAULT.fromJson(configStr, Map.class).forEach((path, policy) ->
                     config.put(Pattern.compile((String) path), JsonMergeConflictPolicy.valueOf((String) policy))
             );
-            processingEnv.getMessager().printNote("Annotation Processor config found and processed: %s".formatted(config));
+            processingEnv.getMessager().printNote("Annotation Processor config found and processed: %s, backup values: %s".formatted(config, defaultConfig));
         } else {
             processingEnv.getMessager().printNote("Annotation Processor config not found, assuming default values %s".formatted(defaultConfig));
         }
