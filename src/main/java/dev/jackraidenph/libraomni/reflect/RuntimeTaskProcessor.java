@@ -38,7 +38,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         this.modMetadataReader = reader;
     }
 
-    RuntimeTaskProcessor registerTask(RuntimeTask task) {
+    void registerTask(RuntimeTask task) {
         if (setup) {
             throw new AlreadyInitializedException();
         }
@@ -49,8 +49,6 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         }
 
         nativeTasks.put(clazz, task);
-
-        return this;
     }
 
     @Override
@@ -134,32 +132,28 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
         taskGraph.addNode(0, null);
 
-        int idx = 0;
+        int i = 1;
         for (RuntimeTask task : tasksTable.values()) {
-            taskGraph.addNode(++idx, task);
-            taskGraph.addEdge(0, idx);
+            taskGraph.addNode(i, task);
+            taskGraph.addEdge(0, i);
+            i++;
+        }
+
+        for (RuntimeTask task : tasksTable.values()) {
+            int taskIndex = taskGraph.getNodeIndex(task);
             for (Class<? extends RuntimeTask> requiredType : task.dependsOn()) {
                 RuntimeTask requiredTask = tasksTable.get(requiredType);
                 if (requiredTask == null) {
-                    throw new IllegalStateException("Failed to fetch required task of type " + requiredType + ", check if tasks exist at the same lifecycle stage");
+                    throw new IllegalStateException("Failed to fetch required task of type [%s], check if tasks exist at the same lifecycle stage".formatted(requiredType));
                 }
-
-                if (taskGraph.getNodeIndex(requiredTask) < 0) {
-                    taskGraph.addNode(++idx, requiredTask);
-                } else {
-                    taskGraph.removeEdge(0, requiredTask);
+                int requiredIndex = taskGraph.getNodeIndex(requiredTask);
+                if (requiredIndex < 0) {
+                    throw new IllegalStateException();
                 }
-
-                taskGraph.addEdge(task, requiredTask);
-                if (taskGraph.hasCycles()) {
-                    throw new IllegalStateException("Cyclic dependency %s -[depends]-> %s".formatted(
-                            task.getClass().getSimpleName(),
-                            requiredTask.getClass().getSimpleName()
-                    ));
-                }
+                taskGraph.addEdge(taskIndex, requiredIndex);
+                taskGraph.removeEdge(0, requiredIndex);
             }
         }
-
 
         return taskGraph;
     }
