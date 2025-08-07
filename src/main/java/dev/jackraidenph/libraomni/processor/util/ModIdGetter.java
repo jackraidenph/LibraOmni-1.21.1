@@ -1,7 +1,5 @@
 package dev.jackraidenph.libraomni.processor.util;
 
-import dev.jackraidenph.libraomni.processor.task.CompilationTaskProcessor;
-
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
@@ -13,12 +11,12 @@ import java.util.TreeMap;
 public class ModIdGetter {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
 
-    private static String getModId(Element e, String annotationName, String valueName) {
+    private static String getModId(Element e, TypeElement annotationToSearch, String valueName) {
         AnnotationMirror foundMirror = null;
 
         for (AnnotationMirror annotationMirror : e.getAnnotationMirrors()) {
             TypeElement annotationElement = (TypeElement) annotationMirror.getAnnotationType().asElement();
-            if (annotationElement.getQualifiedName().contentEquals(annotationName)) {
+            if (annotationElement.equals(annotationToSearch)) {
                 foundMirror = annotationMirror;
             }
         }
@@ -37,10 +35,10 @@ public class ModIdGetter {
         return String.valueOf(foundMirror.getElementValues().get(executableElement).getValue());
     }
 
-    public void findMods(TypeElement modAnnotationType, RoundEnvironment roundEnvironment, Messager messager) {
+    public void findMods(TypeElement modAnnotationType, String annotationValue, RoundEnvironment roundEnvironment, Messager messager) {
         roundEnvironment.getElementsAnnotatedWith(modAnnotationType)
                 .forEach(e -> {
-                    String modId = getModId(e, CompilationTaskProcessor.NF_MOD_ANNOTATION_CLASS_NAME, "value");
+                    String modId = getModId(e, modAnnotationType, annotationValue);
                     if (modId == null) {
                         return;
                     }

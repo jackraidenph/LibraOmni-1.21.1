@@ -1,6 +1,5 @@
 package dev.jackraidenph.libraomni.processor.task;
 
-import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.CommonGson;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
@@ -99,7 +98,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(NF_MOD_ANNOTATION_CLASS_NAME);
-        this.modIdGetter.findMods(modAnnotation, roundEnvironment, this.processingEnv.getMessager());
+        this.modIdGetter.findMods(modAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
 
         Messager messager = this.processingEnv.getMessager();
         boolean finishing = roundEnvironment.processingOver();
