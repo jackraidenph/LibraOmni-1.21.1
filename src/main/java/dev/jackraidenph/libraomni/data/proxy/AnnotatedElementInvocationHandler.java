@@ -8,12 +8,12 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class AnnotationCachingInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedElement> implements AnnotationAccessor<AnnotatedElement> {
+public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedElement> implements AnnotationAccessor<AnnotatedElement> {
 
     protected final Map<Class<? extends Annotation>, List<Annotation>> annotations = new HashMap<>();
     protected final Map<Class<? extends Annotation>, List<Annotation>> declaredAnnotations = new HashMap<>();
 
-    public AnnotationCachingInvocationHandler(AnnotatedElement original) {
+    public AnnotatedElementInvocationHandler(AnnotatedElement original) {
         super(original);
         cacheRecursive(original.getAnnotations(), annotations);
         cacheRecursive(original.getDeclaredAnnotations(), declaredAnnotations);

@@ -11,12 +11,12 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class AnnotationMirrorCachingInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedConstruct> {
+public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedConstruct> {
 
     protected final Map<TypeElement, List<AnnotationMirror>> annotationMirrorsMap = new HashMap<>();
     protected final Map<Class<? extends Annotation>, List<Annotation>> annotationMap = new HashMap<>();
 
-    public AnnotationMirrorCachingInvocationHandler(AnnotatedConstruct original) {
+    public AnnotatedConstructInvocationHandler(AnnotatedConstruct original) {
         super(original);
         cacheRecursive(original);
     }
