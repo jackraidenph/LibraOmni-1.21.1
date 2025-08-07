@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.reflect.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.GeneratesBlockItem;
+import dev.jackraidenph.libraomni.annotation.runtime.GeneratesBlockItem;
 import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
 import dev.jackraidenph.libraomni.reflect.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.reflect.LifecycleSetup.LifecycleStage;

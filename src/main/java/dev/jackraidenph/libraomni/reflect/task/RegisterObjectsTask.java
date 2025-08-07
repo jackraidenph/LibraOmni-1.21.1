@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.reflect.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.Registered;
+import dev.jackraidenph.libraomni.annotation.runtime.Registered;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;

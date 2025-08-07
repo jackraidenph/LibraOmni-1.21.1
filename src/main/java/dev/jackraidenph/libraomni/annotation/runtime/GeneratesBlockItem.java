@@ -1,5 +1,7 @@
-package dev.jackraidenph.libraomni.annotation;
+package dev.jackraidenph.libraomni.annotation.runtime;
 
+import dev.jackraidenph.libraomni.annotation.service.NeedsRuntimeProcessing;
+import dev.jackraidenph.libraomni.annotation.service.Validated;
 import dev.jackraidenph.libraomni.processor.validation.BlockItemGenerationValidator;
 
 import java.lang.annotation.ElementType;

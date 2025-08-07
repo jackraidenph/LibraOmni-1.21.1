@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.reflect.task;
 
-import dev.jackraidenph.libraomni.annotation.PropertiesSupplier;
+import dev.jackraidenph.libraomni.annotation.runtime.PropertiesSupplier;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation;
+package dev.jackraidenph.libraomni.annotation.value;
 
 import java.lang.annotation.Target;
 
