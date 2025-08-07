@@ -95,7 +95,11 @@ public interface IndexedGraph<T> extends Iterable<T> {
 
     boolean isAcyclic();
 
-    boolean hasCycles();
+    boolean hasCycles(int startingFrom);
+
+    default boolean hasCycles() {
+        return hasCycles(getStartingIndex());
+    }
 
     default boolean hasSelfLoops() {
         for (int idx : getNodeIndices()) {
@@ -113,12 +117,16 @@ public interface IndexedGraph<T> extends Iterable<T> {
 
     default boolean isDisconnected() {
         int visited = 0;
-        for (T t : this) {
+        for (T ignored : this) {
             visited++;
         }
 
-        return visited != getNodeIndices().size();
+        return visited != nodesAmount();
     }
+
+    int nodesAmount();
+
+    int edgesAmount();
 
     @NotNull
     @Override
