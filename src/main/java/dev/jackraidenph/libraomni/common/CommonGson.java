@@ -1,9 +1,9 @@
 package dev.jackraidenph.libraomni.common;
 
 import com.google.gson.*;
-import dev.jackraidenph.libraomni.data.AnnotatedReflectionData;
-import dev.jackraidenph.libraomni.data.GsonTypeAdapters.AnnotatedReflectionDataDeserializer;
-import dev.jackraidenph.libraomni.data.GsonTypeAdapters.AnnotatedReflectionDataSerializer;
+import dev.jackraidenph.libraomni.data.reflect.AnnotatedReflectionData;
+import dev.jackraidenph.libraomni.data.reflect.ReflectionDataTypeAdapters.AnnotatedReflectionDataDeserializer;
+import dev.jackraidenph.libraomni.data.reflect.ReflectionDataTypeAdapters.AnnotatedReflectionDataSerializer;
 
 public class CommonGson {
     public static final Gson DEFAULT = new GsonBuilder()

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.data;
+package dev.jackraidenph.libraomni.data.reflect;
 
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;

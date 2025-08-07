@@ -1,11 +1,11 @@
-package dev.jackraidenph.libraomni.data;
+package dev.jackraidenph.libraomni.data.reflect;
 
 import com.google.gson.*;
 
 import javax.lang.model.element.ElementKind;
 import java.lang.reflect.Type;
 
-public class GsonTypeAdapters {
+public class ReflectionDataTypeAdapters {
 
     public static final String ANNOTATED_DATA_KIND_FIELD = "kind";
 

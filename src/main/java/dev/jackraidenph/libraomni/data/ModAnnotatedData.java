@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.data;
 
+import dev.jackraidenph.libraomni.data.reflect.*;
+
 import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
 import java.lang.reflect.AnnotatedElement;
