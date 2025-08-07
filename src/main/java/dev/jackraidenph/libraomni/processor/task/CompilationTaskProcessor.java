@@ -109,19 +109,8 @@ final class CompilationTaskProcessor extends AbstractProcessor {
                         : compilationTask.finish(modIdGetter, proxyEnvironment, this.processingEnv);
                 createdResources.addAll(output);
             } catch (Exception e) {
-                try (
-                        StringWriter stringWriter = new StringWriter();
-                        PrintWriter printWriter = new PrintWriter(stringWriter)
-                ) {
-                    e.printStackTrace(printWriter);
-                    messager.printNote(stringWriter.getBuffer());
-                } catch (IOException ioException) {
-                    throw new IllegalStateException(ioException);
-                }
-                throw new RuntimeException(
-                        "Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()),
-                        e
-                );
+                printStackTrace(e);
+                throw new RuntimeException("Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()), e);
             }
         }
 
@@ -191,6 +180,20 @@ final class CompilationTaskProcessor extends AbstractProcessor {
             return null;
         }
     }
+
+    private void printStackTrace(Throwable throwable) {
+        Messager messager = processingEnv.getMessager();
+        try (
+                StringWriter stringWriter = new StringWriter();
+                PrintWriter printWriter = new PrintWriter(stringWriter)
+        ) {
+            throwable.printStackTrace(printWriter);
+            messager.printNote(stringWriter.getBuffer());
+        } catch (IOException ioException) {
+            throw new IllegalStateException(ioException);
+        }
+    }
+
 
     @Override
     public Set<String> getSupportedOptions() {
