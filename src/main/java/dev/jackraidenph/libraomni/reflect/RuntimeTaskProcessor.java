@@ -147,10 +147,10 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                     throw new IllegalStateException("Failed to fetch required task of type [%s], check if tasks exist at the same lifecycle stage".formatted(requiredType));
                 }
                 int requiredIndex = taskGraph.getNodeIndex(requiredTask);
-                if (requiredIndex < 0) {
-                    throw new IllegalStateException();
-                }
                 taskGraph.addEdge(taskIndex, requiredIndex);
+                if (taskGraph.hasCycles()) {
+                    throw new IllegalStateException("Task graph forms a cycle, loop-closing pair: [%s]->[%s]".formatted(task.getClass().getSimpleName(), requiredTask.getClass().getSimpleName()));
+                }
                 taskGraph.removeEdge(0, requiredIndex);
             }
         }
