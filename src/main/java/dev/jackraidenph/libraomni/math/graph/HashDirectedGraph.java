@@ -1,16 +1,16 @@
 package dev.jackraidenph.libraomni.math.graph;
 
 import dev.jackraidenph.libraomni.math.graph.iterator.BreadthFirstIterator;
-import dev.jackraidenph.libraomni.math.graph.iterator.DepthFirstIterator;
 
 import java.util.*;
 import java.util.Map.Entry;
 
 public class HashDirectedGraph<T> implements IndexedGraph<T> {
-    private final Map<Integer, Set<Integer>> adjacencySetsMap;
+    private final Map<Integer, SequencedSet<Integer>> adjacencySetsMap;
     private final Map<Integer, T> indexToNode;
     private final Map<T, Integer> nodeToIndex;
     private int startingIndex = -1;
+    private int edgesAmount = 0;
 
     public HashDirectedGraph() {
         this(new HashMap<>(), new HashMap<>());
@@ -54,7 +54,7 @@ public class HashDirectedGraph<T> implements IndexedGraph<T> {
             adjacencySetsMap.remove(index);
         }
         this.nodeToIndex.put(node, index);
-        this.adjacencySetsMap.put(index, new HashSet<>());
+        this.adjacencySetsMap.put(index, new LinkedHashSet<>());
         return true;
     }
 
@@ -92,7 +92,9 @@ public class HashDirectedGraph<T> implements IndexedGraph<T> {
         indexSanityCheck(from);
         indexSanityCheck(to);
 
-        this.adjacencySetsMap.computeIfAbsent(from, k -> new HashSet<>()).add(to);
+        if(this.adjacencySetsMap.computeIfAbsent(from, k -> new LinkedHashSet<>()).add(to)) {
+            edgesAmount++;
+        }
         return true;
     }
 
@@ -100,7 +102,9 @@ public class HashDirectedGraph<T> implements IndexedGraph<T> {
         indexSanityCheck(from);
         indexSanityCheck(to);
 
-        this.adjacencySetsMap.get(from).remove(to);
+        if (this.adjacencySetsMap.get(from).remove(to)) {
+            edgesAmount--;
+        }
         if (adjacencySetsMap.get(from).isEmpty()) {
             adjacencySetsMap.remove(from);
         }
@@ -178,22 +182,40 @@ public class HashDirectedGraph<T> implements IndexedGraph<T> {
         return false;
     }
 
-    private boolean hasCycleStartingFrom(int startingIndex) {
-        DepthFirstIterator<T> dfi = new DepthFirstIterator<>(this, startingIndex);
+    private boolean hasCycleStep(int current, Set<Integer> visited, Set<Integer> stack) {
+        if (stack.contains(current)) {
+            return true;
+        }
 
-        while (dfi.hasNext()) {
-            dfi.next();
-            if (dfi.stoppedOnCycle()) {
+        if (visited.contains(current)) {
+            return false;
+        }
+
+        visited.add(current);
+        stack.add(current);
+        for (int i : getAdjacentIndices(current)) {
+            if (hasCycleStep(i, visited, stack)) {
                 return true;
             }
         }
+        stack.remove(current);
 
         return false;
     }
 
     @Override
-    public boolean hasCycles() {
-        return hasCycleStartingFrom(getStartingIndex());
+    public boolean hasCycles(int startingFrom) {
+        return hasCycleStep(startingFrom, new HashSet<>(nodesAmount()), new HashSet<>(nodesAmount()));
+    }
+
+    @Override
+    public int nodesAmount() {
+        return indexToNode.size();
+    }
+
+    @Override
+    public int edgesAmount() {
+        return edgesAmount;
     }
 
     @Override
