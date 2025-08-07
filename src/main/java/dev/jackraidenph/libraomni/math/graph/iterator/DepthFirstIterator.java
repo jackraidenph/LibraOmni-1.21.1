@@ -6,13 +6,10 @@ import java.util.*;
 
 public class DepthFirstIterator<T> implements Iterator<T> {
 
-    private static final int NO_ELEMENTS_FLAG = -2;
-
-    private final Set<Integer> visited;
-    private final Stack<Iterator<Integer>> stack = new Stack<>();
-    private int next;
     private final IndexedGraph<T> graph;
-    private boolean stoppedOnCycle = false;
+    private int current;
+    private final Deque<Integer> stack = new ArrayDeque<>();
+    private final Set<Integer> visited;
 
     public DepthFirstIterator(IndexedGraph<T> graph) {
         this(graph, graph.getStartingIndex());
@@ -20,10 +17,10 @@ public class DepthFirstIterator<T> implements Iterator<T> {
 
     public DepthFirstIterator(IndexedGraph<T> graph, int startingIndex) {
         this.graph = graph;
-        this.visited = new HashSet<>(graph.getNodeIndices().size());
+        visited = new HashSet<>(graph.nodesAmount());
         if (this.graph.hasIndex(startingIndex)) {
-            this.stack.push(this.graph.getAdjacentIndices(startingIndex).iterator());
-            this.next = startingIndex;
+            this.stack.push(startingIndex);
+            this.current = startingIndex;
         } else {
             throw new IllegalArgumentException("Index does not exits: %d".formatted(startingIndex));
         }
@@ -31,52 +28,24 @@ public class DepthFirstIterator<T> implements Iterator<T> {
 
     @Override
     public void remove() {
-        this.graph.removeNode(next);
+        this.graph.removeNode(current);
     }
 
     @Override
     public boolean hasNext() {
-        return this.next != NO_ELEMENTS_FLAG;
+        return !stack.isEmpty();
     }
 
     @Override
     public T next() {
-        if (!hasNext()) {
-            throw new NoSuchElementException();
-        }
-
-        try {
-            this.visited.add(this.next);
-            return this.graph.getNode(this.next);
-        } finally {
-            this.advance();
-        }
-    }
-
-    private void advance() {
-        Iterator<Integer> neighbors = this.stack.peek();
-        do {
-            while (!neighbors.hasNext()) {
-                this.stack.pop();
-                if (this.stack.isEmpty()) {
-                    this.next = NO_ELEMENTS_FLAG;
-                    return;
-                }
-                neighbors = this.stack.peek();
+        current = stack.pop();
+        visited.add(current);
+        T currentNode = graph.getNode(current);
+        for (Integer adj : graph.getAdjacentIndices(current)) {
+            if (!visited.contains(adj)) {
+                stack.push(adj);
             }
-
-            this.next = neighbors.next();
-
-            boolean cycle = this.visited.contains(this.next);
-            if (cycle) {
-                stoppedOnCycle = true;
-            }
-        } while (this.visited.contains(this.next));
-
-        this.stack.push(this.graph.getAdjacentIndices(this.next).iterator());
-    }
-
-    public boolean stoppedOnCycle() {
-        return stoppedOnCycle;
+        }
+        return currentNode;
     }
 }
