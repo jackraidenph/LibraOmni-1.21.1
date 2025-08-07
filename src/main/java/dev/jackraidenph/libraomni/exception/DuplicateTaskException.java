@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.exception;
 
-import dev.jackraidenph.libraomni.reflect.task.RuntimeTask;
+import dev.jackraidenph.libraomni.runtime.task.RuntimeTask;
 
 public class DuplicateTaskException extends IllegalArgumentException {
     private final RuntimeTask duplicate;

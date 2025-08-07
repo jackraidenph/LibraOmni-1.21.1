@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.gradle;
 
-import dev.jackraidenph.libraomni.processor.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCopyDetails;

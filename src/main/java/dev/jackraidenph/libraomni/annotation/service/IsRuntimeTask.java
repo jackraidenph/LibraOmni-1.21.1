@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.service;
 
-import dev.jackraidenph.libraomni.processor.validation.RuntimeTaskRegisteringValidator;
+import dev.jackraidenph.libraomni.compilation.validation.RuntimeTaskRegisteringValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

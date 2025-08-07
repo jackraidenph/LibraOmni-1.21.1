@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
-import dev.jackraidenph.libraomni.reflect.*;
+import dev.jackraidenph.libraomni.runtime.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;

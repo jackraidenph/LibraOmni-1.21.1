@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.annotation.runtime;
 
 import dev.jackraidenph.libraomni.annotation.service.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.service.Validated;
-import dev.jackraidenph.libraomni.processor.validation.AddToCreativeTabValidator;
+import dev.jackraidenph.libraomni.compilation.validation.AddToCreativeTabValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
