@@ -1,7 +1,6 @@
 package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.annotation.runtime.PropertiesSupplier;
-import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
@@ -20,7 +19,7 @@ public class GatherPropertiesTask implements RuntimeTask {
     @Override
     public void process(ModContext modContext, Set<AnnotationAccessor<AnnotatedElement>> elements) {
         for (AnnotationAccessor<AnnotatedElement> e : elements) {
-            String id = SafeReflectionUtil.idOrDefault(e);
+            String id = e.getAnnotation(PropertiesSupplier.class).value();
             PropertiesPool propertiesPool = modContext.getExtension(PropertiesPool.class);
 
             Method method = (Method) e.annotatedObject();
