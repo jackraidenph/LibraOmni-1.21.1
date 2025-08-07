@@ -17,7 +17,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementScanner14;
 import java.util.*;
 
-class CreateMetadataTask implements CompilationTask {
+final class CreateMetadataTask implements CompilationTask {
 
     private final ProjectMetadata projectMetadata = new ProjectMetadata();
 

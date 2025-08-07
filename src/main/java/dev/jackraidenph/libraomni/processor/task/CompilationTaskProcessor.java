@@ -19,7 +19,7 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
-class CompilationTaskProcessor extends AbstractProcessor {
+final class CompilationTaskProcessor extends AbstractProcessor {
 
     private final Set<CompilationTask> tasks = new HashSet<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
