@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.processor.task;
 import dev.jackraidenph.libraomni.common.CommonGson;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.processor.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.processor.util.JsonMergeHelper;
 import dev.jackraidenph.libraomni.processor.util.JsonMergeHelper.JsonMergeConflictPolicy;
 import dev.jackraidenph.libraomni.processor.util.ModIdGetter;
@@ -18,20 +19,7 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
-public class CompilationTaskProcessor extends AbstractProcessor {
-
-    public static final Set<String> PROCESSED_RESOURCES = Set.of(
-            "data/*/tags/**",
-            "assets/*/blockstatess/**",
-            "assets/*/models/**"
-    );
-
-    public static final String NF_MOD_ANNOTATION_CLASS_NAME = "net.neoforged.fml.common.Mod";
-
-    public static final String RESOURCE_LOCATIONS_OPTION = "resources";
-    public static final String CONFIG_LOCATION_OPTION = "config";
-
-    public static final String CONFIG_NAME = LibraOmni.MOD_ID + ".apconfig";
+class CompilationTaskProcessor extends AbstractProcessor {
 
     private final Set<CompilationTask> tasks = new HashSet<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
@@ -52,14 +40,14 @@ public class CompilationTaskProcessor extends AbstractProcessor {
     }
 
     private void gatherResourceDirs() {
-        String resourcesPaths = processingEnv.getOptions().get(RESOURCE_LOCATIONS_OPTION);
+        String resourcesPaths = processingEnv.getOptions().get(AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION);
         if (resourcesPaths != null) {
             resourceDirs.addAll(Arrays.asList(resourcesPaths.split(";")));
         }
     }
 
     private void gatherConfig() {
-        String configLoc = processingEnv.getOptions().get(CONFIG_LOCATION_OPTION);
+        String configLoc = processingEnv.getOptions().get(AnnotationProcessorConstants.CONFIG_LOCATION_OPTION);
         if (configLoc != null) {
             processingEnv.getMessager().printNote("Got Annotation Processor config location [%s]".formatted(configLoc));
         } else {
@@ -68,7 +56,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
         }
         Optional<Resource> configResource = Resource.builder()
                 .setDirectory(configLoc)
-                .setNameRoot(CONFIG_NAME)
+                .setNameRoot(AnnotationProcessorConstants.CONFIG_NAME)
                 .setJsonExtension()
                 .tryRead(resourceDirs);
 
@@ -97,7 +85,7 @@ public class CompilationTaskProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(NF_MOD_ANNOTATION_CLASS_NAME);
+        TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME);
         this.modIdGetter.findMods(modAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
 
         Messager messager = this.processingEnv.getMessager();
@@ -207,13 +195,13 @@ public class CompilationTaskProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedOptions() {
         return Set.of(
-                RESOURCE_LOCATIONS_OPTION,
-                CONFIG_LOCATION_OPTION
+                AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION,
+                AnnotationProcessorConstants.CONFIG_LOCATION_OPTION
         );
     }
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Set.of(NF_MOD_ANNOTATION_CLASS_NAME);
+        return Set.of(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME);
     }
 }

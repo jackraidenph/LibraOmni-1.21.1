@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.gradle;
 
-import dev.jackraidenph.libraomni.processor.task.CompilationTaskProcessor;
+import dev.jackraidenph.libraomni.processor.AnnotationProcessorConstants;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCopyDetails;
@@ -45,10 +45,10 @@ public class BootstrapPlugin implements Plugin<Project> {
                 .collect(Collectors.toSet());
 
         String resourceDirsArg = resourceDirs.toString().replaceAll("[\\[\\]\\s]", "");
-        javaCompile.getOptions().getCompilerArgs().add("-A" + CompilationTaskProcessor.RESOURCE_LOCATIONS_OPTION + '=' + resourceDirsArg);
+        javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION + '=' + resourceDirsArg);
 
         ProcessResources processResources = (ProcessResources) tasks.getByName(PROCESS_RESOURCES);
-        processResources.exclude(CompilationTaskProcessor.PROCESSED_RESOURCES);
+        processResources.exclude(AnnotationProcessorConstants.PROCESSED_RESOURCES);
 
         javaCompile.doLast("copyResources", task -> fs.copy(copy -> {
                     File destination = ((JavaCompile) task).getDestinationDirectory().get().getAsFile();
@@ -60,7 +60,7 @@ public class BootstrapPlugin implements Plugin<Project> {
                                     file.exclude();
                                 }
                             })
-                            .filesNotMatching(CompilationTaskProcessor.PROCESSED_RESOURCES, FileCopyDetails::exclude);
+                            .filesNotMatching(AnnotationProcessorConstants.PROCESSED_RESOURCES, FileCopyDetails::exclude);
                     copy.setIncludeEmptyDirs(false);
                 })
         );
