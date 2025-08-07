@@ -36,7 +36,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         super.init(processingEnv);
         gatherResourceDirs();
         gatherConfig();
-        CompilationTasks.init(this);
+        RegisteredCompilationTask.init(this);
     }
 
     private void gatherResourceDirs() {
