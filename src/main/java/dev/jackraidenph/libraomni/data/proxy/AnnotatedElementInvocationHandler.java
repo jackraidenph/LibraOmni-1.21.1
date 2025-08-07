@@ -93,7 +93,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
             case "getDeclaredAnnotation" -> getDeclaredAnnotation((Class<? extends Annotation>) args[0]);
             case "getDeclaredAnnotationsByType" -> getDeclaredAnnotationsByType((Class<? extends Annotation>) args[0]);
             case "getDeclaredAnnotations" -> getDeclaredAnnotations();
-            case "annotatedObject" -> original();
+            case "original" -> original();
             default -> super.invoke(proxy, method, args);
         };
 
