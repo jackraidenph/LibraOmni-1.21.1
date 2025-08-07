@@ -11,10 +11,12 @@ public class AnnotatedElementInvocationHandler extends AnnotationCachingInvocati
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
-        String name = method.getName();
-        if (name.equals("getAnnotations") || name.equals("getDeclaredAnnotations")) {
-            return getProxiedRecursiveAnnotations();
-        }
+//        String name = method.getName();
+//        if (name.equals("getAnnotations")) {
+//            return getAnnotations();
+//        } else if (name.equals("getDeclaredAnnotations")) {
+//            return getDeclaredAnnotations();
+//        }
 
         return super.invoke(proxy, method, args);
     }

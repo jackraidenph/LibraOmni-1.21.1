@@ -59,7 +59,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     private static <T> DeferredHolder<? super T, T> registerArbitrary(ModContext modContext, AnnotationAccessor<AnnotatedElement> element) {
         String modId = modContext.modId();
         String id = SafeReflectionUtil.idOrDefault(element);
-        String propertiesId = element.getAnnotationByClass(Registered.class).propertiesId();
+        String propertiesId = element.getAnnotation(Registered.class).propertiesId();
 
         AnnotatedElement tempObject = element.annotatedObject();
         final AnnotatedElement object;

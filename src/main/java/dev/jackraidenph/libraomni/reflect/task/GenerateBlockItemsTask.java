@@ -28,7 +28,7 @@ public class GenerateBlockItemsTask implements RuntimeTask {
                 throw new IllegalStateException("Failed to obtain Block holder from [%s]".formatted(object.toString()));
             }
 
-            String propertiesId = element.getAnnotationByClass(GeneratesBlockItem.class).propertiesId();
+            String propertiesId = element.getAnnotation(GeneratesBlockItem.class).propertiesId();
             Item.Properties properties = modContext.getExtension(PropertiesPool.class).getItemProperties(propertiesId);
 
             DeferredHolder<Item, BlockItem> blockItem = AutoRegisters.registerBlockItem(modContext.modId(), holder, properties);
@@ -48,6 +48,6 @@ public class GenerateBlockItemsTask implements RuntimeTask {
 
     @Override
     public Set<Class<? extends RuntimeTask>> dependsOn() {
-        return Set.of(RegisterObjectsTask.class);
+        return Set.of(RegisterObjectsTask.class, GatherPropertiesTask.class);
     }
 }

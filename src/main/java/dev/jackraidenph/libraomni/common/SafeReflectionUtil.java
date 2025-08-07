@@ -210,7 +210,7 @@ public class SafeReflectionUtil {
             return holder.getId().getPath();
         }
 
-        Id id = element.getAnnotationByClass(Id.class);
+        Id id = element.getAnnotation(Id.class);
         if (id != null && !id.value().isBlank()) {
             return id.value();
         }
