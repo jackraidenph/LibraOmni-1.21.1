@@ -125,7 +125,7 @@ public abstract class ProxyFactory {
         return (AnnotatedConstruct) Proxy.newProxyInstance(
                 CLASSLOADER,
                 construct.getClass().getInterfaces(),
-                new AnnotatedConstructInvocationHandler(construct)
+                new AnnotationMirrorCachingInvocationHandler(construct)
         );
     }
 
