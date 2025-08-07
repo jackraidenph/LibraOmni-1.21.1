@@ -172,20 +172,12 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
             LibraOmni.LOGGER.info("({}) Task graph created for mod [{}]", stage, modContext.modId());
 
-            Stack<RuntimeTask> executionStack = new Stack<>();
-            Iterator<RuntimeTask> bfi = taskGraph.breadthFirstIterator();
-            while (bfi.hasNext()) {
-                RuntimeTask task = bfi.next();
-                if (task != null) {
-                    executionStack.push(task);
-                }
-            }
+            Deque<RuntimeTask> executionStack = new ArrayDeque<>();
+            taskGraph.breadthFirstIterator().forEachRemaining(task -> Optional.ofNullable(task).ifPresent(executionStack::push));
+            LibraOmni.LOGGER.info("({}) Formed execution stack {}", stage, executionStack);
 
-            while (!executionStack.empty()) {
+            while (!executionStack.isEmpty()) {
                 RuntimeTask runtimeTask = executionStack.pop();
-                if (runtimeTask == null) {
-                    continue;
-                }
 
                 Set<ProxyAnnotatedElement> elements = this.elementsAnnotatedWith(
                         modContext.modId(),
