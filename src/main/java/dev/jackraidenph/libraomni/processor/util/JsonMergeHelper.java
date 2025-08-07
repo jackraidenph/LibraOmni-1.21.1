@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.processor;
+package dev.jackraidenph.libraomni.processor.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -8,7 +8,7 @@ import dev.jackraidenph.libraomni.common.CommonGson;
 import java.nio.charset.StandardCharsets;
 import java.util.Map.Entry;
 
-import static dev.jackraidenph.libraomni.processor.Resource.JSON_EXT;
+import static dev.jackraidenph.libraomni.processor.util.Resource.JSON_EXT;
 
 public class JsonMergeHelper {
 

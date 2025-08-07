@@ -1,4 +1,6 @@
-package dev.jackraidenph.libraomni.processor;
+package dev.jackraidenph.libraomni.processor.util;
+
+import dev.jackraidenph.libraomni.processor.task.CompilationTaskProcessor;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;

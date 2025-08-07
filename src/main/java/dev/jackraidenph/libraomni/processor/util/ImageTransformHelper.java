@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.processor;
+package dev.jackraidenph.libraomni.processor.util;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -8,7 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.function.BiFunction;
 
-import static dev.jackraidenph.libraomni.processor.Resource.PNG_EXT;
+import static dev.jackraidenph.libraomni.processor.util.Resource.PNG_EXT;
 
 public class ImageTransformHelper {
     public static final TintFunction OTHER_HUE = (dst, src) -> {

@@ -1,10 +1,13 @@
-package dev.jackraidenph.libraomni.processor;
+package dev.jackraidenph.libraomni.processor.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.CommonGson;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
-import dev.jackraidenph.libraomni.processor.JsonMergeHelper.JsonMergeConflictPolicy;
+import dev.jackraidenph.libraomni.processor.util.JsonMergeHelper;
+import dev.jackraidenph.libraomni.processor.util.JsonMergeHelper.JsonMergeConflictPolicy;
+import dev.jackraidenph.libraomni.processor.util.ModIdGetter;
+import dev.jackraidenph.libraomni.processor.util.Resource;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;

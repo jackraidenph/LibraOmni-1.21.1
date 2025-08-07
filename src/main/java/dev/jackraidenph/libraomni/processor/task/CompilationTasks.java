@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.processor;
+package dev.jackraidenph.libraomni.processor.task;
 
 class CompilationTasks {
 

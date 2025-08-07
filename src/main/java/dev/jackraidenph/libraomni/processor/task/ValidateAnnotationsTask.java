@@ -1,8 +1,10 @@
-package dev.jackraidenph.libraomni.processor;
+package dev.jackraidenph.libraomni.processor.task;
 
 import dev.jackraidenph.libraomni.annotation.Validated;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.processor.util.ModIdGetter;
+import dev.jackraidenph.libraomni.processor.util.Resource;
 import dev.jackraidenph.libraomni.processor.validation.Validator;
 
 import javax.annotation.processing.ProcessingEnvironment;

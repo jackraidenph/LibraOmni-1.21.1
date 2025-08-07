@@ -1,4 +1,7 @@
-package dev.jackraidenph.libraomni.processor;
+package dev.jackraidenph.libraomni.processor.task;
+
+import dev.jackraidenph.libraomni.processor.util.ModIdGetter;
+import dev.jackraidenph.libraomni.processor.util.Resource;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
