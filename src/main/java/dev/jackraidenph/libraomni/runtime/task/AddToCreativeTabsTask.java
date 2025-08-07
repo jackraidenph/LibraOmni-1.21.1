@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.runtime.task;
 import dev.jackraidenph.libraomni.annotation.runtime.InCreativeTab;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
+import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
@@ -20,15 +20,15 @@ import java.util.Set;
 public class AddToCreativeTabsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<AnnotationAccessor> elements) {
-        for (AnnotationAccessor e : elements) {
+    public void process(ModContext modContext, Set<ProxyAnnotatedElement> elements) {
+        for (ProxyAnnotatedElement e : elements) {
             InCreativeTab annotation = e.getAnnotation(InCreativeTab.class);
             String namespace = annotation.namespace();
             String location = annotation.value();
 
             AutoCreativeModeTabs autoCreativeModeTabs = modContext.getExtension(AutoCreativeModeTabs.class);
 
-            AnnotatedElement object = e.annotatedObject();
+            AnnotatedElement object = e.original();
             String id = SafeReflectionUtil.idOrDefault(e);
             Class<?> clazz = SafeReflectionUtil.selfOrReturnType(object, true);
 

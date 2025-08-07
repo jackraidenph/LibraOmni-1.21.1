@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.runtime;
 
 import com.google.common.collect.Streams;
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
+import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
@@ -98,7 +98,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         return tasks;
     }
 
-    private Set<AnnotationAccessor> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
+    private Set<ProxyAnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
         if (annotations.isEmpty()) {
             return Set.of();
         }
@@ -107,10 +107,10 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                 .collect(Collectors.toSet());
     }
 
-    private Set<AnnotationAccessor> getAnnotationAccessors(String modId) {
+    private Set<ProxyAnnotatedElement> getAnnotationAccessors(String modId) {
         return getElements(modId).stream()
                 .map(ProxyFactory::proxifyAnnotatedElement)
-                .map(proxy -> (AnnotationAccessor) proxy)
+                .map(proxy -> (ProxyAnnotatedElement) proxy)
                 .collect(Collectors.toSet());
     }
 
@@ -118,7 +118,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         return modMetadataReader.getModMetadata(modId).getAnnotatedData().getElements();
     }
 
-    private static boolean anyAnnotationPresent(AnnotationAccessor e, Set<Class<? extends Annotation>> annotations) {
+    private static boolean anyAnnotationPresent(ProxyAnnotatedElement e, Set<Class<? extends Annotation>> annotations) {
         return annotations.stream().anyMatch(e::isAnnotationPresent);
     }
 
@@ -188,7 +188,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                     continue;
                 }
 
-                Set<AnnotationAccessor> elements = this.elementsAnnotatedWith(
+                Set<ProxyAnnotatedElement> elements = this.elementsAnnotatedWith(
                         modContext.modId(),
                         runtimeTask.getSupportedAnnotations()
                 );

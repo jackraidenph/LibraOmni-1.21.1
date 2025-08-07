@@ -116,7 +116,7 @@ public abstract class ProxyFactory {
     public static AnnotatedElement proxifyAnnotatedElement(AnnotatedElement element) {
         return (AnnotatedElement) Proxy.newProxyInstance(
                 CLASSLOADER,
-                new Class[]{AnnotatedElement.class, AnnotationAccessor.class},
+                new Class[]{AnnotatedElement.class, ProxyAnnotatedElement.class},
                 new AnnotatedElementInvocationHandler(element)
         );
     }

@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.runtime.Registered;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
+import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
@@ -22,10 +22,10 @@ import java.util.Set;
 public class RegisterObjectsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<AnnotationAccessor> elements) {
-        for (AnnotationAccessor e : elements) {
+    public void process(ModContext modContext, Set<ProxyAnnotatedElement> elements) {
+        for (ProxyAnnotatedElement e : elements) {
             DeferredHolder<?, ?> registered = registerArbitrary(modContext, e);
-            if ((e.annotatedObject() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {
+            if ((e.original() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {
                 tryInjectDeferredHolder(field, registered);
             }
         }
@@ -56,12 +56,12 @@ public class RegisterObjectsTask implements RuntimeTask {
     }
 
     @SuppressWarnings("unchecked") //A lot of unchecked warnings are actually checked via Class#isAssignableFrom
-    private static <T> DeferredHolder<? super T, T> registerArbitrary(ModContext modContext, AnnotationAccessor element) {
+    private static <T> DeferredHolder<? super T, T> registerArbitrary(ModContext modContext, ProxyAnnotatedElement element) {
         String modId = modContext.modId();
         String id = SafeReflectionUtil.idOrDefault(element);
         String propertiesId = element.getAnnotation(Registered.class).propertiesId();
 
-        AnnotatedElement tempObject = element.annotatedObject();
+        AnnotatedElement tempObject = element.original();
         final AnnotatedElement object;
         if (tempObject instanceof Field field && DeferredHolder.class.isAssignableFrom(field.getType())) {
             object = (Class<T>) SafeReflectionUtil.extractTypeArguments(tempObject)[1];

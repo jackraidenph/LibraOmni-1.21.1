@@ -8,7 +8,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedElement> implements AnnotationAccessor {
+public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedElement> implements ProxyAnnotatedElement {
 
     protected final Map<Class<? extends Annotation>, List<Annotation>> annotations = new HashMap<>();
     protected final Map<Class<? extends Annotation>, List<Annotation>> declaredAnnotations = new HashMap<>();
@@ -20,7 +20,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
     }
 
     @Override
-    public AnnotatedElement annotatedObject() {
+    public AnnotatedElement original() {
         return original;
     }
 
@@ -93,7 +93,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
             case "getDeclaredAnnotation" -> getDeclaredAnnotation((Class<? extends Annotation>) args[0]);
             case "getDeclaredAnnotationsByType" -> getDeclaredAnnotationsByType((Class<? extends Annotation>) args[0]);
             case "getDeclaredAnnotations" -> getDeclaredAnnotations();
-            case "annotatedObject" -> annotatedObject();
+            case "annotatedObject" -> original();
             default -> super.invoke(proxy, method, args);
         };
 

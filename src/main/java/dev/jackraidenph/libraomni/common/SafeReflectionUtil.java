@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.common;
 
 import dev.jackraidenph.libraomni.annotation.service.Id;
-import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
+import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -198,13 +198,13 @@ public class SafeReflectionUtil {
         return idOrDefault(tryProxify(element));
     }
 
-    public static AnnotationAccessor tryProxify(AnnotatedElement element) {
+    public static ProxyAnnotatedElement tryProxify(AnnotatedElement element) {
         //Proxy handler implements AnnotationAccessor
-        return (AnnotationAccessor) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element));
+        return (ProxyAnnotatedElement) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element));
     }
 
-    public static String idOrDefault(AnnotationAccessor element) {
-        AnnotatedElement object = element.annotatedObject();
+    public static String idOrDefault(ProxyAnnotatedElement element) {
+        AnnotatedElement object = element.original();
         if (object instanceof DeferredHolder<?, ?> holder) {
             return holder.getId().getPath();
         }

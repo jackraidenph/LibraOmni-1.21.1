@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.runtime.GeneratesBlockItem;
-import dev.jackraidenph.libraomni.data.proxy.AnnotationAccessor;
+import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
@@ -19,9 +19,9 @@ import java.util.Set;
 public class GenerateBlockItemsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<AnnotationAccessor> elements) {
-        for (AnnotationAccessor element : elements) {
-            AnnotatedElement object = element.annotatedObject();
+    public void process(ModContext modContext, Set<ProxyAnnotatedElement> elements) {
+        for (ProxyAnnotatedElement element : elements) {
+            AnnotatedElement object = element.original();
 
             DeferredHolder<Block, ? extends Block> holder = AutoRegisters.holder(modContext, object);
             if (holder == null) {
