@@ -5,14 +5,13 @@ import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
 public interface RuntimeTask {
 
     void process(
             ModContext modContext,
-            Set<AnnotationAccessor<AnnotatedElement>> elements
+            Set<AnnotationAccessor> elements
     );
 
     LifecycleStage getExecutionStage();

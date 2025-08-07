@@ -98,7 +98,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         return tasks;
     }
 
-    private Set<AnnotationAccessor<AnnotatedElement>> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
+    private Set<AnnotationAccessor> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
         if (annotations.isEmpty()) {
             return Set.of();
         }
@@ -107,11 +107,10 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                 .collect(Collectors.toSet());
     }
 
-    @SuppressWarnings("unchecked")
-    private Set<AnnotationAccessor<AnnotatedElement>> getAnnotationAccessors(String modId) {
+    private Set<AnnotationAccessor> getAnnotationAccessors(String modId) {
         return getElements(modId).stream()
                 .map(ProxyFactory::proxifyAnnotatedElement)
-                .map(proxy -> (AnnotationAccessor<AnnotatedElement>) proxy)
+                .map(proxy -> (AnnotationAccessor) proxy)
                 .collect(Collectors.toSet());
     }
 
@@ -119,7 +118,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         return modMetadataReader.getModMetadata(modId).getAnnotatedData().getElements();
     }
 
-    private static boolean anyAnnotationPresent(AnnotationAccessor<AnnotatedElement> e, Set<Class<? extends Annotation>> annotations) {
+    private static boolean anyAnnotationPresent(AnnotationAccessor e, Set<Class<? extends Annotation>> annotations) {
         return annotations.stream().anyMatch(e::isAnnotationPresent);
     }
 
@@ -189,7 +188,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                     continue;
                 }
 
-                Set<AnnotationAccessor<AnnotatedElement>> elements = this.elementsAnnotatedWith(
+                Set<AnnotationAccessor> elements = this.elementsAnnotatedWith(
                         modContext.modId(),
                         runtimeTask.getSupportedAnnotations()
                 );

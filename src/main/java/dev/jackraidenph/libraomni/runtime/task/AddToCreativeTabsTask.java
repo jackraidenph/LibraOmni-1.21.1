@@ -20,8 +20,8 @@ import java.util.Set;
 public class AddToCreativeTabsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<AnnotationAccessor<AnnotatedElement>> elements) {
-        for (AnnotationAccessor<AnnotatedElement> e : elements) {
+    public void process(ModContext modContext, Set<AnnotationAccessor> elements) {
+        for (AnnotationAccessor e : elements) {
             InCreativeTab annotation = e.getAnnotation(InCreativeTab.class);
             String namespace = annotation.namespace();
             String location = annotation.value();

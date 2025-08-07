@@ -198,13 +198,12 @@ public class SafeReflectionUtil {
         return idOrDefault(tryProxify(element));
     }
 
-    public static AnnotationAccessor<AnnotatedElement> tryProxify(AnnotatedElement element) {
+    public static AnnotationAccessor tryProxify(AnnotatedElement element) {
         //Proxy handler implements AnnotationAccessor
-        //noinspection unchecked
-        return (AnnotationAccessor<AnnotatedElement>) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element));
+        return (AnnotationAccessor) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element));
     }
 
-    public static String idOrDefault(AnnotationAccessor<AnnotatedElement> element) {
+    public static String idOrDefault(AnnotationAccessor element) {
         AnnotatedElement object = element.annotatedObject();
         if (object instanceof DeferredHolder<?, ?> holder) {
             return holder.getId().getPath();

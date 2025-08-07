@@ -19,8 +19,8 @@ import java.util.Set;
 public class GenerateBlockItemsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<AnnotationAccessor<AnnotatedElement>> elements) {
-        for (AnnotationAccessor<AnnotatedElement> element : elements) {
+    public void process(ModContext modContext, Set<AnnotationAccessor> elements) {
+        for (AnnotationAccessor element : elements) {
             AnnotatedElement object = element.annotatedObject();
 
             DeferredHolder<Block, ? extends Block> holder = AutoRegisters.holder(modContext, object);

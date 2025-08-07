@@ -10,15 +10,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.Set;
 
 public class GatherPropertiesTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<AnnotationAccessor<AnnotatedElement>> elements) {
-        for (AnnotationAccessor<AnnotatedElement> e : elements) {
+    public void process(ModContext modContext, Set<AnnotationAccessor> elements) {
+        for (AnnotationAccessor e : elements) {
             String id = e.getAnnotation(PropertiesSupplier.class).value();
             PropertiesPool propertiesPool = modContext.getExtension(PropertiesPool.class);
 

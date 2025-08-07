@@ -22,8 +22,8 @@ import java.util.Set;
 public class RegisterObjectsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<AnnotationAccessor<AnnotatedElement>> elements) {
-        for (AnnotationAccessor<AnnotatedElement> e : elements) {
+    public void process(ModContext modContext, Set<AnnotationAccessor> elements) {
+        for (AnnotationAccessor e : elements) {
             DeferredHolder<?, ?> registered = registerArbitrary(modContext, e);
             if ((e.annotatedObject() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {
                 tryInjectDeferredHolder(field, registered);
@@ -56,7 +56,7 @@ public class RegisterObjectsTask implements RuntimeTask {
     }
 
     @SuppressWarnings("unchecked") //A lot of unchecked warnings are actually checked via Class#isAssignableFrom
-    private static <T> DeferredHolder<? super T, T> registerArbitrary(ModContext modContext, AnnotationAccessor<AnnotatedElement> element) {
+    private static <T> DeferredHolder<? super T, T> registerArbitrary(ModContext modContext, AnnotationAccessor element) {
         String modId = modContext.modId();
         String id = SafeReflectionUtil.idOrDefault(element);
         String propertiesId = element.getAnnotation(Registered.class).propertiesId();
