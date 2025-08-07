@@ -134,7 +134,7 @@ public abstract class ProxyFactory {
         return (T) Proxy.newProxyInstance(
                 CLASSLOADER,
                 new Class[]{type},
-                new AnnotationInvocationHandler(type, attributes)
+                new ValueAnnotationInvocationHandler(type, attributes)
         );
     }
 

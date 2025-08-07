@@ -8,12 +8,12 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Objects;
 
-public class AnnotationInvocationHandler implements InvocationHandler, Annotation {
+public class ValueAnnotationInvocationHandler implements InvocationHandler, Annotation {
 
     private final Class<? extends Annotation> type;
     private final Map<String, Object> attributes;
 
-    public AnnotationInvocationHandler(Class<? extends Annotation> type, Map<String, Object> attributes) {
+    public ValueAnnotationInvocationHandler(Class<? extends Annotation> type, Map<String, Object> attributes) {
         this.type = type;
         this.attributes = attributes;
     }
