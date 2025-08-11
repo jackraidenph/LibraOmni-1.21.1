@@ -13,6 +13,7 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,8 +31,10 @@ public class BootstrapPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        TaskContainer tasks = project.getTasks();
 
+        /// Gather resource directories to AP argument
+
+        TaskContainer tasks = project.getTasks();
         JavaCompile javaCompile = (JavaCompile) tasks.getByName(COMPILE_JAVA);
 
         ExtensionContainer extensions = project.getExtensions();
@@ -46,6 +49,8 @@ public class BootstrapPlugin implements Plugin<Project> {
 
         String resourceDirsArg = resourceDirs.toString().replaceAll("[\\[\\]\\s]", "");
         javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION + '=' + resourceDirsArg);
+
+        /// Exclude merged resources from processResources and copy over after compileJava
 
         ProcessResources processResources = (ProcessResources) tasks.getByName(PROCESS_RESOURCES);
         processResources.exclude(AnnotationProcessorConstants.PROCESSED_RESOURCES);
@@ -64,5 +69,30 @@ public class BootstrapPlugin implements Plugin<Project> {
                     copy.setIncludeEmptyDirs(false);
                 })
         );
+
+        /// Add configuration extension
+
+        extensions.create("libraOmni", LibraOmniExtension.class);
+
+        project.afterEvaluate(proj -> {
+            LibraOmniExtension extension = getExtension(proj);
+            if (extension == null) {
+                return;
+            }
+            javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.CONFIG_OPTION + '=' + extension.annotationProcessorConfiguration);
+        });
+    }
+
+    private LibraOmniExtension getExtension(Project project) {
+        return project.getExtensions().getByName("libraOmni") instanceof LibraOmniExtension libraOmniExtension ? libraOmniExtension : null;
+    }
+
+    public static class LibraOmniExtension {
+        public Map<String, String> annotationProcessorConfiguration = Map.of();
+
+        @Override
+        public String toString() {
+            return annotationProcessorConfiguration.toString();
+        }
     }
 }

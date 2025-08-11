@@ -1,7 +1,5 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.common.CommonGson;
-import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper;
@@ -13,7 +11,6 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Map.Entry;
@@ -57,6 +54,17 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         return map.entrySet().stream().collect(Collectors.toMap(e -> globMatcher(e.getKey()), e -> parsePolicy(e.getValue())));
     }
 
+    private static Map<String, String> parseConfigString(String str) {
+        str = str.replaceAll("[{}\\s]", "");
+        String[] pairs = str.split(",");
+        Map<String, String> map = new HashMap<>();
+        for (String pair : pairs) {
+            String[] kv = pair.split("=");
+            map.put(kv[0], kv[1]);
+        }
+        return map;
+    }
+
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
@@ -73,25 +81,11 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     }
 
     private void gatherConfig() {
-        String configLoc = processingEnv.getOptions().get(AnnotationProcessorConstants.CONFIG_LOCATION_OPTION);
-        if (configLoc != null) {
-            processingEnv.getMessager().printNote("Got Annotation Processor config location [%s]".formatted(configLoc));
-        } else {
-            configLoc = ProjectMetadata.DIRECTORY;
-            processingEnv.getMessager().printNote("Annotation Processor config location not specified, assuming [%s]".formatted(configLoc));
-        }
-        Optional<Resource> configResource = Resource.builder()
-                .setDirectory(configLoc)
-                .setNameRoot(AnnotationProcessorConstants.CONFIG_NAME)
-                .setJsonExtension()
-                .tryRead(resourceDirs);
-
-        if (configResource.isPresent()) {
-            String configStr = new String(configResource.get().getContents(), StandardCharsets.UTF_8);
-            //noinspection unchecked
-            Map<String, String> userConfig = CommonGson.DEFAULT.fromJson(configStr, Map.class);
-            config.putAll(parseOptionsMapToConfig(userConfig));
-            processingEnv.getMessager().printNote("Annotation Processor config found and processed: %s, backup values: %s".formatted(userConfig, defaultConfigOptions));
+        String config = processingEnv.getOptions().get(AnnotationProcessorConstants.CONFIG_OPTION);
+        Map<String, String> userConfig = parseConfigString(config);
+        if (!userConfig.isEmpty()) {
+            this.config.putAll(parseOptionsMapToConfig(userConfig));
+            processingEnv.getMessager().printNote("Annotation Processor config found: %s, backup values: %s".formatted(userConfig, defaultConfigOptions));
         } else {
             processingEnv.getMessager().printNote("Annotation Processor config not found, assuming default values %s".formatted(defaultConfigOptions));
         }
@@ -232,7 +226,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     public Set<String> getSupportedOptions() {
         return Set.of(
                 AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION,
-                AnnotationProcessorConstants.CONFIG_LOCATION_OPTION
+                AnnotationProcessorConstants.CONFIG_OPTION
         );
     }
 
