@@ -14,22 +14,48 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class CompilationTaskProcessor extends AbstractProcessor {
 
+    private static final FileSystem fs = FileSystems.getDefault();
+
     private final Set<CompilationTask> tasks = new HashSet<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
     private final Set<String> resourceDirs = new HashSet<>();
-    private final Map<Pattern, JsonMergeConflictPolicy> defaultConfig = Map.of(
-            Pattern.compile("data/.*"), JsonMergeConflictPolicy.PREFER_NEW,
-            Pattern.compile("assets/.*"), JsonMergeConflictPolicy.OVERWRITE
+    private final Map<String, String> defaultConfigOptions = Map.of(
+            "data/**", JsonMergeConflictPolicy.PREFER_NEW.name(),
+            "assets/**", JsonMergeConflictPolicy.OVERWRITE.name()
     );
-    private final Map<Pattern, JsonMergeConflictPolicy> config = new HashMap<>();
+
+    private final Map<PathMatcher, JsonMergeConflictPolicy> defaultConfig = parseOptionsMapToConfig(defaultConfigOptions);
+    private final Map<PathMatcher, JsonMergeConflictPolicy> config = new HashMap<>();
     private int round = 0;
+
+    private static PathMatcher globMatcher(String pattern) {
+        try {
+            return fs.getPathMatcher("glob:" + pattern);
+        } catch (PatternSyntaxException e) {
+            throw new RuntimeException("Pattern [%s] is invalid".formatted(pattern), e);
+        }
+    }
+
+    private static JsonMergeConflictPolicy parsePolicy(String policy) {
+        try {
+            return JsonMergeConflictPolicy.valueOf(policy);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("[%s] policy is unknown, use any of [%s]".formatted(policy, Arrays.asList(JsonMergeConflictPolicy.values())), e);
+        }
+    }
+
+    private static Map<PathMatcher, JsonMergeConflictPolicy> parseOptionsMapToConfig(Map<String, String> map) {
+        return map.entrySet().stream().collect(Collectors.toMap(e -> globMatcher(e.getKey()), e -> parsePolicy(e.getValue())));
+    }
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
@@ -63,12 +89,11 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         if (configResource.isPresent()) {
             String configStr = new String(configResource.get().getContents(), StandardCharsets.UTF_8);
             //noinspection unchecked
-            CommonGson.DEFAULT.fromJson(configStr, Map.class).forEach((path, policy) ->
-                    config.put(Pattern.compile((String) path), JsonMergeConflictPolicy.valueOf((String) policy))
-            );
-            processingEnv.getMessager().printNote("Annotation Processor config found and processed: %s, backup values: %s".formatted(config, defaultConfig));
+            Map<String, String> userConfig = CommonGson.DEFAULT.fromJson(configStr, Map.class);
+            config.putAll(parseOptionsMapToConfig(userConfig));
+            processingEnv.getMessager().printNote("Annotation Processor config found and processed: %s, backup values: %s".formatted(userConfig, defaultConfigOptions));
         } else {
-            processingEnv.getMessager().printNote("Annotation Processor config not found, assuming default values %s".formatted(defaultConfig));
+            processingEnv.getMessager().printNote("Annotation Processor config not found, assuming default values %s".formatted(defaultConfigOptions));
         }
     }
 
@@ -146,11 +171,19 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         return policy;
     }
 
-    private static JsonMergeConflictPolicy getConflictPolicy(Resource resource, Map<Pattern, JsonMergeConflictPolicy> conf) {
-        String path = resource.getFilePath();
-        for (Entry<Pattern, JsonMergeConflictPolicy> e : conf.entrySet()) {
-            Pattern regex = e.getKey();
-            if (regex.matcher(path).matches()) {
+    private JsonMergeConflictPolicy getConflictPolicy(Resource resource, Map<PathMatcher, JsonMergeConflictPolicy> conf) {
+        Path path;
+        String resourcePath = resource.getFilePath();
+        try {
+            path = Path.of(resourcePath);
+        } catch (InvalidPathException e) {
+            printStackTrace(e);
+            throw new RuntimeException("Not a path [%s]".formatted(resourcePath));
+        }
+
+        for (Entry<PathMatcher, JsonMergeConflictPolicy> e : conf.entrySet()) {
+            PathMatcher globMatcher = e.getKey();
+            if (globMatcher.matches(path)) {
                 return e.getValue();
             }
         }
