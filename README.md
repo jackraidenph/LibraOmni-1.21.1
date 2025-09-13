@@ -11,7 +11,7 @@
   [+] Transitive compile time annotation processing<br/>
   [+] Mod id capture via @Mod annotation or a special marker<br/>
   [+] Resource generation<br/>
-  [~] Resource merging<br/>
+  [\~] Resource merging<br/>
   [~] Resource merging configuration via the Gradle plugin<br/>
 
 
