@@ -19,5 +19,5 @@
 <h3>[+] Runtime Annotation Processing</h3>
   
   [+] Transitive runtime annotation processing<br/>
-  [+] Tasks execution on different mod loading lifecycle stages<br/>
-  [+] Type arguments resolutin at runtime<br/>
+  [+] Task execution on different mod loading lifecycle stages<br/>
+  [+] Type arguments resolution at runtime<br/>
