@@ -101,6 +101,7 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
     private class RecursiveAnnotationScanner extends ElementScanner14<Set<Element>, TypeElement> {
 
         private final Set<Element> elements = new HashSet<>();
+        private final Set<String> elementIdentities = new HashSet<>(); //Somehow, Set<Element> allows duplicates?
 
         @Override
         public Set<Element> scan(Element e, TypeElement annotation) {
@@ -111,6 +112,11 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
         }
 
         public void checkViaTypeElement(Element e, TypeElement a) {
+            String identity = e.toString();
+            if (elementIdentities.contains(identity)) {
+                return;
+            }
+            elementIdentities.add(identity);
             for (AnnotationMirror mirror : e.getAnnotationMirrors()) {
                 DeclaredType type = mirror.getAnnotationType();
                 if (type.asElement() instanceof TypeElement typeElement && typeElement.equals(a)) {
