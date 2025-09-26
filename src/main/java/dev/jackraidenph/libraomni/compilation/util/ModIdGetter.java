@@ -43,8 +43,16 @@ public class ModIdGetter {
                         return;
                     }
                     String pkg = getPackageOf(e);
-                    messager.printNote("Found mod [" + modId + "] at [" + pkg + "]");
-                    packageToModId.put(pkg, modId);
+                    String existing = forPackage(pkg);
+                    if (existing == null) {
+                        messager.printNote("Found mod [" + modId + "] at [" + pkg + "]");
+                        packageToModId.put(pkg, modId);
+                    } else if (existing.equals(modId)) {
+                        messager.printWarning("Package [" + pkg + "] already points to [" + packageToModId.get(pkg) + "], skipping. If both @Mod and @ModRoot are present on a class, remove @ModRoot, @Mod is enough.");
+                    } else {
+                        messager.printNote("Package [" + packageToModId.floorKey(pkg) + "] is claimed by [" + existing + "], reclaiming [" + pkg + "] for [" + modId + "]");
+                        packageToModId.put(pkg, modId);
+                    }
                 });
     }
 

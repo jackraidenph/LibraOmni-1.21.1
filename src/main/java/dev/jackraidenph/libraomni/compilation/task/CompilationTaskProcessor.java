@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
+import dev.jackraidenph.libraomni.annotation.service.ModPackage;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper;
@@ -102,10 +103,16 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         }
     }
 
+    private void findMods(RoundEnvironment roundEnvironment) {
+        TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME);
+        TypeElement modRootAnnotation = this.processingEnv.getElementUtils().getTypeElement(ModPackage.class.getName());
+        this.modIdGetter.findMods(modAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
+        this.modIdGetter.findMods(modRootAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
+    }
+
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME);
-        this.modIdGetter.findMods(modAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
+        findMods(roundEnvironment);
 
         Messager messager = this.processingEnv.getMessager();
         boolean finishing = roundEnvironment.processingOver();
@@ -232,6 +239,9 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Set.of(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME);
+        return Set.of(
+                AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME,
+                ModPackage.class.getName()
+        );
     }
 }
