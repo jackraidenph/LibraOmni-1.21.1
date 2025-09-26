@@ -38,7 +38,7 @@ public @interface DefaultBlock {
     String creativeTab();
 }
 ```
-  [+] Transtitive annotation values transformation[^2]<br/>
+  [+] Transtitive annotation values transformation<br/>
   ```java
 @ItemModel
 @Composed
