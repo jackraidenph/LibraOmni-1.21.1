@@ -15,8 +15,8 @@
 @Composed
 
 @Registered
-@InCreativeTab("")
-@GeneratesBlockItem
+@InCreativeTab("")  //Due to Java's design, a target of delegenation cannot be ommitted (Can't be just @InCreativeTab)...
+@GeneratesBlockItem //...unless a default value is supplied
 @CubeAllModel("")
 @DefaultBlockState
 @BlockItemModel("")
@@ -49,6 +49,11 @@ public @interface TexturedItem {
 
     String file() default "";
 
+    //@ItemModel's "value" attribute accepts an array of Texture value-annotations, which accept both texture's key and texture's path. 
+    //But we want to simplify our composed annotation by filling just one string - the texture's path.
+    //The transformer takes an attribute value of a type A and converts it to type B upon delegation.
+    //In this case - the current delegated value "value" of type String is converted to type Texture.
+    //Upon transformation, if the target type is an array, singular values are allowed(like in this case), and will be automatically put into the array of size 1.
     class StringToLayer0TextureTransformer implements Function<Object, Object> {
         @Override
         public Texture apply(Object string) {
@@ -57,7 +62,7 @@ public @interface TexturedItem {
     }
 }
 ```
-  [+] Mod id capture via @Mod annotation or a special marker<br/>
+  [+] Mod id capture via @Mod annotation or a special marker (@ModPackage, should be put onto a package in package-info.java)<br/>
   [+] Resource generation<br/>
   [+] Annotations validation ([pkg](src/main/java/dev/jackraidenph/libraomni/compilation/validation))<br/>
   [+] Creating custom annotations with all the enhanced capabilities supported<br/>
