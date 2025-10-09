@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.service.ModPackage;
+import dev.jackraidenph.libraomni.compilation.util.AnnotationProcessorConfig;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper;
@@ -17,83 +18,22 @@ import java.net.URI;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.regex.PatternSyntaxException;
-import java.util.stream.Collectors;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class CompilationTaskProcessor extends AbstractProcessor {
 
-    private static final FileSystem fs = FileSystems.getDefault();
-
     private final Set<CompilationTask> tasks = new HashSet<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
-    private final Set<String> resourceDirs = new HashSet<>();
-    private final Map<String, String> defaultConfigOptions = Map.of(
-            "data/**", JsonMergeConflictPolicy.PREFER_NEW.name(),
-            "assets/**", JsonMergeConflictPolicy.OVERWRITE.name()
-    );
-
+    private final AnnotationProcessorConfig config = new AnnotationProcessorConfig();
     private final Map<String, URI> generatedResources = new HashMap<>();
 
-    private final Map<PathMatcher, JsonMergeConflictPolicy> defaultConfig = parseOptionsMapToConfig(defaultConfigOptions);
-    private final Map<PathMatcher, JsonMergeConflictPolicy> config = new HashMap<>();
     private int round = 0;
-
-    private static PathMatcher globMatcher(String pattern) {
-        try {
-            return fs.getPathMatcher("glob:" + pattern);
-        } catch (PatternSyntaxException e) {
-            throw new RuntimeException("Pattern [%s] is invalid".formatted(pattern), e);
-        }
-    }
-
-    private static JsonMergeConflictPolicy parsePolicy(String policy) {
-        try {
-            return JsonMergeConflictPolicy.valueOf(policy);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("[%s] policy is unknown, use any of [%s]".formatted(policy, Arrays.asList(JsonMergeConflictPolicy.values())), e);
-        }
-    }
-
-    private static Map<PathMatcher, JsonMergeConflictPolicy> parseOptionsMapToConfig(Map<String, String> map) {
-        return map.entrySet().stream().collect(Collectors.toMap(e -> globMatcher(e.getKey()), e -> parsePolicy(e.getValue())));
-    }
-
-    private static Map<String, String> parseConfigString(String str) {
-        str = str.replaceAll("[{}\\s]", "");
-        String[] pairs = str.split(",");
-        Map<String, String> map = new HashMap<>();
-        for (String pair : pairs) {
-            String[] kv = pair.split("=");
-            map.put(kv[0], kv[1]);
-        }
-        return map;
-    }
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
-        gatherResourceDirs();
-        gatherConfig();
+        config.init(processingEnv);
         RegisteredCompilationTask.init(this);
-    }
-
-    private void gatherResourceDirs() {
-        String resourcesPaths = processingEnv.getOptions().get(AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION);
-        if (resourcesPaths != null) {
-            resourceDirs.addAll(Arrays.asList(resourcesPaths.split(";")));
-        }
-    }
-
-    private void gatherConfig() {
-        String config = processingEnv.getOptions().get(AnnotationProcessorConstants.CONFIG_OPTION);
-        Map<String, String> userConfig = parseConfigString(config);
-        if (!userConfig.isEmpty()) {
-            this.config.putAll(parseOptionsMapToConfig(userConfig));
-            processingEnv.getMessager().printNote("Annotation Processor config found: %s, backup values: %s".formatted(userConfig, defaultConfigOptions));
-        } else {
-            processingEnv.getMessager().printNote("Annotation Processor config not found, assuming default values %s".formatted(defaultConfigOptions));
-        }
     }
 
     void registerTask(CompilationTask task) {
@@ -167,9 +107,9 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     }
 
     private JsonMergeConflictPolicy getConflictPolicy(Resource resource) {
-        JsonMergeConflictPolicy policy = getConflictPolicy(resource, config);
+        JsonMergeConflictPolicy policy = getConflictPolicy(resource, config.getConfig());
         if (policy == null) {
-            policy = getConflictPolicy(resource, defaultConfig);
+            policy = getConflictPolicy(resource, config.getDefaultConfig());
         }
         if (policy == null) {
             policy = JsonMergeConflictPolicy.OVERWRITE;
@@ -234,8 +174,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             existing = getPreviouslyGenerated(toSave.getDirectory(), toSave.getNameRoot(), toSave.getExtension());
         }
 
-        if (existing.isEmpty() && toSave.resourceExistsOnDisk(resourceDirs)) {
-            existing = Resource.builder().copyFilePathFrom(toSave).tryRead(resourceDirs);
+        if (existing.isEmpty() && toSave.resourceExistsOnDisk(config.getResourceSetDirs())) {
+            existing = Resource.builder().copyFilePathFrom(toSave).tryRead(config.getResourceSetDirs());
         }
 
         if (existing.isEmpty()) {
