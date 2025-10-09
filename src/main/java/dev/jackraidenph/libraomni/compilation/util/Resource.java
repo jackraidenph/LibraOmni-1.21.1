@@ -12,6 +12,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.io.*;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -54,15 +55,28 @@ public class Resource {
         return readFromFile;
     }
 
-    public void saveToClassOutput(Filer filer) {
+    public FileObject getFileObject(Filer filer) {
         try {
-            FileObject fileObject = filer.createResource(
+            return filer.getResource(
                     StandardLocation.CLASS_OUTPUT,
                     "",
                     getFilePath()
             );
+        } catch (IOException ioException) {
+            throw new RuntimeException(ioException);
+        }
+    }
 
-            try (OutputStream fileObjectWrite = fileObject.openOutputStream()) {
+    public void saveToUri(URI uri) {
+        try {
+            File file = new File(uri);
+            if (!file.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                file.getParentFile().mkdirs();
+                //noinspection ResultOfMethodCallIgnored
+                file.createNewFile();
+            }
+            try (OutputStream fileObjectWrite = new FileOutputStream(file)) {
                 fileObjectWrite.write(getContents());
             }
         } catch (IOException ioException) {

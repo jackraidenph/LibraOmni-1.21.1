@@ -11,7 +11,9 @@ import dev.jackraidenph.libraomni.compilation.util.Resource;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
+import javax.tools.FileObject;
 import java.io.*;
+import java.net.URI;
 import java.nio.file.*;
 import java.util.*;
 import java.util.Map.Entry;
@@ -30,6 +32,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             "data/**", JsonMergeConflictPolicy.PREFER_NEW.name(),
             "assets/**", JsonMergeConflictPolicy.OVERWRITE.name()
     );
+
+    private final Map<String, URI> generatedResources = new HashMap<>();
 
     private final Map<PathMatcher, JsonMergeConflictPolicy> defaultConfig = parseOptionsMapToConfig(defaultConfigOptions);
     private final Map<PathMatcher, JsonMergeConflictPolicy> config = new HashMap<>();
@@ -156,7 +160,9 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             if (mergeResult == null) {
                 continue;
             }
-            mergeResult.saveToClassOutput(processingEnv.getFiler());
+            FileObject created = mergeResult.getFileObject(processingEnv.getFiler());//mergeResult.saveToClassOutput(processingEnv.getFiler());
+            mergeResult.saveToUri(created.toUri());
+            generatedResources.put(mergeResult.getFilePath(), created.toUri());
         }
     }
 
@@ -199,14 +205,39 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         return policy;
     }
 
+    private Optional<Resource> getPreviouslyGenerated(String dir, String nameRoot, String extension) {
+        String path = dir + nameRoot + '.' + extension;
+        try {
+            URI uri = generatedResources.get(path);
+
+            try (InputStream inputStream = new FileInputStream(uri.getPath())) {
+                return Optional.of(
+                        Resource.builder()
+                                .setDirectory(dir)
+                                .setNameRoot(nameRoot)
+                                .setExtension(extension)
+                                .setRawBytes(inputStream.readAllBytes())
+                                .build()
+                );
+            }
+
+        } catch (IOException ioException) {
+            throw new RuntimeException("Resource [" + path + "] found, but can't be opened", ioException);
+        }
+    }
+
     private Resource resolveConflictIfPresent(Resource toSave) {
         Messager messager = processingEnv.getMessager();
 
-        if (!toSave.resourceExistsOnDisk(resourceDirs)) {
-            return toSave;
+        Optional<Resource> existing = Optional.empty();
+        if (generatedResources.containsKey(toSave.getFilePath())) {
+            existing = getPreviouslyGenerated(toSave.getDirectory(), toSave.getNameRoot(), toSave.getExtension());
         }
 
-        Optional<Resource> existing = Resource.builder().copyFilePathFrom(toSave).tryRead(resourceDirs);
+        if (existing.isEmpty() && toSave.resourceExistsOnDisk(resourceDirs)) {
+            existing = Resource.builder().copyFilePathFrom(toSave).tryRead(resourceDirs);
+        }
+
         if (existing.isEmpty()) {
             return toSave;
         }
