@@ -1,13 +1,11 @@
 package dev.jackraidenph.libraomni.compilation;
 
-import dev.jackraidenph.libraomni.LibraOmni;
-
-import java.util.Set;
+import java.util.*;
 
 public abstract class AnnotationProcessorConstants {
     public static final Set<String> PROCESSED_RESOURCES = Set.of(
             "data/*/tags/**",
-            "assets/*/blockstatess/**",
+            "assets/*/blockstates/**",
             "assets/*/models/**"
     );
 
@@ -15,6 +13,4 @@ public abstract class AnnotationProcessorConstants {
 
     public static final String RESOURCE_LOCATIONS_OPTION = "resources";
     public static final String CONFIG_OPTION = "config";
-
-    public static final String CONFIG_NAME = LibraOmni.MOD_ID + ".apconfig";
 }
