@@ -1,10 +1,10 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.Id;
+import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 
-import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -37,12 +37,21 @@ public abstract class SequentialCompilationTask implements CompilationTask {
                 );
                 continue;
             }
-            resources.addAll(processElement(modLocator.forElement(e), id, e, roundEnv, processingEnv));
+            resources.addAll(processElement(modLocator.forElement(e), getId(e), e, roundEnv, processingEnv));
         }
         return resources;
     }
 
-    abstract Collection<InMemoryResource> processElement(String modId, @Nullable Id idAnnotation, Element element, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
+    private static String getId(Element e) {
+        Id id = e.getAnnotation(Id.class);
+        if (id != null && !id.value().isBlank()) {
+            return id.value();
+        }
+
+        return StringUtilities.snakeCase(e.getSimpleName().toString());
+    }
+
+    abstract Collection<InMemoryResource> processElement(String modId, String elementId, Element element, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
 
     public boolean requireIdAnnotation() {
         return false;
