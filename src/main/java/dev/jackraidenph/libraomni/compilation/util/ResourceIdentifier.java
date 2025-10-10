@@ -133,6 +133,18 @@ public record ResourceIdentifier(String directory, String nameRoot, String exten
         return new ResourceBuilder();
     }
 
+    public static ResourceIdentifier jsonAsset(String modId, String directory, String fileName) {
+        return ResourceIdentifier.builder().setAssetDirectory(modId, directory).setNameRoot(fileName).setJsonExtension().build();
+    }
+
+    public static ResourceIdentifier pngAsset(String modId, String directory, String fileName) {
+        return ResourceIdentifier.builder().setAssetDirectory(modId, directory).setNameRoot(fileName).setPngExtension().build();
+    }
+
+    public static ResourceIdentifier data(String modId, String directory, String fileName) {
+        return ResourceIdentifier.builder().setDataDirectory(modId, directory).setNameRoot(fileName).setJsonExtension().build();
+    }
+
     @Override
     public String toString() {
         return getFilePath();
@@ -164,6 +176,10 @@ public record ResourceIdentifier(String directory, String nameRoot, String exten
 
         public ResourceBuilder setAssetDirectory(String modId, String path) {
             return setDirectory("assets/" + modId + "/" + path);
+        }
+
+        public ResourceBuilder setDataDirectory(String modId, String path) {
+            return setDirectory("data/" + modId + "/" + path);
         }
 
         public ResourceBuilder setDirectory(String path) {
