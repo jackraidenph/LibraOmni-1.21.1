@@ -8,7 +8,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
-public record ResourceIdentifier(String nameRoot, String extension, String directory) {
+public record ResourceIdentifier(String directory, String nameRoot, String extension) {
 
     public static final String JSON_EXT = "json";
     public static final String PNG_EXT = "png";
