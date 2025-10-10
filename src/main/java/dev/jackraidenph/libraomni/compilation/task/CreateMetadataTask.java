@@ -3,9 +3,10 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.service.Composed;
 import dev.jackraidenph.libraomni.annotation.service.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.service.IsRuntimeTask;
+import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
-import dev.jackraidenph.libraomni.compilation.util.Resource;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -22,7 +23,7 @@ final class CreateMetadataTask implements CompilationTask {
     private final ProjectMetadata projectMetadata = new ProjectMetadata();
 
     @Override
-    public Collection<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public Collection<InMemoryResource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         //Find annotations to use for processing runtime data
         RuntimeAnnotatedElementsScanner scanner = new RuntimeAnnotatedElementsScanner();
         for (Element e : roundEnv.getRootElements()) {
@@ -63,13 +64,16 @@ final class CreateMetadataTask implements CompilationTask {
     }
 
     @Override
-    public Set<Resource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public Set<InMemoryResource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         return Set.of(
-                Resource.builder()
-                        .setDirectory(ProjectMetadata.DIRECTORY)
-                        .setNameRoot(ProjectMetadata.FILE_ROOT)
-                        .setJsonContents(projectMetadata)
-                        .build()
+                new InMemoryResource(
+                        ResourceIdentifier.builder()
+                                .setDirectory(ProjectMetadata.DIRECTORY)
+                                .setNameRoot(ProjectMetadata.FILE_ROOT)
+                                .setJsonExtension()
+                                .build(),
+                        projectMetadata
+                )
         );
     }
 

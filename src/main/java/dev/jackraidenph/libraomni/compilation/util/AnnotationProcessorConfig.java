@@ -6,6 +6,7 @@ import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
@@ -21,7 +22,7 @@ public final class AnnotationProcessorConfig {
     private static final Map<PathMatcher, JsonMergeConflictPolicy> DEFAULT_CONFIG = parseOptionsMapToConfig(DEFAULT_CONFIG_OPTIONS);
     private final Map<PathMatcher, JsonMergeConflictPolicy> CONFIG = new HashMap<>();
 
-    private final Set<String> RESOURCE_SET_DIRS = new HashSet<>();
+    private final Set<Path> RESOURCE_SET_DIRS = new HashSet<>();
 
     private boolean INITIALIZED = false;
 
@@ -33,7 +34,7 @@ public final class AnnotationProcessorConfig {
         return Collections.unmodifiableMap(DEFAULT_CONFIG);
     }
 
-    public Set<String> getResourceSetDirs() {
+    public Set<Path> getResourceSetDirs() {
         return Collections.unmodifiableSet(RESOURCE_SET_DIRS);
     }
 
@@ -49,7 +50,9 @@ public final class AnnotationProcessorConfig {
     private void gatherResourceDirs(ProcessingEnvironment processingEnv) {
         String resourcesPaths = processingEnv.getOptions().get(AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION);
         if (resourcesPaths != null) {
-            RESOURCE_SET_DIRS.addAll(Arrays.asList(resourcesPaths.split(";")));
+            for (String str : resourcesPaths.split(";")) {
+                RESOURCE_SET_DIRS.add(Path.of(str));
+            }
         }
     }
 

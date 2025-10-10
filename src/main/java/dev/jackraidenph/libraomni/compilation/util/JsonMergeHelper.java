@@ -5,37 +5,19 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.jackraidenph.libraomni.common.CommonGson;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map.Entry;
-
-import static dev.jackraidenph.libraomni.compilation.util.Resource.JSON_EXT;
 
 public class JsonMergeHelper {
 
-    public static Resource mergeJson(Resource existing, Resource other, JsonMergeConflictPolicy policy) {
-        if (existing == null || policy == JsonMergeConflictPolicy.OVERWRITE) {
-            return other;
-        }
-
-        if (!existing.getExtension().equals(JSON_EXT) || !other.getExtension().equals(JSON_EXT)) {
-            throw new IllegalArgumentException("Tried to merge non-JSON resources");
-        }
-
+    public static String mergeJson(String json0, String json1, JsonMergeConflictPolicy policy) {
         if (policy == JsonMergeConflictPolicy.THROW) {
-            throw new IllegalStateException("Duplicate resource [%s]".formatted(existing));
+            throw new IllegalStateException();
         }
-
-        String json0 = new String(existing.getContents(), StandardCharsets.UTF_8);
-        String json1 = new String(other.getContents(), StandardCharsets.UTF_8);
 
         JsonObject obj0 = CommonGson.DEFAULT.fromJson(json0, JsonObject.class);
         JsonObject obj1 = CommonGson.DEFAULT.fromJson(json1, JsonObject.class);
 
-        return Resource.builder()
-                .setNameRoot(existing.getNameRoot())
-                .setDirectory(existing.getDirectory())
-                .setJsonContents(mergeObjects(obj0, obj1, policy))
-                .build();
+        return CommonGson.DEFAULT.toJson(mergeObjects(obj0, obj1, policy));
     }
 
     private static JsonObject mergeObjects(JsonObject obj0, JsonObject obj1, JsonMergeConflictPolicy policy) {

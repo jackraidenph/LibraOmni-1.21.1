@@ -3,8 +3,8 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.service.Validated;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
-import dev.jackraidenph.libraomni.compilation.util.Resource;
 import dev.jackraidenph.libraomni.compilation.validation.Validator;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 final class ValidateAnnotationsTask implements CompilationTask {
 
     @Override
-    public Set<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public Set<InMemoryResource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         Set<TypeElement> validatedAnnotations = roundEnv
                 .getRootElements()
                 .stream()

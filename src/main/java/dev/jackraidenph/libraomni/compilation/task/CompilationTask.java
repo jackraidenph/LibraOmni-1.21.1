@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
+import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
-import dev.jackraidenph.libraomni.compilation.util.Resource;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -13,9 +13,9 @@ import java.util.Set;
 
 interface CompilationTask {
 
-    Collection<Resource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
+    Collection<InMemoryResource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
 
-    default Collection<Resource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    default Collection<InMemoryResource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         return Set.of();
     }
 
