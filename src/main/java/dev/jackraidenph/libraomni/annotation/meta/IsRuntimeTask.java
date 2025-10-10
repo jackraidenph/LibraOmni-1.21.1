@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.service;
+package dev.jackraidenph.libraomni.annotation.meta;
 
 import dev.jackraidenph.libraomni.compilation.validation.RuntimeTaskRegisteringValidator;
 

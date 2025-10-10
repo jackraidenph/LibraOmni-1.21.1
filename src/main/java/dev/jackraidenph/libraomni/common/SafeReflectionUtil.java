@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.common;
 
-import dev.jackraidenph.libraomni.annotation.service.Id;
+import dev.jackraidenph.libraomni.annotation.meta.Id;
 import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import net.neoforged.neoforge.registries.DeferredHolder;

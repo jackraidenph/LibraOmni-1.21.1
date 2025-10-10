@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.annotation.service.Composed;
+import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 
 import javax.lang.model.AnnotatedConstruct;

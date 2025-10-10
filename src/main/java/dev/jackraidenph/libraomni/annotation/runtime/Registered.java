@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.annotation.runtime;
 
-import dev.jackraidenph.libraomni.annotation.service.Composed;
-import dev.jackraidenph.libraomni.annotation.service.Delegate;
-import dev.jackraidenph.libraomni.annotation.service.Id;
+import dev.jackraidenph.libraomni.annotation.meta.Composed;
+import dev.jackraidenph.libraomni.annotation.meta.Delegate;
+import dev.jackraidenph.libraomni.annotation.meta.Id;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -5,6 +5,11 @@ enum RegisteredCompilationTask {
     //Must run first
     VALIDATE_ANNOTATIONS(new ValidateAnnotationsTask()),
 
+    GENERATE_BLOCK_MODELS(new GenerateBlockModelsTask()),
+    GENERATE_ITEM_MODELS(new GenerateItemModelsTask()),
+    GENERATE_BLOCK_STATES(new GenerateBlockStatesTask()),
+    SET_PARTICLE_MODEL(new SetParticleModelTask()),
+
     //Not a must, but cleaner to run last
     CREATE_METADATA(new CreateMetadataTask());
 

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.blockstate;
+package dev.jackraidenph.libraomni.annotation.datagen;
 
 
 import java.lang.annotation.ElementType;

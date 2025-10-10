@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.annotation.service.Delegate;
+import dev.jackraidenph.libraomni.annotation.meta.Delegate;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 

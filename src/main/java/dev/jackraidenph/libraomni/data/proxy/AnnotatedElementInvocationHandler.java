@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.annotation.service.Composed;
+import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;

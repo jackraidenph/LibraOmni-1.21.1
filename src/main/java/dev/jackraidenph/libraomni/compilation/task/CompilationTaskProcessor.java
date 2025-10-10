@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.service.ModPackage;
+import dev.jackraidenph.libraomni.annotation.meta.ModPackage;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;

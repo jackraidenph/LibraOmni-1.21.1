@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.service;
+package dev.jackraidenph.libraomni.annotation.meta;
 
 import java.lang.annotation.*;
 import java.util.function.Function;

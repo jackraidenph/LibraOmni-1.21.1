@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.service.Composed;
-import dev.jackraidenph.libraomni.annotation.service.NeedsRuntimeProcessing;
-import dev.jackraidenph.libraomni.annotation.service.IsRuntimeTask;
+import dev.jackraidenph.libraomni.annotation.meta.Composed;
+import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
+import dev.jackraidenph.libraomni.annotation.meta.IsRuntimeTask;
 import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;

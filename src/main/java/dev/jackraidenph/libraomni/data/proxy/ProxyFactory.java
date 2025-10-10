@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.annotation.service.Composed;
-import dev.jackraidenph.libraomni.annotation.service.Delegate;
+import dev.jackraidenph.libraomni.annotation.meta.Composed;
+import dev.jackraidenph.libraomni.annotation.meta.Delegate;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import javax.annotation.processing.ProcessingEnvironment;
