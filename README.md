@@ -5,7 +5,7 @@
 [-]  Planned, not started<br/>
 [?]  Considered, not decided<br/>
 
- <h3>[~] Compile Time Annotation Processing</h3></summary>
+ <h3>[+] Compile Time Annotation Processing</h3></summary>
   
   [+] Transitive compile time annotation processing<br/>
   [+] Transtitive annotation values delegation<br/>
@@ -66,7 +66,7 @@ public @interface TexturedItem {
   [+] Resource generation<br/>
   [+] Annotations validation ([pkg](src/main/java/dev/jackraidenph/libraomni/compilation/validation))<br/>
   [+] Creating custom annotations with all the enhanced capabilities supported<br/>
-  [\~] Resource merging<br/>
+  [+] Resource merging<br/>
   [+] Resource merging configuration via the Gradle plugin<br/>
    ```groovy
 //Glob pattern is used to match resources
