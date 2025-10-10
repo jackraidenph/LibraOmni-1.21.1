@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-enum RegisteredCompilationTask {
+enum CompilationTasksInit {
 
     //Must run first
     VALIDATE_ANNOTATIONS(new ValidateAnnotationsTask()),
@@ -15,12 +15,12 @@ enum RegisteredCompilationTask {
 
     public final CompilationTask INSTANCE;
 
-    RegisteredCompilationTask(CompilationTask instance) {
+    CompilationTasksInit(CompilationTask instance) {
         this.INSTANCE = instance;
     }
 
     static void init(CompilationTaskProcessor taskProcessor) {
-        for (RegisteredCompilationTask tasks : RegisteredCompilationTask.values()) {
+        for (CompilationTasksInit tasks : CompilationTasksInit.values()) {
             taskProcessor.registerTask(tasks.INSTANCE);
         }
     }

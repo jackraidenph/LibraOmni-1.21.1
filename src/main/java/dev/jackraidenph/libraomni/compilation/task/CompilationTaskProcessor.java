@@ -27,7 +27,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         config.init(processingEnv);
-        RegisteredCompilationTask.init(this);
+        CompilationTasksInit.init(this);
     }
 
     void registerTask(CompilationTask task) {
