@@ -31,6 +31,10 @@ public abstract class SequentialCompilationTask implements CompilationTask {
             }
             Id id = e.getAnnotation(Id.class);
             if (requireIdAnnotation() && id == null) {
+                processingEnv.getMessager().printWarning(
+                        "Annotations %s require @Id annotation to be present, but it was not found on element [%s], skipping!"
+                                .formatted(supportedAnnotations().stream().map(a -> '@' + a.getSimpleName()).toList(), e.getSimpleName())
+                );
                 continue;
             }
             resources.addAll(processElement(modLocator.forElement(e), id, e, roundEnv, processingEnv));
