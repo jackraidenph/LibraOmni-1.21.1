@@ -12,7 +12,6 @@ import javax.lang.model.element.TypeElement;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.Map.Entry;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class CompilationTaskProcessor extends AbstractProcessor {
@@ -98,7 +97,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         Optional<Path> pathToExisting = resourceIdentifier.existsAt(filer).or(() -> resourceIdentifier.existsAt(config.getResourceSetDirs()));
         if (pathToExisting.isPresent()) {
 
-            JsonMergeConflictPolicy policy = getConflictPolicy(resourceIdentifier);
+            JsonMergeConflictPolicy policy = config.getConflictPolicy(resourceIdentifier);
 
             if (policy == null) {
                 policy = JsonMergeConflictPolicy.OVERWRITE;
@@ -134,41 +133,6 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         } catch (IOException ioException) {
             throw new RuntimeException("Exception writing resource [" + resourceIdentifier + "]", ioException);
         }
-    }
-
-    private JsonMergeConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier) {
-        JsonMergeConflictPolicy policy = getConflictPolicy(resourceIdentifier, config.getConfig());
-        policy = policy == null
-                ? getConflictPolicy(resourceIdentifier, config.getDefaultConfig())
-                : policy;
-        return policy;
-    }
-
-    private JsonMergeConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier, Map<PathMatcher, JsonMergeConflictPolicy> conf) {
-        Path path;
-        String resourcePath = resourceIdentifier.getFilePath();
-        try {
-            path = Path.of(resourcePath);
-        } catch (InvalidPathException e) {
-            printStackTrace(e);
-            throw new RuntimeException("Not a path [%s]".formatted(resourcePath));
-        }
-
-        Set<String> matches = new HashSet<>();
-        JsonMergeConflictPolicy policy = null;
-        for (Entry<PathMatcher, JsonMergeConflictPolicy> e : conf.entrySet()) {
-            PathMatcher globMatcher = e.getKey();
-            if (globMatcher.matches(path)) {
-                matches.add(e.getValue().name());
-                policy = e.getValue();
-            }
-        }
-
-        if (matches.size() > 1) {
-            throw new IllegalStateException("Multiple pattern matches for [" + resourcePath + "]: " + matches);
-        }
-
-        return policy;
     }
 
     private void printStackTrace(Throwable throwable) {

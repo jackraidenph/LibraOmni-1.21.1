@@ -6,9 +6,11 @@ import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import java.nio.file.FileSystems;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
@@ -96,6 +98,40 @@ public final class AnnotationProcessorConfig {
             map.put(kv[0], kv[1]);
         }
         return map;
+    }
+
+    public JsonMergeConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier) {
+        JsonMergeConflictPolicy policy = getConflictPolicy(resourceIdentifier, this.getConfig());
+        policy = policy == null
+                ? getConflictPolicy(resourceIdentifier, this.getDefaultConfig())
+                : policy;
+        return policy;
+    }
+
+    private JsonMergeConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier, Map<PathMatcher, JsonMergeConflictPolicy> conf) {
+        Path path;
+        String resourcePath = resourceIdentifier.getFilePath();
+        try {
+            path = Path.of(resourcePath);
+        } catch (InvalidPathException e) {
+            throw new RuntimeException("Not a path [%s]".formatted(resourcePath));
+        }
+
+        Set<String> matches = new HashSet<>();
+        JsonMergeConflictPolicy policy = null;
+        for (Entry<PathMatcher, JsonMergeConflictPolicy> e : conf.entrySet()) {
+            PathMatcher globMatcher = e.getKey();
+            if (globMatcher.matches(path)) {
+                matches.add(e.getValue().name());
+                policy = e.getValue();
+            }
+        }
+
+        if (matches.size() > 1) {
+            throw new IllegalStateException("Multiple pattern matches for [" + resourcePath + "]: " + matches);
+        }
+
+        return policy;
     }
 
 }
