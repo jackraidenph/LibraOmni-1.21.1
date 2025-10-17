@@ -46,11 +46,7 @@ public class ModContextManager implements LifecycleSetup {
     public ModContext createContext(String modId) {
         ModList modList = ModList.get();
         Optional<? extends ModContainer> modContainerOptional = modList.getModContainerById(modId);
-        if (modContainerOptional.isEmpty()) {
-            throw new IllegalArgumentException("No ModContainer exists for [" + modId + "]");
-        }
-
-        ModContainer modContainer = modContainerOptional.get();
+        ModContainer modContainer = modContainerOptional.orElseThrow(() -> new IllegalArgumentException("No ModContainer exists for [" + modId + "]"));
         return createContext(modContainer);
     }
 
@@ -66,7 +62,7 @@ public class ModContextManager implements LifecycleSetup {
     }
 
     public Set<ModContext> contexts() {
-        return new HashSet<>(this.contextMap.values());
+        return Set.copyOf(this.contextMap.values());
     }
 
     @Override
