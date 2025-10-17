@@ -195,12 +195,7 @@ public class SafeReflectionUtil {
     }
 
     public static String idOrDefault(AnnotatedElement element) {
-        return idOrDefault(tryProxify(element));
-    }
-
-    public static ProxyAnnotatedElement tryProxify(AnnotatedElement element) {
-        //Proxy handler implements AnnotationAccessor
-        return (ProxyAnnotatedElement) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element));
+        return idOrDefault(ProxyFactory.proxifyAnnotatedElementIfNotProxy(element));
     }
 
     public static String idOrDefault(ProxyAnnotatedElement element) {

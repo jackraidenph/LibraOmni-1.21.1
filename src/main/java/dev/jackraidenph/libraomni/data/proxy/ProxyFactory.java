@@ -133,6 +133,12 @@ public abstract class ProxyFactory {
         return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e);
     }
 
+
+    public static ProxyAnnotatedElement proxifyAnnotatedElementIfNotProxy(AnnotatedElement element) {
+        //Proxy handler implements AnnotationAccessor
+        return (ProxyAnnotatedElement) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element));
+    }
+
     public static <T extends Annotation> T makeValueAnnotation(Class<T> type, Map<String, Object> attributes) {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(
