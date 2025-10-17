@@ -129,6 +129,10 @@ public abstract class ProxyFactory {
         );
     }
 
+    public static AnnotatedConstruct proxifyAnnotatedConstructIfNotProxy(AnnotatedConstruct e) {
+        return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e);
+    }
+
     public static <T extends Annotation> T makeValueAnnotation(Class<T> type, Map<String, Object> attributes) {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(

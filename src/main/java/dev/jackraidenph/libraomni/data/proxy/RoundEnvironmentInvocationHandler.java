@@ -2,15 +2,11 @@ package dev.jackraidenph.libraomni.data.proxy;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.util.ElementScanner14;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.*;
 
 public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocationHandler<RoundEnvironment> {
@@ -22,7 +18,7 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
         super(original);
         this.elementUtils = processingEnvironment.getElementUtils();
         for (Element e : original.getRootElements()) {
-            Element proxy = tryProxify(e);
+            Element proxy = (Element) ProxyFactory.proxifyAnnotatedConstructIfNotProxy(e);
             proxiedElements.add(proxy);
         }
     }
@@ -36,7 +32,7 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
         for (Element e : getRootElementsProxy()) {
             scanner.scan(e, a);
         }
-        return scanner.elements;
+        return scanner.getElements();
     }
 
     public Set<? extends Element> getElementsAnnotatedWithProxy(Class<? extends Annotation> a) {
@@ -92,37 +88,5 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
         }
 
         return super.invoke(proxy, method, args);
-    }
-
-    private Element tryProxify(Element e) {
-        return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e);
-    }
-
-    private class RecursiveAnnotationScanner extends ElementScanner14<Set<Element>, TypeElement> {
-
-        private final Set<Element> elements = new HashSet<>();
-        private final Set<String> elementIdentities = new HashSet<>(); //Somehow, Set<Element> allows duplicates?
-
-        @Override
-        public Set<Element> scan(Element e, TypeElement annotation) {
-            Element toCheck = tryProxify(e);
-            checkViaTypeElement(toCheck, annotation);
-            toCheck.accept(this, annotation);
-            return elements;
-        }
-
-        public void checkViaTypeElement(Element e, TypeElement a) {
-            String identity = e.toString();
-            if (elementIdentities.contains(identity)) {
-                return;
-            }
-            elementIdentities.add(identity);
-            for (AnnotationMirror mirror : e.getAnnotationMirrors()) {
-                DeclaredType type = mirror.getAnnotationType();
-                if (type.asElement() instanceof TypeElement typeElement && typeElement.equals(a)) {
-                    elements.add(e);
-                }
-            }
-        }
     }
 }
