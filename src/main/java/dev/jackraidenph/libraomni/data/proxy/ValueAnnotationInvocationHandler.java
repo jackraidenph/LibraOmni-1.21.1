@@ -68,7 +68,7 @@ public class ValueAnnotationInvocationHandler implements InvocationHandler, Anno
         for (Method m : annotation.annotationType().getMethods()) {
             String name = m.getName();
             Object val = attributes.get(name);
-            if (val != UnsafeReflectionUtil.getMethodValue(m, annotation)) {
+            if (UnsafeReflectionUtil.getMethodValue(m, annotation).equals(val)) {
                 return false;
             }
         }
