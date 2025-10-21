@@ -39,7 +39,6 @@ public class UnsafeReflectionUtil {
 
     public static <T> T getMethodValue(Method method, Object context, Object... args) {
         try {
-            //Return null if the return type is not appropriate
             //noinspection unchecked
             return (T) method.invoke(context, args);
         } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
