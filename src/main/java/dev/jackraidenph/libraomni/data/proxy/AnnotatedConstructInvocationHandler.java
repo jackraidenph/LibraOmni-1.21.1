@@ -4,8 +4,8 @@ import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 
 import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
+import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -15,14 +15,16 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
 
     protected final Map<TypeElement, List<AnnotationMirror>> annotationMirrorsMap = new HashMap<>();
     protected final Map<Class<? extends Annotation>, List<Annotation>> annotationMap = new HashMap<>();
+    private final Elements elementUtils;
 
-    public AnnotatedConstructInvocationHandler(AnnotatedConstruct original) {
+    public AnnotatedConstructInvocationHandler(AnnotatedConstruct original, Elements elements) {
         super(original);
+        elementUtils = elements;
         cacheRecursive(original);
     }
 
     private void cacheRecursive(AnnotatedConstruct original) {
-        for (AnnotationMirror annotation : original.getAnnotationMirrors()) {
+        for (AnnotationMirror annotation : elementUtils.getAllAnnotationMirrors((Element) original)) {
             cacheStep(original, null, annotation);
         }
     }
@@ -36,6 +38,10 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
     }
 
     private void addAnnotation(DelegateContainer delegates, Annotation annotation) {
+        if (ProxyFactory.ONLY_DIRECT.contains(annotation.annotationType())) {
+            return;
+        }
+
         boolean delegated = delegates != null && !delegates.isEmpty();
         Annotation proxyOrSelf = delegated ? ProxyFactory.proxifyAnnotation(annotation, delegates) : annotation;
         annotationMap.computeIfAbsent(annotation.annotationType(), k -> new ArrayList<>()).add(proxyOrSelf);
@@ -54,7 +60,11 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
             return;
         }
 
-        for (AnnotationMirror child : currentElement.getAnnotationMirrors()) {
+        for (AnnotationMirror child : elementUtils.getAllAnnotationMirrors(currentElement)) {
+            //Prevent self-recursion
+            if (child.getAnnotationType().equals(current.getAnnotationType())) {
+                continue;
+            }
             TypeElement childElement = (TypeElement) child.getAnnotationType().asElement();
             String childName = childElement.getQualifiedName().toString();
             DelegateContainer container = ProxyFactory.mapDelegatesFromAnnotationMirror(childName, current, delegates);
@@ -63,6 +73,12 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
     }
 
     private <A extends Annotation> A[] byType(Class<A> clazz) {
+        if (ProxyFactory.ONLY_DIRECT.contains(clazz)) {
+            //noinspection unchecked
+            A[] arr = (A[]) Array.newInstance(clazz, 1);
+            arr[0] = original.getAnnotation(clazz);
+            return arr;
+        }
         List<Annotation> annotations = annotationMap.get(clazz);
         if (annotations != null && !annotations.isEmpty()) {
             //noinspection unchecked

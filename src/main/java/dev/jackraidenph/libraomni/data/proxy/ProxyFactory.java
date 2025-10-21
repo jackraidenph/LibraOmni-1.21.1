@@ -2,6 +2,8 @@ package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.annotation.meta.Delegate;
+import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
+import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -10,17 +12,31 @@ import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.*;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
-import java.lang.annotation.Annotation;
+import javax.lang.model.util.Elements;
+import java.lang.annotation.*;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 public abstract class ProxyFactory {
 
     private static final ClassLoader CLASSLOADER = ProxyFactory.class.getClassLoader();
+
+    //A special-case set of meta-annotations that must not be considered transitively
+    public static final Set<Class<? extends Annotation>> ONLY_DIRECT = Set.of(
+            Target.class,
+            Retention.class,
+            Inherited.class,
+            Repeatable.class,
+            Documented.class,
+            Composed.class,
+            NeedsRuntimeProcessing.class,
+            Validated.class
+    );
 
     public static Annotation proxifyAnnotation(Annotation annotation, DelegateContainer delegates) {
         if (annotation instanceof Composed || annotation.annotationType().getPackageName().startsWith("java.lang.annotation")) {
@@ -121,16 +137,16 @@ public abstract class ProxyFactory {
         );
     }
 
-    public static AnnotatedConstruct proxifyAnnotatedConstruct(AnnotatedConstruct construct) {
+    public static AnnotatedConstruct proxifyAnnotatedConstruct(AnnotatedConstruct construct, Elements elements) {
         return (AnnotatedConstruct) Proxy.newProxyInstance(
                 CLASSLOADER,
                 construct.getClass().getInterfaces(),
-                new AnnotatedConstructInvocationHandler(construct)
+                new AnnotatedConstructInvocationHandler(construct, elements)
         );
     }
 
-    public static AnnotatedConstruct proxifyAnnotatedConstructIfNotProxy(AnnotatedConstruct e) {
-        return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e);
+    public static AnnotatedConstruct proxifyAnnotatedConstructIfNotProxy(AnnotatedConstruct e, Elements elements) {
+        return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e, elements);
     }
 
 
