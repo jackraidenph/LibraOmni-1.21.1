@@ -49,7 +49,7 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
 
     private void cacheStep(AnnotatedConstruct construct, DelegateContainer delegates, AnnotationMirror current) {
         TypeElement currentElement = addAnnotationMirror(current);
-        Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(currentElement.getQualifiedName().toString(), Annotation.class);
+        Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(elementUtils.getBinaryName(currentElement).toString(), Annotation.class);
         if (clazz != null) {
             Annotation annotation = construct.getAnnotation(clazz);
             addAnnotation(delegates, annotation);
