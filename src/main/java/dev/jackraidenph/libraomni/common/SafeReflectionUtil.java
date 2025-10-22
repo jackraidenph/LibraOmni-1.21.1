@@ -257,4 +257,39 @@ public class SafeReflectionUtil {
             default -> null;
         };
     }
+
+    //Check if the annotation is a container for @Repeatable annotations specified as in https://docs.oracle.com/javase/tutorial/java/annotations/repeating.html
+    public static boolean isRepeatableContainer(Class<? extends Annotation> annotationType) {
+        Method[] attributes = annotationType.getMethods();
+        //Must contain "value" attribute
+        Optional<Method> valueOptional = Arrays.stream(attributes).filter(m -> m.getName().equals("value")).findFirst();
+        if (valueOptional.isEmpty()) {
+            return false;
+        }
+        Method value = valueOptional.get();
+        Class<?> returnType = value.getReturnType();
+        //Must be an array of annotations
+        if (!Annotation[].class.isAssignableFrom(returnType)) {
+            return false;
+        }
+        //Array must contain annotations meta-annotated with @Repeatable
+        Repeatable repeatable = (returnType.getComponentType()).getAnnotation(Repeatable.class);
+        if (repeatable == null) {
+            return false;
+        }
+        //Repeatable should specify the original annotation as a container
+        return repeatable.value().equals(annotationType);
+    }
+
+    public static List<Annotation> unwrapRepeatableContainer(Annotation annotation) {
+        if (!isRepeatableContainer(annotation.annotationType())) {
+            throw new IllegalArgumentException("Not a container for @Repeatable");
+        }
+        try {
+            Method value = annotation.annotationType().getMethod("value");
+            return List.of(UnsafeReflectionUtil.getMethodValue(value, annotation));
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }
