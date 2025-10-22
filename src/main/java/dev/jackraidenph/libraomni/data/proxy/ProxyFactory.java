@@ -83,14 +83,10 @@ public abstract class ProxyFactory {
         throw new IllegalStateException();
     }
 
-    public static DelegateContainer mapDelegatesFromAnnotationMirror(String childTypeName, AnnotationMirror parent) {
-        return mapDelegatesFromAnnotationMirror(childTypeName, parent, null);
-    }
-
-    public static DelegateContainer mapDelegatesFromAnnotationMirror(String childTypeName, AnnotationMirror parent, DelegateContainer contextDelegates) {
+    public static DelegateContainer mapDelegatesFromAnnotationMirror(Elements elements, String childTypeName, AnnotationMirror parent, DelegateContainer contextDelegates) {
         DelegateContainer container = new DelegateContainer();
 
-        Map<ExecutableElement, AnnotationValue> values = new HashMap<>(parent.getElementValues());
+        Map<ExecutableElement, AnnotationValue> values = new HashMap<>(elements.getElementValuesWithDefaults(parent));
         parent.getAnnotationType()
                 .asElement()
                 .getEnclosedElements()
@@ -119,14 +115,6 @@ public abstract class ProxyFactory {
             container.add(delegate.attribute(), delegate, attributeVal);
         }
         return container;
-    }
-
-    public static Annotation proxifyAnnotation(Annotation child, AnnotationMirror parent) {
-        if (parent == null) {
-            return child;
-        }
-        DelegateContainer delegates = mapDelegatesFromAnnotationMirror(child.annotationType().getName(), parent);
-        return proxifyAnnotation(child, delegates);
     }
 
     public static ProxyAnnotatedElement proxifyAnnotatedElement(AnnotatedElement element) {
