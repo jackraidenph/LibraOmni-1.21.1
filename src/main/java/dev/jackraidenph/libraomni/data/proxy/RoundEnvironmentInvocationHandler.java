@@ -13,10 +13,13 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
 
     private final Set<Element> proxiedElements = new HashSet<>();
     private final Elements elementUtils;
+    private final RecursiveAnnotationScanner scanner;
+    private final Set<String> scannedForTypeElements = new HashSet<>();
 
     public RoundEnvironmentInvocationHandler(RoundEnvironment original, ProcessingEnvironment processingEnvironment) {
         super(original);
         this.elementUtils = processingEnvironment.getElementUtils();
+        this.scanner = new RecursiveAnnotationScanner(elementUtils);
         for (Element e : original.getRootElements()) {
             Element proxy = (Element) ProxyFactory.proxifyAnnotatedConstructIfNotProxy(e, elementUtils);
             proxiedElements.add(proxy);
@@ -28,9 +31,10 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
     }
 
     public Set<? extends Element> getElementsAnnotatedWithProxy(TypeElement a) {
-        RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner(elementUtils);
-        for (Element e : getRootElementsProxy()) {
-            scanner.scan(e, a);
+        if (scannedForTypeElements.add(a.getQualifiedName().toString())) {
+            for (Element e : getRootElementsProxy()) {
+                scanner.scan(e, a);
+            }
         }
         return scanner.getElements();
     }
