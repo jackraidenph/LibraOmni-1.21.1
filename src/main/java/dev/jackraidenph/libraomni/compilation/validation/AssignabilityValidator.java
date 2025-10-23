@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.validation;
 
+import dev.jackraidenph.libraomni.common.ElementUtil;
+
 import javax.annotation.Nonnull;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -12,14 +14,21 @@ public abstract class AssignabilityValidator implements Validator {
         Messager messager = processingEnvironment.getMessager();
 
         String toExtendOrImplement = classNameToValidateAgainst();
+        TypeElement typeElement = ElementUtil.getReturnType(element);
+        boolean assignable = ElementUtil.isAssignableToAny(
+                typeElement,
+                processingEnvironment.getElementUtils(),
+                processingEnvironment.getTypeUtils(),
+                toExtendOrImplement
+        );
 
-        boolean implementsRuntimeProcessor = ValidationUtils.elementImplementsOrExtendsAny(element, toExtendOrImplement);
-
-        if (!implementsRuntimeProcessor) {
-            messager.printError(element.getSimpleName().toString() + " must be assignable to " + toExtendOrImplement);
+        if (!assignable) {
+            String name = element.getSimpleName().toString();
+            String type = typeElement.getQualifiedName().toString();
+            messager.printError("[%s] must be assignable to [%s], but got [%s]".formatted(name, toExtendOrImplement, type));
         }
 
-        return implementsRuntimeProcessor;
+        return assignable;
     }
 
     @Nonnull
