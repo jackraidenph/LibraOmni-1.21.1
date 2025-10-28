@@ -2,15 +2,10 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.Id;
 import dev.jackraidenph.libraomni.common.StringUtilities;
-import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
-import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,26 +13,28 @@ import java.util.Set;
  */
 public abstract class SequentialCompilationTask implements CompilationTask {
 
-    public void processRound(ModIdGetter modLocator, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
-        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWithAny(supportedAnnotations());
-        processElements(modLocator, elements, resourceManager, roundEnv, processingEnv);
+    public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
+        System.out.println(supportedAnnotations());
+        Set<? extends Element> elements = processingContext.roundEnvironment().getElementsAnnotatedWithAny(supportedAnnotations());
+        System.out.println(elements);
+        System.out.println();
+        processElements(modLocator, elements, processingContext);
     }
 
-    protected void processElements(ModIdGetter modLocator, Set<? extends Element> elements, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
-        List<InMemoryResource> resources = new ArrayList<>();
+    protected void processElements(ModIdGetter modLocator, Set<? extends Element> elements, ProcessingContext processingContext) {
         for (Element e : elements) {
             if (skipAnnotations() && isAnnotation(e)) {
                 continue;
             }
             Id id = e.getAnnotation(Id.class);
             if (requireIdAnnotation() && id == null) {
-                processingEnv.getMessager().printWarning(
+                processingContext.processingEnvironment().getMessager().printWarning(
                         "Annotations %s require @Id annotation to be present, but it was not found on element [%s], skipping!"
                                 .formatted(supportedAnnotations().stream().map(a -> '@' + a.getSimpleName()).toList(), e.getSimpleName())
                 );
                 continue;
             }
-            processElement(modLocator.forElement(e), getId(e), e, resourceManager, roundEnv, processingEnv);
+            processElement(modLocator.forElement(e), getId(e), e, processingContext);
         }
     }
 
@@ -50,7 +47,7 @@ public abstract class SequentialCompilationTask implements CompilationTask {
         return StringUtilities.snakeCase(e.getSimpleName().toString());
     }
 
-    abstract void processElement(String modId, String elementId, Element element, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv);
+    abstract void processElement(String modId, String elementId, Element element, ProcessingContext processingContext);
 
     public boolean requireIdAnnotation() {
         return false;

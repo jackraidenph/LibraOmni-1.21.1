@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.validation;
 
 import dev.jackraidenph.libraomni.common.ElementUtil;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -32,11 +33,12 @@ public final class HolderOrTypeValidator extends AssignabilityValidator {
     }
 
     @Override
-    public boolean test(Element element, List<String> args, ProcessingEnvironment processingEnvironment) {
+    public boolean test(Element element, List<String> args, ProcessingContext processingContext) {
+        ProcessingEnvironment processingEnvironment = processingContext.processingEnvironment();
         if (!isDeferredHolder(element, processingEnvironment.getElementUtils(), processingEnvironment.getTypeUtils())) {
-            return super.test(element, args, processingEnvironment);
+            return super.test(element, args, processingContext);
         }
 
-        return super.test(resolveDeferredHolder(element), args, processingEnvironment);
+        return super.test(resolveDeferredHolder(element), args, processingContext);
     }
 }

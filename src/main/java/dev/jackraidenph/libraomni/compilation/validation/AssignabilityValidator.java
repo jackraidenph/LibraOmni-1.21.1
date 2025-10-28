@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.validation;
 
 import dev.jackraidenph.libraomni.common.ElementUtil;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -10,7 +11,8 @@ import java.util.List;
 public class AssignabilityValidator implements Validator {
 
     @Override
-    public boolean test(Element validatedElement, List<String> args, ProcessingEnvironment processingEnvironment) {
+    public boolean test(Element validatedElement, List<String> args,  ProcessingContext processingContext) {
+        ProcessingEnvironment processingEnvironment = processingContext.processingEnvironment();
         Messager messager = processingEnvironment.getMessager();
 
         if (args == null || args.isEmpty()) {

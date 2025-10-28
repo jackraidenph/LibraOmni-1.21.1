@@ -61,10 +61,11 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
             try {
                 RoundEnvironment proxyEnvironment = ProxyFactory.proxifyRuntimeEnvironment(roundEnvironment, processingEnv);
+                ProcessingContext context = new ProcessingContext(resourceManager, proxyEnvironment, processingEnv);
                 if (!finishing) {
-                    compilationTask.processRound(modIdGetter, resourceManager, proxyEnvironment, this.processingEnv);
+                    compilationTask.processRound(modIdGetter, context);
                 } else {
-                    compilationTask.finish(modIdGetter, resourceManager, proxyEnvironment, this.processingEnv);
+                    compilationTask.finish(modIdGetter, context);
                 }
             } catch (Exception e) {
                 printStackTrace(e);

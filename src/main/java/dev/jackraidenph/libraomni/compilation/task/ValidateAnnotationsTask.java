@@ -5,12 +5,11 @@ import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
-import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.validation.Validator;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 
 import javax.annotation.processing.Messager;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import java.util.Collections;
@@ -21,12 +20,12 @@ import java.util.stream.Collectors;
 final class ValidateAnnotationsTask implements CompilationTask {
 
     @Override
-    public void processRound(ModIdGetter modLocator, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
-        Messager messager = processingEnv.getMessager();
+    public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
+        Messager messager = processingContext.processingEnvironment().getMessager();
 
         messager.printNote("---VALIDATING ANNOTATION---");
 
-        Set<TypeElement> validatedAnnotations = getRequiringValidation(roundEnv);
+        Set<TypeElement> validatedAnnotations = getRequiringValidation(processingContext.roundEnvironment());
 
         for (TypeElement validatedAnnotation : validatedAnnotations) {
             Validator validator = this.getValidatorForAnnotation(validatedAnnotation);
@@ -41,10 +40,10 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 ));
             }
 
-            roundEnv.getElementsAnnotatedWith(validatedAnnotation).stream()
+            processingContext.roundEnvironment().getElementsAnnotatedWith(validatedAnnotation).stream()
                     .filter(e -> !(e.getKind().equals(ElementKind.ANNOTATION_TYPE)))
                     .forEach(validatedElement -> {
-                        validate(validatedElement, validatedAnnotation, args, validator, processingEnv);
+                        validate(validatedElement, validatedAnnotation, args, validator, processingContext);
                         messager.printNote("[%s] was validated with no problems".formatted(validatedElement));
                     });
         }
@@ -56,7 +55,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
                           TypeElement validatedAnnotation,
                           List<String> args,
                           Validator validator,
-                          ProcessingEnvironment pEnv
+                          ProcessingContext processingContext
     ) {
         if (validatedElement.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
             return;
@@ -64,7 +63,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
         boolean result;
         try {
-            result = validator.test(validatedElement, args, pEnv);
+            result = validator.test(validatedElement, args, processingContext);
         } catch (Exception innerException) {
             throw new AnnotationValidationException(validatedElement, validatedAnnotation, innerException);
         }

@@ -3,12 +3,12 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.IsRuntimeTask;
-import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 
-import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.AnnotationMirror;
@@ -23,16 +23,19 @@ final class CreateMetadataTask implements CompilationTask {
     private final ProjectMetadata projectMetadata = new ProjectMetadata();
 
     @Override
-    public void processRound(ModIdGetter modLocator, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
+        RoundEnvironment roundEnvironment = processingContext.roundEnvironment();
+
         //Find annotations to use for processing runtime data
         RuntimeAnnotatedElementsScanner scanner = new RuntimeAnnotatedElementsScanner();
-        for (Element e : roundEnv.getRootElements()) {
+        for (Element e : roundEnvironment.getRootElements()) {
             scanner.scan(e);
         }
 
+        Messager messager = processingContext.processingEnvironment().getMessager();
         Set<TypeElement> runtimeAnnotations = scanner.annotations;
         if (!runtimeAnnotations.isEmpty()) {
-            processingEnv.getMessager().printNote("Found runtime annotations " + runtimeAnnotations);
+            messager.printNote("Found runtime annotations " + runtimeAnnotations);
         }
 
         for (Element e : scanner.elements) {
@@ -45,15 +48,18 @@ final class CreateMetadataTask implements CompilationTask {
                 continue;
             }
 
-            projectMetadata.getOrCreateModMetadata(modId).getAnnotatedData().addElement(e, processingEnv.getElementUtils());
+            projectMetadata.getOrCreateModMetadata(modId).getAnnotatedData().addElement(
+                    e,
+                    processingContext.processingEnvironment().getElementUtils()
+            );
         }
 
         //Process user-defined runtime tasks
-        for (Element e : roundEnv.getElementsAnnotatedWith(IsRuntimeTask.class)) {
+        for (Element e : roundEnvironment.getElementsAnnotatedWith(IsRuntimeTask.class)) {
             String name = ((TypeElement) e).getQualifiedName().toString();
             String modId = modLocator.forElement(e);
             if (modId == null) {
-                processingEnv.getMessager().printWarning("Got runtime task [" + name + "], but failed to compute the owning mod");
+                messager.printWarning("Got runtime task [" + name + "], but failed to compute the owning mod");
                 continue;
             }
 
@@ -62,8 +68,8 @@ final class CreateMetadataTask implements CompilationTask {
     }
 
     @Override
-    public void finish(ModIdGetter modLocator, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
-        resourceManager.save(
+    public void finish(ModIdGetter modLocator, ProcessingContext processingContext) {
+        processingContext.resourceManager().save(
                 ResourceIdentifier.builder()
                         .setDirectory(ProjectMetadata.DIRECTORY)
                         .setNameRoot(ProjectMetadata.FILE_ROOT)
