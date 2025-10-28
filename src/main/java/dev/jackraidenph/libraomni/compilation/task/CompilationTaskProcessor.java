@@ -14,7 +14,7 @@ import java.util.*;
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class CompilationTaskProcessor extends AbstractProcessor {
 
-    private final Set<CompilationTask> tasks = new HashSet<>();
+    private final List<CompilationTask> tasks = new ArrayList<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
     private final AnnotationProcessorConfig config = new AnnotationProcessorConfig();
     private ResourceManager resourceManager;
@@ -30,10 +30,6 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     }
 
     void registerTask(CompilationTask task) {
-        if (this.tasks.stream().map(Object::getClass).anyMatch(clazz -> clazz.equals(task.getClass()))) {
-            return;
-        }
-
         this.tasks.add(task);
         if (processingEnv != null) {
             processingEnv.getMessager().printNote("Registered [" + task.getClass().getSimpleName() + "] for processing");
