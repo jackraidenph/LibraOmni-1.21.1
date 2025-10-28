@@ -11,36 +11,41 @@ import java.util.*;
 
 public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocationHandler<RoundEnvironment> {
 
-    private final Set<Element> proxiedElements = new HashSet<>();
+    private final Set<Element> proxiedRootElements = new HashSet<>();
     private final Elements elementUtils;
-    private final RecursiveAnnotationScanner scanner;
-    private final Set<String> scannedForTypeElements = new HashSet<>();
+    private final Map<String, Set<? extends Element>> scannedElementsCacheByAnnotation = new HashMap<>();
 
     public RoundEnvironmentInvocationHandler(RoundEnvironment original, ProcessingEnvironment processingEnvironment) {
         super(original);
         this.elementUtils = processingEnvironment.getElementUtils();
-        this.scanner = new RecursiveAnnotationScanner(elementUtils);
         for (Element e : original.getRootElements()) {
             Element proxy = (Element) ProxyFactory.proxifyAnnotatedConstructIfNotProxy(e, elementUtils);
-            proxiedElements.add(proxy);
+            proxiedRootElements.add(proxy);
         }
     }
 
     public Set<? extends Element> getRootElementsProxy() {
-        return Collections.unmodifiableSet(proxiedElements);
+        return Collections.unmodifiableSet(proxiedRootElements);
     }
 
-    public Set<? extends Element> getElementsAnnotatedWithProxy(TypeElement a) {
-        if (scannedForTypeElements.add(a.getQualifiedName().toString())) {
+    public Set<? extends Element> getElementsAnnotatedWithProxy(TypeElement annotationTypeElement) {
+        String annotationName = annotationTypeElement.getQualifiedName().toString();
+        if (!scannedElementsCacheByAnnotation.containsKey(annotationName)) {
+            RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner(elementUtils);
             for (Element e : getRootElementsProxy()) {
-                scanner.scan(e, a);
+                scanner.scan(e, annotationTypeElement);
             }
+            scannedElementsCacheByAnnotation.put(annotationName, scanner.getElements());
         }
-        return scanner.getElements();
+        Set<? extends Element> elements = scannedElementsCacheByAnnotation.get(annotationName);
+        if (elements == null) {
+            throw new IllegalStateException("Elements cache is null");
+        }
+        return elements;
     }
 
-    public Set<? extends Element> getElementsAnnotatedWithProxy(Class<? extends Annotation> a) {
-        TypeElement element = elementUtils.getTypeElement(a.getName());
+    public Set<? extends Element> getElementsAnnotatedWithProxy(Class<? extends Annotation> annotationClass) {
+        TypeElement element = elementUtils.getTypeElement(annotationClass.getName());
         if (element == null) {
             return Set.of();
         }

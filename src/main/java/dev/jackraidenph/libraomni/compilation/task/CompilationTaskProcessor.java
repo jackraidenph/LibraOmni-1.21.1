@@ -45,6 +45,9 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
+        RoundEnvironment proxyEnvironment = ProxyFactory.proxifyRuntimeEnvironment(roundEnvironment, processingEnv);
+        ProcessingContext context = new ProcessingContext(resourceManager, proxyEnvironment, processingEnv);
+
         findMods(roundEnvironment);
 
         Messager messager = this.processingEnv.getMessager();
@@ -60,8 +63,6 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             messager.printNote(op + " [" + compilationTask.getClass().getSimpleName() + "]");
 
             try {
-                RoundEnvironment proxyEnvironment = ProxyFactory.proxifyRuntimeEnvironment(roundEnvironment, processingEnv);
-                ProcessingContext context = new ProcessingContext(resourceManager, proxyEnvironment, processingEnv);
                 if (!finishing) {
                     compilationTask.processRound(modIdGetter, context);
                 } else {
