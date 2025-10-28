@@ -35,19 +35,19 @@ public record ResourceIdentifier(String directory, String nameRoot, String exten
         return Path.of(asFileObject(location, filer).toUri());
     }
 
-    public Optional<Path> existsAt(Filer filer) {
-        return existsAt(STANDARD_LOCATION, filer);
+    public Optional<Path> atLocation(Filer filer) {
+        return atLocation(STANDARD_LOCATION, filer);
     }
 
-    public Optional<Path> existsAt(Location location, Filer filer) {
-        return existsAt(fileObjectPath(location, filer));
+    public Optional<Path> atLocation(Location location, Filer filer) {
+        return atLocation(fileObjectPath(location, filer));
     }
 
-    public Optional<Path> existsAt(Path... parentOrAbsolute) {
-        return existsAt(List.of(parentOrAbsolute));
+    public Optional<Path> atLocation(Path... parentOrAbsolute) {
+        return atLocation(List.of(parentOrAbsolute));
     }
 
-    public Optional<Path> existsAt(Collection<Path> parentOrAbsolute) {
+    public Optional<Path> atLocation(Collection<Path> parentOrAbsolute) {
         return parentOrAbsolute.stream().filter(path -> resolvePath(path).toFile().exists()).findFirst();
     }
 
@@ -127,6 +127,10 @@ public record ResourceIdentifier(String directory, String nameRoot, String exten
 
     public String getFilePath() {
         return getDirectory() + getFileName();
+    }
+
+    public boolean isJson() {
+        return getExtension().equals(JSON_EXT);
     }
 
     public static ResourceBuilder builder() {

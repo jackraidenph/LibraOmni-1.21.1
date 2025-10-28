@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.Charset;
 
-public record InMemoryResource(ResourceIdentifier resourceIdentifier, byte[] data) {
+public record InMemoryResource(ResourceIdentifier identifier, byte[] data) {
     public InMemoryResource(ResourceIdentifier resourceIdentifier, Object object) {
         this(resourceIdentifier, CommonGson.DEFAULT.toJson(object));
     }
@@ -20,6 +20,6 @@ public record InMemoryResource(ResourceIdentifier resourceIdentifier, byte[] dat
 
     @Override
     public @NotNull String toString() {
-        return resourceIdentifier.toString() + "@" + data.length + "bytes";
+        return identifier.toString() + "@" + data.length + "bytes";
     }
 }

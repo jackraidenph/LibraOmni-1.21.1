@@ -4,8 +4,8 @@ import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
+import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
 import dev.jackraidenph.libraomni.compilation.validation.Validator;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 final class ValidateAnnotationsTask implements CompilationTask {
 
     @Override
-    public Set<InMemoryResource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public void processRound(ModIdGetter modLocator, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         Messager messager = processingEnv.getMessager();
 
         messager.printNote("---VALIDATING ANNOTATION---");
@@ -50,8 +50,6 @@ final class ValidateAnnotationsTask implements CompilationTask {
         }
 
         messager.printNote("---ANNOTATIONS SUCCESSFULLY VALIDATED---");
-
-        return Set.of();
     }
 
     private void validate(Element validatedElement,

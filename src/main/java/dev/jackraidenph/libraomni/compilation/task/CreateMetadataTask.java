@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.IsRuntimeTask;
-import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
+import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
@@ -23,7 +23,7 @@ final class CreateMetadataTask implements CompilationTask {
     private final ProjectMetadata projectMetadata = new ProjectMetadata();
 
     @Override
-    public Collection<InMemoryResource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+    public void processRound(ModIdGetter modLocator, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
         //Find annotations to use for processing runtime data
         RuntimeAnnotatedElementsScanner scanner = new RuntimeAnnotatedElementsScanner();
         for (Element e : roundEnv.getRootElements()) {
@@ -59,21 +59,17 @@ final class CreateMetadataTask implements CompilationTask {
 
             projectMetadata.getOrCreateModMetadata(modId).addRuntimeTask(name);
         }
-
-        return Set.of();
     }
 
     @Override
-    public Set<InMemoryResource> finish(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
-        return Set.of(
-                new InMemoryResource(
-                        ResourceIdentifier.builder()
-                                .setDirectory(ProjectMetadata.DIRECTORY)
-                                .setNameRoot(ProjectMetadata.FILE_ROOT)
-                                .setJsonExtension()
-                                .build(),
-                        projectMetadata
-                )
+    public void finish(ModIdGetter modLocator, ResourceManager resourceManager, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
+        resourceManager.save(
+                ResourceIdentifier.builder()
+                        .setDirectory(ProjectMetadata.DIRECTORY)
+                        .setNameRoot(ProjectMetadata.FILE_ROOT)
+                        .setJsonExtension()
+                        .build(),
+                projectMetadata
         );
     }
 
