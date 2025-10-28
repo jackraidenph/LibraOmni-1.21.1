@@ -14,10 +14,7 @@ import java.util.Set;
 public abstract class SequentialCompilationTask implements CompilationTask {
 
     public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
-        System.out.println(supportedAnnotations());
         Set<? extends Element> elements = processingContext.roundEnvironment().getElementsAnnotatedWithAny(supportedAnnotations());
-        System.out.println(elements);
-        System.out.println();
         processElements(modLocator, elements, processingContext);
     }
 
