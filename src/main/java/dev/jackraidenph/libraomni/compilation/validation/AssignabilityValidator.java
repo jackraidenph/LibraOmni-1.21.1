@@ -2,19 +2,23 @@ package dev.jackraidenph.libraomni.compilation.validation;
 
 import dev.jackraidenph.libraomni.common.ElementUtil;
 
-import javax.annotation.Nonnull;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
+import java.util.List;
 
-public abstract class AssignabilityValidator implements Validator {
+public class AssignabilityValidator implements Validator {
 
     @Override
-    public boolean test(Element element, ProcessingEnvironment processingEnvironment) {
+    public boolean test(Element validatedElement, List<String> args, ProcessingEnvironment processingEnvironment) {
         Messager messager = processingEnvironment.getMessager();
 
-        String toExtendOrImplement = classNameToValidateAgainst();
-        TypeElement typeElement = ElementUtil.getReturnType(element);
+        if (args == null || args.isEmpty()) {
+            return true;
+        }
+
+        String toExtendOrImplement = args.getFirst();
+        TypeElement typeElement = ElementUtil.getReturnTypeElement(validatedElement);
         boolean assignable = ElementUtil.isAssignableToAny(
                 typeElement,
                 processingEnvironment.getElementUtils(),
@@ -23,16 +27,9 @@ public abstract class AssignabilityValidator implements Validator {
         );
 
         if (!assignable) {
-            String name = element.getSimpleName().toString();
-            String type = typeElement.getQualifiedName().toString();
-            messager.printError("[%s] must be assignable to [%s], but got [%s]".formatted(name, toExtendOrImplement, type));
+            messager.printError("[%s] must be assignable to [%s], got [%s]".formatted(validatedElement, toExtendOrImplement, typeElement));
         }
 
         return assignable;
-    }
-
-    @Nonnull
-    protected String classNameToValidateAgainst() {
-        return Object.class.getName();
     }
 }

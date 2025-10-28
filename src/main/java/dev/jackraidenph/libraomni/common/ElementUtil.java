@@ -12,44 +12,22 @@ public final class ElementUtil {
 
     private static final String OBJECT_STR = Object.class.getName();
 
-    // Might be deleted later
-
-//    /**
-//     * @param type TypeElement to retrieve type hierarchy from
-//     * @return a SequencedCollection of type names in the hierarchy, starting from the type itself and ending with java.lang.Object, interfaces included
-//     */
-//    public static SequencedCollection<String> getTypeHierarchy(TypeElement type) {
-//        SequencedCollection<String> hierarchy = new LinkedHashSet<>();
-//
-//        do {
-//            hierarchy.addLast(type.toString());
-//            for (TypeMirror i : type.getInterfaces()) {
-//                hierarchy.addLast(i.toString());
-//            }
-//            if (!(type.getSuperclass() instanceof DeclaredType declaredType)
-//                    || !(declaredType.asElement() instanceof TypeElement typeElement)) {
-//                break;
-//            }
-//            type = typeElement;
-//        } while (type.getKind().isDeclaredType());
-//
-//        hierarchy.addLast(OBJECT_STR);
-//
-//        return hierarchy;
-//    }
-
     /**
      * @param e Element
      * @return Self if TypeElement, return type if ExecutableElement, or variable type if VariableElement
      * @throws UnsupportedOperationException if supplied Element is not a TypeElement, an ExecutableElement, or a VariableElement
      */
-    public static TypeElement getReturnType(Element e) {
-        return (TypeElement) ((DeclaredType) switch (e) {
+    public static TypeElement getReturnTypeElement(Element e) {
+        return (TypeElement) getReturnType(e).asElement();
+    }
+
+    public static DeclaredType getReturnType(Element e) {
+        return ((DeclaredType) switch (e) {
             case TypeElement typeElement -> typeElement.asType();
             case ExecutableElement executableElement -> executableElement.getReturnType();
             case VariableElement variableElement -> variableElement.asType();
             case null, default -> throw new UnsupportedOperationException();
-        }).asElement();
+        });
     }
 
     /**
@@ -139,8 +117,11 @@ public final class ElementUtil {
             return true;
         }
         for (String name : classNames) {
-            TypeMirror typeMirrorToCheck = elements.getTypeElement(name).asType();
-            if (types.isAssignable(typeElement.asType(), typeMirrorToCheck)) {
+            TypeElement typeElementToCheck = elements.getTypeElement(name);
+            if (typeElementToCheck == null) {
+                throw new IllegalArgumentException("Couldn't find TypeElement for name [%s]".formatted(name));
+            }
+            if (types.isAssignable(typeElement.asType(), typeElementToCheck.asType())) {
                 return true;
             }
         }

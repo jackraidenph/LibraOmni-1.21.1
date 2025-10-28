@@ -1,15 +1,20 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
+import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.validation.Validator;
+import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,90 +22,115 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
     @Override
     public Set<InMemoryResource> processRound(ModIdGetter modLocator, RoundEnvironment roundEnv, ProcessingEnvironment processingEnv) {
-        Set<TypeElement> validatedAnnotations = roundEnv
-                .getRootElements()
-                .stream()
-                .flatMap(e -> e.getAnnotationMirrors().stream())
-                .map(am -> (TypeElement) am.getAnnotationType().asElement())
-                .filter(e -> e.getAnnotation(Validated.class) != null)
-                .collect(Collectors.toSet());
+        Messager messager = processingEnv.getMessager();
 
-        for (TypeElement annotationElement : validatedAnnotations) {
-            Validator validator = this.getValidatorForAnnotation(annotationElement);
-            if (validator == null) {
-                throw new AnnotationValidationException(annotationElement, "Failed to instantiate validator");
+        messager.printNote("---VALIDATING ANNOTATION---");
+
+        Set<TypeElement> validatedAnnotations = getRequiringValidation(roundEnv);
+
+        for (TypeElement validatedAnnotation : validatedAnnotations) {
+            Validator validator = this.getValidatorForAnnotation(validatedAnnotation);
+            List<String> args = getArgs(validatedAnnotation);
+            if (args == null) {
+                messager.printNote("Found validator [%s] for [@%s]".formatted(validator.getClass(), validatedAnnotation.getSimpleName()));
+            } else {
+                messager.printNote("Found validator [%s] with arguments %s for [@%s]".formatted(
+                        validator.getClass(),
+                        args,
+                        validatedAnnotation.getSimpleName()
+                ));
             }
-            processingEnv.getMessager().printNote("Found validator [" + validator.getClass().getSimpleName() + "] for [" + annotationElement.getQualifiedName() + "]");
 
-            Set<? extends Element> toValidate = roundEnv.getElementsAnnotatedWith(annotationElement);
-
-            for (Element e : toValidate) {
-                try {
-                    if (!e.getKind().equals(ElementKind.ANNOTATION_TYPE) && !validator.test(e, processingEnv)) {
-                        throw new AnnotationValidationException(e);
-                    }
-                } catch (Exception innerException) {
-                    throw new AnnotationValidationException(e, innerException);
-                }
-            }
+            roundEnv.getElementsAnnotatedWith(validatedAnnotation).stream()
+                    .filter(e -> !(e.getKind().equals(ElementKind.ANNOTATION_TYPE)))
+                    .forEach(validatedElement -> {
+                        validate(validatedElement, validatedAnnotation, args, validator, processingEnv);
+                        messager.printNote("[%s] was validated with no problems".formatted(validatedElement));
+                    });
         }
+
+        messager.printNote("---ANNOTATIONS SUCCESSFULLY VALIDATED---");
 
         return Set.of();
     }
 
-    private AnnotationMirror mirrorByClass(Element e, Class<?> clazz) {
-        for (AnnotationMirror annotationMirror : e.getAnnotationMirrors()) {
-            TypeElement annotationElement = (TypeElement) annotationMirror.getAnnotationType().asElement();
-            if (annotationElement.getQualifiedName().contentEquals(clazz.getName())) {
-                return annotationMirror;
-            }
+    private void validate(Element validatedElement,
+                          TypeElement validatedAnnotation,
+                          List<String> args,
+                          Validator validator,
+                          ProcessingEnvironment pEnv
+    ) {
+        if (validatedElement.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
+            return;
         }
 
-        return null;
+        boolean result;
+        try {
+            result = validator.test(validatedElement, args, pEnv);
+        } catch (Exception innerException) {
+            throw new AnnotationValidationException(validatedElement, validatedAnnotation, innerException);
+        }
+
+        if (!result) {
+            throw new AnnotationValidationException(validatedElement, validatedAnnotation);
+        }
     }
 
-    private static Object findAnnotationValue(AnnotationMirror mirror, String valueName) {
-        ExecutableElement executableElement = mirror.getElementValues()
-                .keySet()
+    private Set<TypeElement> getRequiringValidation(RoundEnvironment roundEnvironment) {
+        return roundEnvironment
+                .getRootElements()
                 .stream()
-                .filter(e -> e.getSimpleName().contentEquals(valueName))
-                .findFirst()
-                .orElse(null);
-
-        return mirror.getElementValues().get(executableElement).getValue();
+                .map(Element::getAnnotationMirrors)
+                .flatMap(List::stream)
+                .map(AnnotationMirror::getAnnotationType)
+                .map(declaredType -> (TypeElement) declaredType.asElement())
+                .filter(e -> e.getAnnotation(Validated.class) != null)
+                .collect(Collectors.toSet());
     }
 
-    private Validator getValidatorForAnnotation(TypeElement annotationElement) {
-        AnnotationMirror validatedMirror = mirrorByClass(annotationElement, Validated.class);
+    private List<String> getArgs(TypeElement validatedAnnotation) {
+        AnnotationMirror validatorMirror = getValidatorAnnotationMirror(validatedAnnotation);
+
+        Object objArgs = AnnotationMirrorUtil.getElementValue(validatorMirror, "args");
+        if (objArgs instanceof List<?> list) {
+            return list.stream()
+                    .map(e -> (AnnotationValue) e)
+                    .map(AnnotationValue::getValue)
+                    .map(String::valueOf)
+                    .toList();
+        } else {
+            return Collections.singletonList(String.valueOf(objArgs));
+        }
+    }
+
+    private AnnotationMirror getValidatorAnnotationMirror(TypeElement validatedAnnotation) {
+        AnnotationMirror validatedMirror = AnnotationMirrorUtil.findAnnotationMirror(
+                validatedAnnotation::getAnnotationMirrors,
+                Validated.class.getName()
+        );
+
         if (validatedMirror == null) {
-            return null;
+            throw new IllegalStateException("Couldn't obtain AnnotationMirror of [%s] for annotation name [%s]".formatted(
+                    validatedAnnotation,
+                    Validated.class.getName())
+            );
+        }
+
+        return validatedMirror;
+    }
+
+    private Validator getValidatorForAnnotation(TypeElement validatedAnnotation) {
+        AnnotationMirror validatorMirror = getValidatorAnnotationMirror(validatedAnnotation);
+        String validatorClassName = String.valueOf(AnnotationMirrorUtil.getElementValue(validatorMirror, "value"));
+        Class<? extends Validator> validatorClass = SafeReflectionUtil.forNameSubclass(validatorClassName, Validator.class);
+        if (validatorClass == null) {
+            throw new IllegalStateException("Failed to get Validator class for name [%s]".formatted(validatorClassName));
         }
 
         try {
-            String validatorClassName = String.valueOf(findAnnotationValue(validatedMirror, "value"));
-            Class<? extends Validator> validatorClass = SafeReflectionUtil.forNameSubclass(validatorClassName, Validator.class);
-            if (validatorClass == null) {
-                throw new IllegalStateException("Failed to get Validator for name [" + validatorClassName + "]");
-            }
-
             return UnsafeReflectionUtil.tryConstruct(validatorClass);
-        } catch (ClassCastException classCastException) {
-            return null;
-        }
-    }
-
-    public static class AnnotationValidationException extends IllegalStateException {
-        public AnnotationValidationException(Element e, String details) {
-            super("Validation failed for [%s]: %s".formatted(e, details));
-        }
-
-        public AnnotationValidationException(Element e, Throwable cause) {
-            super("Validation failed for [%s]".formatted(e), cause);
-        }
-
-
-        public AnnotationValidationException(Element e) {
-            super("Validation failed for [%s]".formatted(e));
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to instantiate validator [%s]".formatted(validatedAnnotation), e);
         }
     }
 }
