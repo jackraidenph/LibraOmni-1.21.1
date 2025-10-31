@@ -16,24 +16,24 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
-public class GenerateBlockItemsTask implements RuntimeTask {
+public class GenerateBlockItemsTask extends SequentialRuntimeTask {
 
     @Override
-    public void process(Set<ProxyAnnotatedElement> elements, ModContext modContext) {
-        for (ProxyAnnotatedElement element : elements) {
-            AnnotatedElement object = element.original();
+    void processElement(ProxyAnnotatedElement element, String elementId, ModContext modContext) {
+        AnnotatedElement object = element.original();
 
-            DeferredHolder<Block, ? extends Block> holder = AutoRegisters.holder(modContext, object);
-            if (holder == null) {
-                throw new IllegalStateException("Failed to obtain Block holder from [%s]".formatted(object.toString()));
-            }
+        DeferredHolder<Block, ? extends Block> holder = AutoRegisters.holder(modContext, object);
 
-            String propertiesId = element.getAnnotation(GeneratesBlockItem.class).propertiesId();
-            Item.Properties properties = modContext.getExtension(PropertiesPool.class).getItemProperties(propertiesId);
+        String propertiesId = element.getAnnotation(GeneratesBlockItem.class).propertiesId();
+        Item.Properties properties = modContext.getExtension(PropertiesPool.class).getItemProperties(propertiesId);
 
-            DeferredHolder<Item, BlockItem> blockItem = AutoRegisters.registerBlockItem(modContext.modId(), holder, properties);
-            LibraOmni.LOGGER.info("Registered block item [{}]", blockItem);
-        }
+        DeferredHolder<Item, BlockItem> blockItem = AutoRegisters.registerBlockItem(modContext.modId(), holder, properties);
+        LibraOmni.LOGGER.info("Registered block item [{}]", blockItem);
+    }
+
+    @Override
+    public boolean requireId() {
+        return true;
     }
 
     @Override

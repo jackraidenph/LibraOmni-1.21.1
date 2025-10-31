@@ -3,7 +3,6 @@ package dev.jackraidenph.libraomni.runtime.extension;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import dev.jackraidenph.libraomni.runtime.VanillaRegistriesAccess;
 import net.minecraft.core.Registry;
@@ -19,8 +18,6 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -109,14 +106,8 @@ public class AutoRegisters extends AbstractModContextExtension {
     }
 
     public static <R, T extends R> DeferredHolder<R, T> holder(ModContext modContext, AnnotatedElement element) {
-        DeferredHolder<?, ?> holder;
-        if (
-                element instanceof Field field
-                        && Modifier.isStatic(field.getModifiers())
-                        && UnsafeReflectionUtil.getValue(element, null, false) instanceof DeferredHolder<?, ?> deferredHolder
-        ) {
-            holder = deferredHolder;
-        } else {
+        DeferredHolder<?, ?> holder = SafeReflectionUtil.tryCastToDeferredHolder(element);
+        if (holder == null) {
             holder = AutoRegisters.entry(
                     modContext.modId(),
                     SafeReflectionUtil.selfOrReturnType(element, true),

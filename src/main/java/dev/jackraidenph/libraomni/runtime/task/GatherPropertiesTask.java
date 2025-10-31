@@ -13,26 +13,24 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-public class GatherPropertiesTask implements RuntimeTask {
+public class GatherPropertiesTask extends SequentialRuntimeTask {
 
     @Override
-    public void process(Set<ProxyAnnotatedElement> elements, ModContext modContext) {
-        for (ProxyAnnotatedElement e : elements) {
-            String id = e.getAnnotation(PropertiesSupplier.class).value();
-            PropertiesPool propertiesPool = modContext.getExtension(PropertiesPool.class);
+    void processElement(ProxyAnnotatedElement element, String elementId, ModContext modContext) {
+        String id = element.getAnnotation(PropertiesSupplier.class).value();
+        PropertiesPool propertiesPool = modContext.getExtension(PropertiesPool.class);
 
-            Method method = (Method) e.original();
-            Class<?> returnType = method.getReturnType();
+        Method method = (Method) element.original();
+        Class<?> returnType = method.getReturnType();
 
-            Object val = UnsafeReflectionUtil.getMethodValue(method, null);
-            if (Item.Properties.class.isAssignableFrom(returnType)) {
-                propertiesPool.addItemProperties(id, (Item.Properties) val);
-            } else if (BlockBehaviour.Properties.class.isAssignableFrom(returnType)) {
-                propertiesPool.addBlockProperties(id, (BlockBehaviour.Properties) val);
-            } else {
-                String obj = String.valueOf(e.original().getClass());
-                throw new UnsupportedOperationException("[%s] annotated with @PropertiesEntry, must be either Item.Properties or BlockBehaviour.Properties".formatted(obj));
-            }
+        Object val = UnsafeReflectionUtil.getMethodValue(method, null);
+        if (Item.Properties.class.isAssignableFrom(returnType)) {
+            propertiesPool.addItemProperties(id, (Item.Properties) val);
+        } else if (BlockBehaviour.Properties.class.isAssignableFrom(returnType)) {
+            propertiesPool.addBlockProperties(id, (BlockBehaviour.Properties) val);
+        } else {
+            String obj = String.valueOf(element.original().getClass());
+            throw new UnsupportedOperationException("[%s] annotated with @PropertiesEntry, must be either Item.Properties or BlockBehaviour.Properties".formatted(obj));
         }
     }
 

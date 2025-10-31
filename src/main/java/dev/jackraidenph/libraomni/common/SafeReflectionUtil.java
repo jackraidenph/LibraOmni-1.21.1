@@ -198,18 +198,48 @@ public class SafeReflectionUtil {
         return idOrDefault(ProxyFactory.proxifyAnnotatedElementIfNotProxy(element));
     }
 
-    public static String idOrDefault(ProxyAnnotatedElement element) {
-        AnnotatedElement object = element.original();
-        if (object instanceof DeferredHolder<?, ?> holder) {
+    public static DeferredHolder<?, ?> tryCastToDeferredHolder(AnnotatedElement element) {
+        if (element instanceof Field field
+                && UnsafeReflectionUtil.getFieldValue(field, null, false) instanceof DeferredHolder<?, ?> deferredHolder) {
+            return deferredHolder;
+        }
+        return null;
+    }
+
+    public static String holderId(AnnotatedElement e) {
+        DeferredHolder<?, ?> holder = SafeReflectionUtil.tryCastToDeferredHolder(e);
+        if (holder != null) {
             return holder.getId().getPath();
         }
+        return null;
+    }
 
-        Id id = element.getAnnotation(Id.class);
-        if (id != null && !id.value().isBlank()) {
+    public static String id(ProxyAnnotatedElement e) {
+        AnnotatedElement object = e.original();
+        String holderId = holderId(object);
+        if (holderId != null && !holderId.isBlank()) {
+            return holderId;
+        }
+
+        Id id = e.getAnnotation(Id.class);
+        if (id != null && id.value() != null) {
+            //If @Id is actually present, but blank, use object's name
+            if (id.value().isBlank()) {
+                return StringUtilities.snakeCase(objectName(e.original()));
+            }
             return id.value();
         }
 
-        return StringUtilities.snakeCase(objectName(object));
+        return null;
+    }
+
+    public static String idOrDefault(ProxyAnnotatedElement element) {
+        String id = id(element);
+        if (id != null && !id.isBlank()) {
+            return id;
+        }
+
+        return StringUtilities.snakeCase(objectName(element.original()));
     }
 
     public static <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<?> child) {

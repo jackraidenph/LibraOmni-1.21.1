@@ -16,54 +16,31 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.Arrays;
 import java.util.Set;
 
-public class RegisterObjectsTask implements RuntimeTask {
+public class RegisterObjectsTask extends SequentialRuntimeTask {
 
     @Override
-    public void process(Set<ProxyAnnotatedElement> elements, ModContext modContext) {
-        for (ProxyAnnotatedElement e : elements) {
-            DeferredHolder<?, ?> registered = registerArbitrary(modContext, e);
-            if ((e.original() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {
-                tryInjectDeferredHolder(field, registered);
-            }
-        }
-    }
-
-    private static void tryInjectDeferredHolder(Field holderField, DeferredHolder<?, ?> holder) {
-        int mods = holderField.getModifiers();
-        if (!Modifier.isStatic(mods)) {
-            throw new UnsupportedOperationException("""
-                    Trying to inject [%s] into a non-static field [%s],
-                    make it static
-                    """.formatted(holder, holderField.getName()));
-        }
-
-        if (Modifier.isFinal(mods)) {
-            throw new UnsupportedOperationException("""
-                    Trying to inject [%s] into a final field [%s],
-                    make it not final
-                    """.formatted(holder, holderField.getName()));
-        }
-
-        try {
-            holderField.setAccessible(true);
-            holderField.set(null, holder);
-        } catch (IllegalAccessException illegalAccessException) {
-            throw new RuntimeException();
+    public void processElement(ProxyAnnotatedElement element, String elementId, ModContext modContext) {
+        DeferredHolder<?, ?> registered = registerArbitrary(element, elementId, modContext);
+        if ((element.original() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {
+            UnsafeReflectionUtil.tryInject(field, registered);
         }
     }
 
     @SuppressWarnings("unchecked") //A lot of unchecked warnings are actually checked via Class#isAssignableFrom
-    private static <T> DeferredHolder<? super T, T> registerArbitrary(ModContext modContext, ProxyAnnotatedElement element) {
+    private static <T> DeferredHolder<? super T, T> registerArbitrary(ProxyAnnotatedElement element, String id, ModContext modContext) {
         String modId = modContext.modId();
-        String id = SafeReflectionUtil.idOrDefault(element);
         String propertiesId = element.getAnnotation(Registered.class).propertiesId();
 
         AnnotatedElement tempObject = element.original();
+        //Gets later passed to lambdas
         final AnnotatedElement object;
+        //If we are trying to inject into a DeferredHolder - treat it as if we tried to register a class
+        //With class being the second type argument of DeferredHolder
         if (tempObject instanceof Field field && DeferredHolder.class.isAssignableFrom(field.getType())) {
+            //From DeferredHolder<A, B extends A>, extract class of B
+            //For example, DeferredHolder<Block, MyBlock> -> Class<MyBlock>
             object = (Class<T>) SafeReflectionUtil.extractTypeArguments(tempObject)[1];
         } else {
             object = tempObject;
@@ -71,25 +48,28 @@ public class RegisterObjectsTask implements RuntimeTask {
 
         Class<T> clazz = (Class<T>) SafeReflectionUtil.selfOrReturnType(object);
 
+        //Handle Block registration special case
         if (Block.class.isAssignableFrom(clazz)) {
             DeferredHolder<? super T, T> block = (DeferredHolder<? super T, T>) AutoRegisters.registerBlock(
                     modId,
                     id,
-                    (props) -> nullFailingStaticInstantiate(object, getBlockProperties(propertiesId, modContext))
+                    (props) -> UnsafeReflectionUtil.instantiateStatic(object, getBlockProperties(propertiesId, modContext))
             );
             LibraOmni.LOGGER.info("Registered block [{}]", block);
             return block;
+            //Handle Item registration special case
         } else if (Item.class.isAssignableFrom(clazz)) {
             DeferredHolder<? super T, T> item = (DeferredHolder<? super T, T>) AutoRegisters.registerItem(
                     modId,
                     id,
-                    (props) -> nullFailingStaticInstantiate(object, getItemProperties(propertiesId, modContext))
+                    (props) -> UnsafeReflectionUtil.instantiateStatic(object, getItemProperties(propertiesId, modContext))
             );
             LibraOmni.LOGGER.info("Registered item [{}]", item);
             return item;
         }
 
-        DeferredHolder<? super T, T> holder = AutoRegisters.register(modId, id, clazz, () -> nullFailingStaticInstantiate(object));
+        //Register everything else
+        DeferredHolder<? super T, T> holder = AutoRegisters.register(modId, id, clazz, () -> UnsafeReflectionUtil.instantiateStatic(object));
         LibraOmni.LOGGER.info("Registered [{}] from [{}]", holder, element);
         return holder;
     }
@@ -102,22 +82,9 @@ public class RegisterObjectsTask implements RuntimeTask {
         return modContext.getExtension(PropertiesPool.class).getItemProperties(id);
     }
 
-    private static <T> T nullFailingStaticInstantiate(AnnotatedElement object, Object... args) {
-        try {
-            T created = UnsafeReflectionUtil.getValue(object, null, true, args);
-
-            if (created == null) {
-                throw new IllegalStateException("Failed to instantiate object from element [%s]".formatted(object.toString()));
-            }
-            return created;
-        } catch (IllegalArgumentException illegalArgumentException) {
-            if (SafeReflectionUtil.isExecutable(object)) {
-                String actual = Arrays.toString(SafeReflectionUtil.getMethodParameters(object));
-                String expected = Arrays.toString(SafeReflectionUtil.inferTypes(args));
-                throw new IllegalStateException("Expected executable with parameters %s, got %s".formatted(expected, actual));
-            }
-            throw new IllegalStateException(illegalArgumentException);
-        }
+    @Override
+    public boolean requireId() {
+        return true;
     }
 
     @Override

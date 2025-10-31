@@ -2,7 +2,6 @@ package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.annotation.runtime.InCreativeTab;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
@@ -13,42 +12,36 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Set;
 
-public class AddToCreativeTabsTask implements RuntimeTask {
+public class AddToCreativeTabsTask extends SequentialRuntimeTask {
 
     @Override
-    public void process(Set<ProxyAnnotatedElement> elements, ModContext modContext) {
-        for (ProxyAnnotatedElement e : elements) {
-            InCreativeTab annotation = e.getAnnotation(InCreativeTab.class);
-            String namespace = annotation.namespace();
-            String location = annotation.value();
+    void processElement(ProxyAnnotatedElement element, String elementId, ModContext modContext) {
+        InCreativeTab annotation = element.getAnnotation(InCreativeTab.class);
+        String namespace = annotation.namespace();
+        String location = annotation.value();
 
-            AutoCreativeModeTabs autoCreativeModeTabs = modContext.getExtension(AutoCreativeModeTabs.class);
+        AutoCreativeModeTabs autoCreativeModeTabs = modContext.getExtension(AutoCreativeModeTabs.class);
 
-            AnnotatedElement object = e.original();
-            String id = SafeReflectionUtil.idOrDefault(e);
-            Class<?> clazz = SafeReflectionUtil.selfOrReturnType(object, true);
+        AnnotatedElement object = element.original();
+        Class<?> clazz = SafeReflectionUtil.selfOrReturnType(object, true);
 
-            DeferredHolder<?, ?> holder;
-            if (
-                    object instanceof Field field
-                            && Modifier.isStatic(field.getModifiers())
-                            && UnsafeReflectionUtil.getValue(object, null, false) instanceof DeferredHolder<?, ?> deferredHolder
-            ) {
-                holder = deferredHolder;
-            } else {
-                holder = AutoRegisters.entry(modContext.modId(), clazz, id);
-            }
-
-            if (!(holder.get() instanceof ItemLike itemLike)) {
-                throw new IllegalStateException("Trying to add non-ItemLike entry to a creative tab: " + e);
-            }
-
-            autoCreativeModeTabs.add(namespace, location, itemLike);
+        DeferredHolder<?, ?> holder = SafeReflectionUtil.tryCastToDeferredHolder(object);
+        if (holder == null) {
+            holder = AutoRegisters.entry(modContext.modId(), clazz, elementId);
         }
+
+        if (!(holder.get() instanceof ItemLike itemLike)) {
+            throw new IllegalStateException("Trying to add non-ItemLike entry to a creative tab: " + element);
+        }
+
+        autoCreativeModeTabs.add(namespace, location, itemLike);
+    }
+
+    @Override
+    public boolean requireId() {
+        return true;
     }
 
     @Override

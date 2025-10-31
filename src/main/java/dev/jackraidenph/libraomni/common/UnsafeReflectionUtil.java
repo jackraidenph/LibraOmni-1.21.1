@@ -1,8 +1,57 @@
 package dev.jackraidenph.libraomni.common;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.*;
+import java.util.Arrays;
 
 public class UnsafeReflectionUtil {
+
+    @Nonnull
+    public static <T> T instantiateStatic(AnnotatedElement object, Object... args) {
+        try {
+            T created = UnsafeReflectionUtil.getValue(object, null, true, args);
+
+            if (created == null) {
+                throw new IllegalStateException("Failed to instantiate object from element [%s]".formatted(object.toString()));
+            }
+            return created;
+        } catch (IllegalArgumentException illegalArgumentException) {
+            if (SafeReflectionUtil.isExecutable(object)) {
+                String actual = Arrays.toString(SafeReflectionUtil.getMethodParameters(object));
+                String expected = Arrays.toString(SafeReflectionUtil.inferTypes(args));
+                throw new IllegalStateException("Expected executable with parameters %s, got %s".formatted(expected, actual));
+            }
+            throw new IllegalStateException(illegalArgumentException);
+        }
+    }
+
+    public static void tryInject(Field filed, Object value) {
+        tryInject(filed, null, value);
+    }
+
+    public static void tryInject(Field field, Object context, Object value) {
+        int mods = field.getModifiers();
+        if (context == null && !Modifier.isStatic(mods)) {
+            throw new IllegalArgumentException("""
+                    Trying to inject [%s] into a non-static field [%s],
+                    make it static
+                    """.formatted(value, field.getName()));
+        }
+
+        if (Modifier.isFinal(mods)) {
+            throw new IllegalArgumentException("""
+                    Trying to inject [%s] into a final field [%s],
+                    make it not final
+                    """.formatted(value, field.getName()));
+        }
+
+        try {
+            field.setAccessible(true);
+            field.set(null, value);
+        } catch (IllegalAccessException illegalAccessException) {
+            throw new RuntimeException();
+        }
+    }
 
     public static <T> T getValue(AnnotatedElement annotatedElement, Object context, boolean resolveFunctionalFields, Object... args) {
         return switch (annotatedElement) {
@@ -39,6 +88,10 @@ public class UnsafeReflectionUtil {
 
     public static <T> T getMethodValue(Method method, Object context, Object... args) {
         try {
+            if (context == null && !Modifier.isStatic(method.getModifiers())) {
+                throw new IllegalArgumentException("Trying to get value statically from a non-static method [%s]".formatted(method.getName()));
+            }
+
             //noinspection unchecked
             return (T) method.invoke(context, args);
         } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
@@ -48,6 +101,10 @@ public class UnsafeReflectionUtil {
 
     public static <T> T getFieldValue(Field field, Object context, boolean resolveFunctionalInterfaces, Object... args) {
         try {
+            if (context == null && !Modifier.isStatic(field.getModifiers())) {
+                throw new IllegalArgumentException("Trying to get value statically from a non-static field [%s]".formatted(field.getName()));
+            }
+
             Object val = field.get(context);
 
             if (resolveFunctionalInterfaces) {
@@ -57,7 +114,6 @@ public class UnsafeReflectionUtil {
                 }
             }
 
-            //Return null if the return type is not appropriate
             //noinspection unchecked
             return (T) val;
         } catch (IllegalAccessException | ClassCastException e) {
