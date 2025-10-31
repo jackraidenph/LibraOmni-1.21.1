@@ -58,15 +58,19 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         }
 
         for (CompilationTask compilationTask : this.tasks) {
+            long startTask = System.currentTimeMillis();
             final String op = finishing ? "Finishing" : "Processing";
 
-            messager.printNote(op + " [" + compilationTask.getClass().getSimpleName() + "]");
+            String taskName = compilationTask.getClass().getSimpleName();
+            messager.printNote(op + " [" + taskName + "]");
 
             try {
                 if (!finishing) {
                     compilationTask.processRound(modIdGetter, context);
+                    messager.printNote("Processing [%s] took %f seconds".formatted(taskName, (System.currentTimeMillis() - startTask) / 1_000_000D));
                 } else {
                     compilationTask.finish(modIdGetter, context);
+                    messager.printNote("Finishing [%s] took %f seconds".formatted(taskName, (System.currentTimeMillis() - startTask) / 1_000_000D));
                 }
             } catch (Exception e) {
                 printStackTrace(e);

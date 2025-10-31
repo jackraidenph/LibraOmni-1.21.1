@@ -157,6 +157,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
     }
 
     private void processLifecycleStage(LifecycleStage stage) {
+        long startStage = System.currentTimeMillis();
         for (ModContext modContext : modContextManager.contexts()) {
             Map<Class<? extends RuntimeTask>, RuntimeTask> tasksForMod = Streams.concat(
                             nativeTasks.entrySet().stream(),
@@ -184,11 +185,15 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
                         runtimeTask.getSupportedAnnotations()
                 );
 
-                LibraOmni.LOGGER.info("({}) Invoking {} for [{}]", stage, runtimeTask.getClass().getSimpleName(), modContext.modId());
+                String taskName = runtimeTask.getClass().getSimpleName();
+                LibraOmni.LOGGER.info("({}) Invoking {} for [{}]", stage, taskName, modContext.modId());
 
+                long startTask = System.currentTimeMillis();
                 runtimeTask.process(elements, modContext);
+                LibraOmni.LOGGER.debug("Task [{}] took {} seconds", taskName, (System.currentTimeMillis() - startTask) / 1_000_000D);
             }
         }
+        LibraOmni.LOGGER.debug("Stage [{}] took {} seconds", stage, (System.currentTimeMillis() - startStage) / 1_000_000D);
     }
 
 }
