@@ -6,6 +6,7 @@ import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import java.util.Set;
 
 /**
@@ -20,7 +21,7 @@ public abstract class SequentialCompilationTask implements CompilationTask {
 
     protected void processElements(ModIdGetter modLocator, Set<? extends Element> elements, ProcessingContext processingContext) {
         for (Element e : elements) {
-            if (skipAnnotations() && isAnnotation(e)) {
+            if (skipAnnotations() && e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
                 continue;
             }
             Id id = e.getAnnotation(Id.class);
