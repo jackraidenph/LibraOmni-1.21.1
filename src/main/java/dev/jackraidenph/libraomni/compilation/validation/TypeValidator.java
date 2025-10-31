@@ -8,7 +8,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import java.util.List;
 
-public class AssignabilityValidator implements Validator {
+public class TypeValidator implements Validator {
 
     @Override
     public boolean test(Element validatedElement, List<String> args,  ProcessingContext processingContext) {

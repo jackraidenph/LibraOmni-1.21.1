@@ -11,7 +11,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.List;
 
-public final class HolderOrTypeValidator extends AssignabilityValidator {
+public final class HolderTypeValidator extends TypeValidator {
 
     private static final String DEFERRED_HOLDER_CLASS = "net.neoforged.neoforge.registries.DeferredHolder";
 
