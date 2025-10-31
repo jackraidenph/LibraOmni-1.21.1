@@ -19,7 +19,7 @@ import java.util.Set;
 public class GenerateBlockItemsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<ProxyAnnotatedElement> elements) {
+    public void process(Set<ProxyAnnotatedElement> elements, ModContext modContext) {
         for (ProxyAnnotatedElement element : elements) {
             AnnotatedElement object = element.original();
 

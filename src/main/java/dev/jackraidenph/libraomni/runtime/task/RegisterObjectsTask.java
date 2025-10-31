@@ -22,7 +22,7 @@ import java.util.Set;
 public class RegisterObjectsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<ProxyAnnotatedElement> elements) {
+    public void process(Set<ProxyAnnotatedElement> elements, ModContext modContext) {
         for (ProxyAnnotatedElement e : elements) {
             DeferredHolder<?, ?> registered = registerArbitrary(modContext, e);
             if ((e.original() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {

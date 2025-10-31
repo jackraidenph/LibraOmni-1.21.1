@@ -186,7 +186,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
                 LibraOmni.LOGGER.info("({}) Invoking {} for [{}]", stage, runtimeTask.getClass().getSimpleName(), modContext.modId());
 
-                runtimeTask.process(modContext, elements);
+                runtimeTask.process(elements, modContext);
             }
         }
     }

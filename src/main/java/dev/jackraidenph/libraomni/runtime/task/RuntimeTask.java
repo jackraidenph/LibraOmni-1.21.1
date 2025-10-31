@@ -9,10 +9,7 @@ import java.util.Set;
 
 public interface RuntimeTask {
 
-    void process(
-            ModContext modContext,
-            Set<ProxyAnnotatedElement> elements
-    );
+    void process(Set<ProxyAnnotatedElement> elements, ModContext modContext);
 
     LifecycleStage getExecutionStage();
 

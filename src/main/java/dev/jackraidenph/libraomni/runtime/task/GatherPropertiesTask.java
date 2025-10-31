@@ -16,7 +16,7 @@ import java.util.Set;
 public class GatherPropertiesTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<ProxyAnnotatedElement> elements) {
+    public void process(Set<ProxyAnnotatedElement> elements, ModContext modContext) {
         for (ProxyAnnotatedElement e : elements) {
             String id = e.getAnnotation(PropertiesSupplier.class).value();
             PropertiesPool propertiesPool = modContext.getExtension(PropertiesPool.class);

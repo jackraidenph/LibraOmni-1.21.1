@@ -20,7 +20,7 @@ import java.util.Set;
 public class AddToCreativeTabsTask implements RuntimeTask {
 
     @Override
-    public void process(ModContext modContext, Set<ProxyAnnotatedElement> elements) {
+    public void process(Set<ProxyAnnotatedElement> elements, ModContext modContext) {
         for (ProxyAnnotatedElement e : elements) {
             InCreativeTab annotation = e.getAnnotation(InCreativeTab.class);
             String namespace = annotation.namespace();
