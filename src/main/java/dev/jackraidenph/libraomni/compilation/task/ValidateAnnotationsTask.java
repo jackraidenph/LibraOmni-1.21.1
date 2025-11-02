@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
-import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
+import dev.jackraidenph.libraomni.annotation.value.ValidatedExpression;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
@@ -12,9 +12,10 @@ import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.util.Elements;
+import java.util.*;
 import java.util.stream.Collectors;
 
 final class ValidateAnnotationsTask implements CompilationTask {
@@ -23,38 +24,113 @@ final class ValidateAnnotationsTask implements CompilationTask {
     public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
         Messager messager = processingContext.processingEnvironment().getMessager();
 
-        messager.printNote("---VALIDATING ANNOTATION---");
+        messager.printNote("---VALIDATING ANNOTATIONS---");
 
         Set<TypeElement> validatedAnnotations = getRequiringValidation(processingContext.roundEnvironment());
 
         for (TypeElement validatedAnnotation : validatedAnnotations) {
-            Validator validator = this.getValidatorForAnnotation(validatedAnnotation);
-            List<String> args = getArgs(validatedAnnotation);
-            if (args == null) {
-                messager.printNote("Found validator [%s] for [@%s]".formatted(validator.getClass(), validatedAnnotation.getSimpleName()));
-            } else {
-                messager.printNote("Found validator [%s] with arguments %s for [@%s]".formatted(
-                        validator.getClass(),
-                        args,
-                        validatedAnnotation.getSimpleName()
-                ));
+            List<? extends Element> toValidate = processingContext.roundEnvironment()
+                    .getElementsAnnotatedWith(validatedAnnotation)
+                    .stream()
+                    .filter(e -> !(e.getKind().equals(ElementKind.ANNOTATION_TYPE)))
+                    .toList();
+
+            Validated singular = validatedAnnotation.getAnnotation(Validated.class);
+            ValidatedExpression expression = validatedAnnotation.getAnnotation(ValidatedExpression.class);
+
+            if (singular != null && expression != null) {
+                throw new IllegalStateException("Either @Validated or @ValidatedExpression is permitted, but not both");
             }
 
-            processingContext.roundEnvironment().getElementsAnnotatedWith(validatedAnnotation).stream()
-                    .filter(e -> !(e.getKind().equals(ElementKind.ANNOTATION_TYPE)))
-                    .forEach(validatedElement -> {
-                        validate(validatedElement, validatedAnnotation, args, validator, processingContext);
-                        messager.printNote("[%s] was validated with no problems".formatted(validatedElement));
-                    });
+            Elements elements = processingContext.processingEnvironment().getElementUtils();
+            messager.printNote("Found validation constraint [%s] for [@%s]".formatted(
+                    singular != null ? validatedToString(singular, elements) : expressionToString(expression, elements),
+                    validatedAnnotation.getSimpleName()
+            ));
+
+            if (singular != null) {
+                processSingular(singular, validatedAnnotation, toValidate, processingContext);
+            } else {
+                processExpression(expression, validatedAnnotation, toValidate, processingContext);
+            }
         }
 
         messager.printNote("---ANNOTATIONS SUCCESSFULLY VALIDATED---");
     }
 
+    private void processSingular(
+            Validated singular,
+            TypeElement validatedAnnotation,
+            List<? extends Element> toValidate,
+            ProcessingContext processingContext
+    ) {
+        Elements elements = processingContext.processingEnvironment().getElementUtils();
+
+        Validator validator = validatorFromAnnotation(singular, elements);
+        List<String> args = List.of(singular.args());
+
+        for (Element e : toValidate) {
+            validate(e, validatedAnnotation, validator, args, processingContext);
+        }
+    }
+
+    private void processExpression(
+            ValidatedExpression expression,
+            TypeElement validatedAnnotation,
+            List<? extends Element> toValidate,
+            ProcessingContext processingContext
+    ) {
+        Elements elements = processingContext.processingEnvironment().getElementUtils();
+
+        List<Map.Entry<Validator, List<String>>> validatorsWithArgs = new ArrayList<>();
+        for (Validated atom : expression.value()) {
+            Validator validator = validatorFromAnnotation(atom, elements);
+            List<String> args = List.of(atom.args());
+            validatorsWithArgs.add(Map.entry(validator, args));
+        }
+
+        for (Element e : toValidate) {
+            switch (expression.type()) {
+                case OR -> validateOr(e, validatedAnnotation, validatorsWithArgs, processingContext);
+                case AND -> validateAnd(e, validatedAnnotation, validatorsWithArgs, processingContext);
+            }
+        }
+    }
+
+    private void validateOr(
+            Element element,
+            TypeElement validatedAnnotation,
+            List<Map.Entry<Validator, List<String>>> validatorsAndArgs,
+            ProcessingContext processingContext
+    ) {
+        StringJoiner exceptionJoiner = new StringJoiner("\nOR\n", "\n", "");
+        for (Map.Entry<Validator, List<String>> e : validatorsAndArgs) {
+            try {
+                validate(element, validatedAnnotation, e.getKey(), e.getValue(), processingContext);
+                //Won't get called unless validate doesn't throw, which means successful validation
+                return;
+            } catch (AnnotationValidationException validationException) {
+                exceptionJoiner.add(validationException.getLocalizedMessage());
+            }
+        }
+        throw new AnnotationValidationException("None of validators in ValidatedExpression clause validated successfully: %s".formatted(exceptionJoiner));
+    }
+
+    private void validateAnd(
+            Element element,
+            TypeElement validatedAnnotation,
+            List<Map.Entry<Validator, List<String>>> validatorsAndArgs,
+            ProcessingContext processingContext
+    ) {
+        for (Map.Entry<Validator, List<String>> e : validatorsAndArgs) {
+            validate(element, validatedAnnotation, e.getKey(), e.getValue(), processingContext);
+        }
+    }
+
     private void validate(Element validatedElement,
                           TypeElement validatedAnnotation,
-                          List<String> args,
                           Validator validator,
+                          List<String> args,
                           ProcessingContext processingContext
     ) {
         if (validatedElement.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
@@ -63,14 +139,14 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
         boolean result;
         try {
-            result = validator.test(validatedElement, args, processingContext);
-        } catch (Exception innerException) {
-            throw new AnnotationValidationException(validatedElement, validatedAnnotation, innerException);
+            validator.test(validatedElement, validatedAnnotation, args, processingContext);
+        } catch (AnnotationValidationException validationException) {
+            throw validationException;
+        } catch (Exception otherException) {
+            throw new AnnotationValidationException(validatedAnnotation, validatedAnnotation, otherException);
         }
 
-        if (!result) {
-            throw new AnnotationValidationException(validatedElement, validatedAnnotation);
-        }
+        processingContext.processingEnvironment().getMessager().printNote("[%s] was validated with no problems".formatted(validatedElement));
     }
 
     private Set<TypeElement> getRequiringValidation(RoundEnvironment roundEnvironment) {
@@ -81,53 +157,45 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 .flatMap(List::stream)
                 .map(AnnotationMirror::getAnnotationType)
                 .map(declaredType -> (TypeElement) declaredType.asElement())
-                .filter(e -> e.getAnnotation(Validated.class) != null)
+                .filter(e -> e.getAnnotation(Validated.class) != null
+                        || e.getAnnotation(ValidatedExpression.class) != null
+                )
                 .collect(Collectors.toSet());
     }
 
-    private List<String> getArgs(TypeElement validatedAnnotation) {
-        AnnotationMirror validatorMirror = getValidatorAnnotationMirror(validatedAnnotation);
 
-        Object objArgs = AnnotationMirrorUtil.getElementValue(validatorMirror, "args");
-        if (objArgs instanceof List<?> list) {
-            return list.stream()
-                    .map(e -> (AnnotationValue) e)
-                    .map(AnnotationValue::getValue)
-                    .map(String::valueOf)
-                    .toList();
-        } else {
-            return Collections.singletonList(String.valueOf(objArgs));
-        }
-    }
-
-    private AnnotationMirror getValidatorAnnotationMirror(TypeElement validatedAnnotation) {
-        AnnotationMirror validatedMirror = AnnotationMirrorUtil.findAnnotationMirror(
-                validatedAnnotation::getAnnotationMirrors,
-                Validated.class.getName()
-        );
-
-        if (validatedMirror == null) {
-            throw new IllegalStateException("Couldn't obtain AnnotationMirror of [%s] for annotation name [%s]".formatted(
-                    validatedAnnotation,
-                    Validated.class.getName())
-            );
-        }
-
-        return validatedMirror;
-    }
-
-    private Validator getValidatorForAnnotation(TypeElement validatedAnnotation) {
-        AnnotationMirror validatorMirror = getValidatorAnnotationMirror(validatedAnnotation);
-        String validatorClassName = String.valueOf(AnnotationMirrorUtil.getElementValue(validatorMirror, "value"));
-        Class<? extends Validator> validatorClass = SafeReflectionUtil.forNameSubclass(validatorClassName, Validator.class);
-        if (validatorClass == null) {
-            throw new IllegalStateException("Failed to get Validator class for name [%s]".formatted(validatorClassName));
-        }
-
+    private Validator validatorFromAnnotation(
+            Validated validatorAnnotation,
+            Elements elementUtil
+    ) {
         try {
+            Class<?> ignored = validatorAnnotation.value();
+        } catch (MirroredTypeException e) {
+            TypeElement validatorTypeMirror = (TypeElement) ((DeclaredType) e.getTypeMirror()).asElement();
+            String mirrorName = elementUtil.getBinaryName(validatorTypeMirror).toString();
+            Class<? extends Validator> validatorClass = SafeReflectionUtil.forNameSubclass(mirrorName, Validator.class);
+            if (validatorClass == null) {
+                throw new IllegalStateException("Compile-time class for name [%s] not found".formatted(mirrorName));
+            }
             return UnsafeReflectionUtil.tryConstruct(validatorClass);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to instantiate validator [%s]".formatted(validatedAnnotation), e);
         }
+        throw new IllegalStateException("Failed to get validator from [%s]".formatted(validatorAnnotation));
+    }
+
+    private String expressionToString(ValidatedExpression expression, Elements elements) {
+        StringJoiner atomJoiner = new StringJoiner(' ' + expression.type().name() + ' ');
+        for (Validated term : expression.value()) {
+            atomJoiner.add(validatedToString(term, elements));
+        }
+        return atomJoiner.toString();
+    }
+
+    private String validatedToString(Validated validated, Elements elements) {
+        StringBuilder builder = new StringBuilder();
+        StringJoiner argJoiner = new StringJoiner(", ", "(", ")");
+        for (String arg : validated.args()) {
+            argJoiner.add(arg);
+        }
+        return builder.append(validatorFromAnnotation(validated, elements).getClass().getSimpleName()).append(argJoiner).toString();
     }
 }

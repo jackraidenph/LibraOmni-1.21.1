@@ -2,9 +2,11 @@ package dev.jackraidenph.libraomni.compilation.validation;
 
 import dev.jackraidenph.libraomni.common.ElementUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
+import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -33,12 +35,14 @@ public final class HolderTypeValidator extends TypeValidator {
     }
 
     @Override
-    public boolean test(Element element, List<String> args, ProcessingContext processingContext) {
+    public void test(Element validatedElement, TypeElement validatedAnnotation, List<String> args, ProcessingContext processingContext) {
         ProcessingEnvironment processingEnvironment = processingContext.processingEnvironment();
-        if (!isDeferredHolder(element, processingEnvironment.getElementUtils(), processingEnvironment.getTypeUtils())) {
-            return super.test(element, args, processingContext);
+        if (!isDeferredHolder(validatedElement, processingEnvironment.getElementUtils(), processingEnvironment.getTypeUtils())) {
+            throw new AnnotationValidationException(
+                    "[%s] must be a DeferredHolder<A, ? extends A>, where A is assignable to any of %s".formatted(validatedElement, args)
+            );
         }
 
-        return super.test(resolveDeferredHolder(element), args, processingContext);
+        super.test(resolveDeferredHolder(validatedElement), validatedAnnotation, args, processingContext);
     }
 }
