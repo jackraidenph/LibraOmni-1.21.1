@@ -7,14 +7,20 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvocationHandler<Annotation> {
 
     private final DelegateContainer delegateContainer;
 
-    public DelegatingAnnotationInvocationHandler(Annotation child, DelegateContainer delegateContainer) {
-        super(child);
+    public DelegatingAnnotationInvocationHandler(Annotation original, DelegateContainer delegateContainer) {
+        super(original);
+        Set<String> nonExistent = delegateContainer.nonExistentMethods(original);
+        if (!nonExistent.isEmpty()) {
+            throw new IllegalStateException("Can't delegate methods %s from [%s] that don't exist in [%s]"
+                    .formatted(nonExistent, delegateContainer.getDelegatorBinaryName(), original));
+        }
         this.delegateContainer = delegateContainer;
     }
 

@@ -6,13 +6,39 @@ import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DelegateContainer {
 
     private final Map<String, DelegateEntry> methodDelegates = new HashMap<>();
+    private final String delegatorBinaryName; //For unity between runtime and compile time, store just the binary name
+
+    public DelegateContainer(String delegator) {
+        this.delegatorBinaryName = delegator;
+    }
+
+    public Set<String> nonExistentMethods(Annotation other) {
+        Set<String> otherMethods = Arrays.stream(other.annotationType().getDeclaredMethods())
+                .filter(m -> Modifier.isAbstract(m.getModifiers()))
+                .map(Method::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> delegatedMethods = methodDelegates.values().stream()
+                .map(DelegateEntry::delegateAnnotation)
+                .map(Delegate::attribute).collect(Collectors.toSet());
+
+        delegatedMethods.removeAll(otherMethods);
+        return Collections.unmodifiableSet(delegatedMethods);
+    }
+
+    public String getDelegatorBinaryName() {
+        return delegatorBinaryName;
+    }
 
     public boolean isEmpty() {
         return methodDelegates.isEmpty();
@@ -30,7 +56,7 @@ public class DelegateContainer {
         return entry.delegatedValue();
     }
 
-    public Delegate getAnnotation(String methodName) {
+    public Delegate getDelegateAnnotation(String methodName) {
         DelegateEntry entry = methodDelegates.get(methodName);
         if (entry == null) {
             return null;
@@ -54,7 +80,7 @@ public class DelegateContainer {
     }
 
     public Class<? extends Function<Object, Object>> getTransformerClass(String methodName) {
-        Delegate annotation = getAnnotation(methodName);
+        Delegate annotation = getDelegateAnnotation(methodName);
         if (annotation == null) {
             return null;
         }

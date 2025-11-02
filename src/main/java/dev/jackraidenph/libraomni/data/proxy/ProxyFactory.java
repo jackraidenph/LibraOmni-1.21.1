@@ -4,6 +4,7 @@ import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.annotation.meta.Delegate;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
+import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -53,7 +54,7 @@ public abstract class ProxyFactory {
     }
 
     private static DelegateContainer mapDelegatesFromAnnotation(Class<? extends Annotation> childType, Annotation parent) {
-        DelegateContainer container = new DelegateContainer();
+        DelegateContainer container = new DelegateContainer(parent.annotationType().getName());
         for (Method attribute : parent.annotationType().getDeclaredMethods()) {
             Delegate delegate = attribute.getAnnotation(Delegate.class);
             if (delegate == null || !delegate.annotation().equals(childType)) {
@@ -84,7 +85,9 @@ public abstract class ProxyFactory {
     }
 
     public static DelegateContainer mapDelegatesFromAnnotationMirror(Elements elements, String childTypeName, AnnotationMirror parent, DelegateContainer contextDelegates) {
-        DelegateContainer container = new DelegateContainer();
+        DelegateContainer container = new DelegateContainer(
+                elements.getBinaryName(AnnotationMirrorUtil.toTypeElement(parent)).toString()
+        );
 
         Map<ExecutableElement, AnnotationValue> values = new HashMap<>(elements.getElementValuesWithDefaults(parent));
         parent.getAnnotationType()
