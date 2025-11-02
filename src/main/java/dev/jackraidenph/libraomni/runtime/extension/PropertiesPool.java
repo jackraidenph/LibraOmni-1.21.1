@@ -115,7 +115,7 @@ public class PropertiesPool extends AbstractModContextExtension {
         }
 
         public static BlockBehaviour.Properties copyBlockProperties(String nameSpace, String path) {
-            return BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath(nameSpace, path)).properties();
+            return BlockBehaviour.Properties.ofFullCopy(BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath(nameSpace, path)));
         }
 
         public static Item.Properties getItemProperties(String id, ModContext modContext) {
