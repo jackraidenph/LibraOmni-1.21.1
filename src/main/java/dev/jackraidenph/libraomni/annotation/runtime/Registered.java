@@ -17,6 +17,4 @@ public @interface Registered {
 
     @Delegate(annotation = Id.class, attribute = "value")
     String value() default "";
-
-    String propertiesId() default "";
 }

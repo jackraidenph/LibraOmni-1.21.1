@@ -24,10 +24,11 @@ public class GenerateBlockItemsTask extends SequentialRuntimeTask {
 
         DeferredHolder<Block, ? extends Block> holder = AutoRegisters.holder(modContext, object);
 
-        String propertiesId = element.getAnnotation(GeneratesBlockItem.class).propertiesId();
-        Item.Properties properties = modContext.getExtension(PropertiesPool.class).getItemProperties(propertiesId);
-
-        DeferredHolder<Item, BlockItem> blockItem = AutoRegisters.registerBlockItem(modContext.modId(), holder, properties);
+        DeferredHolder<Item, BlockItem> blockItem = AutoRegisters.registerBlockItem(
+                modContext.modId(),
+                holder,
+                PropertiesPool.Util.getItemPropertiesForElement(element, modContext)
+        );
         LibraOmni.LOGGER.info("Registered block item [{}]", blockItem);
     }
 

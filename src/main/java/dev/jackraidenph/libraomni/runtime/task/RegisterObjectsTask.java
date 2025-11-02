@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.runtime.Registered;
+import dev.jackraidenph.libraomni.annotation.runtime.*;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
@@ -11,7 +11,6 @@ import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.extension.PropertiesPool;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.Annotation;
@@ -31,7 +30,6 @@ public class RegisterObjectsTask extends SequentialRuntimeTask {
     @SuppressWarnings("unchecked") //A lot of unchecked warnings are actually checked via Class#isAssignableFrom
     private static <T> DeferredHolder<? super T, T> registerArbitrary(ProxyAnnotatedElement element, String id, ModContext modContext) {
         String modId = modContext.modId();
-        String propertiesId = element.getAnnotation(Registered.class).propertiesId();
 
         AnnotatedElement tempObject = element.original();
         //Gets later passed to lambdas
@@ -53,7 +51,10 @@ public class RegisterObjectsTask extends SequentialRuntimeTask {
             DeferredHolder<? super T, T> block = (DeferredHolder<? super T, T>) AutoRegisters.registerBlock(
                     modId,
                     id,
-                    (props) -> UnsafeReflectionUtil.instantiateStatic(object, getBlockProperties(propertiesId, modContext))
+                    (props) -> UnsafeReflectionUtil.instantiateStatic(
+                            object,
+                            PropertiesPool.Util.getBlockPropertiesForElement(element, modContext)
+                    )
             );
             LibraOmni.LOGGER.info("Registered block [{}]", block);
             return block;
@@ -62,7 +63,10 @@ public class RegisterObjectsTask extends SequentialRuntimeTask {
             DeferredHolder<? super T, T> item = (DeferredHolder<? super T, T>) AutoRegisters.registerItem(
                     modId,
                     id,
-                    (props) -> UnsafeReflectionUtil.instantiateStatic(object, getItemProperties(propertiesId, modContext))
+                    (props) -> UnsafeReflectionUtil.instantiateStatic(
+                            object,
+                            PropertiesPool.Util.getItemPropertiesForElement(element, modContext)
+                    )
             );
             LibraOmni.LOGGER.info("Registered item [{}]", item);
             return item;
@@ -72,14 +76,6 @@ public class RegisterObjectsTask extends SequentialRuntimeTask {
         DeferredHolder<? super T, T> holder = AutoRegisters.register(modId, id, clazz, () -> UnsafeReflectionUtil.instantiateStatic(object));
         LibraOmni.LOGGER.info("Registered [{}] from [{}]", holder, element);
         return holder;
-    }
-
-    private static BlockBehaviour.Properties getBlockProperties(String id, ModContext modContext) {
-        return modContext.getExtension(PropertiesPool.class).getBlockProperties(id);
-    }
-
-    private static Item.Properties getItemProperties(String id, ModContext modContext) {
-        return modContext.getExtension(PropertiesPool.class).getItemProperties(id);
     }
 
     @Override

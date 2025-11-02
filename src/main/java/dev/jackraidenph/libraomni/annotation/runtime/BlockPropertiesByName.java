@@ -12,15 +12,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @NeedsRuntimeProcessing
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD})
+
 @ValidatedExpression(
         type = Type.OR,
         value = {
                 @Validated(value = TypesValidator.class, args = "net.minecraft.world.level.block.Block"),
-                @Validated(value = HolderTypesValidator.class, args = "net.minecraft.world.level.block.Block")
+                @Validated(value = HolderTypesValidator.class, args = "net.minecraft.world.level.block.Block"),
         }
 )
-public @interface GeneratesBlockItem {
+public @interface BlockPropertiesByName {
+    String value();
 }
