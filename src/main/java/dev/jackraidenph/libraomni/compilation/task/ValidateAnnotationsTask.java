@@ -113,7 +113,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 exceptionJoiner.add(validationException.getLocalizedMessage());
             }
         }
-        throw new AnnotationValidationException("None of validators in ValidatedExpression clause validated successfully: %s".formatted(exceptionJoiner));
+        throw new AnnotationValidationException("None of validators in ValidatedExpression clause validated successfully, element [%s], annotation [@%s]: %s".formatted(element, validatedAnnotation.getSimpleName(), exceptionJoiner));
     }
 
     private void validateAnd(
