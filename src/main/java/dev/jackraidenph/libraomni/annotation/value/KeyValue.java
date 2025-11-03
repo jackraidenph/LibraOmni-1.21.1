@@ -3,8 +3,8 @@ package dev.jackraidenph.libraomni.annotation.value;
 import java.lang.annotation.Target;
 
 @Target({})
-public @interface Texture {
+public @interface KeyValue {
     String key();
 
-    String path();
+    String value();
 }
