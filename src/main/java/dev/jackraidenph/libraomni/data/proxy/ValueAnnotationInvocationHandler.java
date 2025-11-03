@@ -5,6 +5,7 @@ import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Objects;
 
@@ -14,6 +15,16 @@ public class ValueAnnotationInvocationHandler implements InvocationHandler, Anno
     private final Map<String, Object> attributes;
 
     public ValueAnnotationInvocationHandler(Class<? extends Annotation> type, Map<String, Object> attributes) {
+        for (Method m : type.getDeclaredMethods()) {
+            int mods = m.getModifiers();
+            if (!Modifier.isAbstract(mods) || m.isDefault()) {
+                continue;
+            }
+            String mName = m.getName();
+            if (!attributes.containsKey(mName)) {
+                throw new IllegalArgumentException("Failed to create value annotation for type [%s], method [%s] is not filled".formatted(type, mName));
+            }
+        }
         this.type = type;
         this.attributes = attributes;
     }
