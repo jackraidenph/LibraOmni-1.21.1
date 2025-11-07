@@ -19,7 +19,6 @@ import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
