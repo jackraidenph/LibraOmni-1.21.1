@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.runtime;
 
+import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.annotation.value.ValidatedExpression;
@@ -23,6 +24,7 @@ import java.lang.annotation.Target;
                 @Validated(value = HolderTypesValidator.class, args = "net.minecraft.world.level.block.Block"),
         }
 )
+@IncompatibleWith(BlockPropertiesCopy.class)
 public @interface BlockPropertiesByName {
     String value();
 }

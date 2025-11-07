@@ -76,9 +76,6 @@ public class PropertiesPool extends AbstractModContextExtension {
             BlockPropertiesByName propertiesByName = e.getAnnotation(BlockPropertiesByName.class);
             BlockPropertiesCopy copyFrom = e.getAnnotation(BlockPropertiesCopy.class);
             if (propertiesByName != null) {
-                if (copyFrom != null) {
-                    throw new IllegalStateException("@BlockPropertiesByName clashes with @BlockPropertiesCopy on element [%s]".formatted(e));
-                }
                 return getBlockProperties(propertiesByName.value(), context);
             } else if (copyFrom != null) {
                 return copyBlockProperties(
@@ -95,9 +92,6 @@ public class PropertiesPool extends AbstractModContextExtension {
             ItemPropertiesByName propertiesByName = e.getAnnotation(ItemPropertiesByName.class);
             ItemPropertiesCopy copyFrom = e.getAnnotation(ItemPropertiesCopy.class);
             if (propertiesByName != null) {
-                if (copyFrom != null) {
-                    throw new IllegalStateException("@ItemPropertiesByName clashes with @ItemPropertiesCopy on element [%s]".formatted(e));
-                }
                 return getItemProperties(propertiesByName.value(), context);
             } else if (copyFrom != null) {
                 return copyItemProperties(

@@ -1,7 +1,9 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
+import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.annotation.value.ValidatedExpression;
+import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
@@ -14,7 +16,10 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,14 +31,19 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
         messager.printNote("---VALIDATING ANNOTATIONS---");
 
-        Set<TypeElement> validatedAnnotations = getRequiringValidation(processingContext.roundEnvironment());
+        Set<TypeElement> annotations = getTypeElementAnnotations(processingContext.roundEnvironment());
 
+        Set<TypeElement> toCheckIncompatible = getRequiringIncompatibleCheck(annotations);
+        for (TypeElement checkIncompatible : toCheckIncompatible) {
+            Set<? extends Element> annotatedElements = annotatedWith(checkIncompatible, processingContext.roundEnvironment());
+            for (Element e : annotatedElements) {
+                checkIncompatiblePresence(e, checkIncompatible, processingContext.processingEnvironment().getTypeUtils());
+            }
+        }
+
+        Set<TypeElement> validatedAnnotations = getRequiringValidation(annotations);
         for (TypeElement validatedAnnotation : validatedAnnotations) {
-            List<? extends Element> toValidate = processingContext.roundEnvironment()
-                    .getElementsAnnotatedWith(validatedAnnotation)
-                    .stream()
-                    .filter(e -> !(e.getKind().equals(ElementKind.ANNOTATION_TYPE)))
-                    .toList();
+            Set<? extends Element> annotatedElements = annotatedWith(validatedAnnotation, processingContext.roundEnvironment());
 
             Validated singular = validatedAnnotation.getAnnotation(Validated.class);
             ValidatedExpression expression = validatedAnnotation.getAnnotation(ValidatedExpression.class);
@@ -49,19 +59,35 @@ final class ValidateAnnotationsTask implements CompilationTask {
             ));
 
             if (singular != null) {
-                processSingular(singular, validatedAnnotation, toValidate, processingContext);
+                processSingular(singular, validatedAnnotation, annotatedElements, processingContext);
             } else {
-                processExpression(expression, validatedAnnotation, toValidate, processingContext);
+                processExpression(expression, validatedAnnotation, annotatedElements, processingContext);
             }
         }
 
         messager.printNote("---ANNOTATIONS SUCCESSFULLY VALIDATED---");
     }
 
+    private void checkIncompatiblePresence(Element e, TypeElement annotation, Types types) {
+        IncompatibleWith incompatibleWith = annotation.getAnnotation(IncompatibleWith.class);
+        if (incompatibleWith == null) {
+            return;
+        }
+
+        for (AnnotationMirror annotationMirror : e.getAnnotationMirrors()) {
+            for (TypeMirror typeMirror : AnnotationMirrorUtil.mirrorClassArray(incompatibleWith::value)) {
+                TypeMirror mirrorToCheck = AnnotationMirrorUtil.toTypeElement(annotationMirror).asType();
+                if (types.isSameType(mirrorToCheck, typeMirror)) {
+                    throw new AnnotationValidationException("Annotations [%s] and [%s] are incompatible, encountered on element [%s]".formatted(annotation, typeMirror, e));
+                }
+            }
+        }
+    }
+
     private void processSingular(
             Validated singular,
             TypeElement validatedAnnotation,
-            List<? extends Element> toValidate,
+            Collection<? extends Element> toValidate,
             ProcessingContext processingContext
     ) {
         Elements elements = processingContext.processingEnvironment().getElementUtils();
@@ -77,7 +103,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
     private void processExpression(
             ValidatedExpression expression,
             TypeElement validatedAnnotation,
-            List<? extends Element> toValidate,
+            Collection<? extends Element> toValidate,
             ProcessingContext processingContext
     ) {
         Elements elements = processingContext.processingEnvironment().getElementUtils();
@@ -137,7 +163,6 @@ final class ValidateAnnotationsTask implements CompilationTask {
             return;
         }
 
-        boolean result;
         try {
             validator.test(validatedElement, validatedAnnotation, args, processingContext);
         } catch (AnnotationValidationException validationException) {
@@ -149,18 +174,34 @@ final class ValidateAnnotationsTask implements CompilationTask {
         processingContext.processingEnvironment().getMessager().printNote("[%s] was validated with no problems".formatted(validatedElement));
     }
 
-    private Set<TypeElement> getRequiringValidation(RoundEnvironment roundEnvironment) {
+    private Set<? extends Element> annotatedWith(TypeElement typeElement, RoundEnvironment roundEnvironment) {
+        return roundEnvironment
+                .getElementsAnnotatedWith(typeElement)
+                .stream()
+                .filter(e -> !(e.getKind().equals(ElementKind.ANNOTATION_TYPE)))
+                .collect(Collectors.toSet());
+    }
+
+    private Set<TypeElement> getTypeElementAnnotations(RoundEnvironment roundEnvironment) {
         return roundEnvironment
                 .getRootElements()
                 .stream()
                 .map(Element::getAnnotationMirrors)
                 .flatMap(List::stream)
-                .map(AnnotationMirror::getAnnotationType)
-                .map(declaredType -> (TypeElement) declaredType.asElement())
+                .map(AnnotationMirrorUtil::toTypeElement)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<TypeElement> getRequiringValidation(Set<TypeElement> annotations) {
+        return annotations.stream()
                 .filter(e -> e.getAnnotation(Validated.class) != null
                         || e.getAnnotation(ValidatedExpression.class) != null
                 )
                 .collect(Collectors.toSet());
+    }
+
+    private Set<TypeElement> getRequiringIncompatibleCheck(Set<TypeElement> annotations) {
+        return annotations.stream().filter(e -> e.getAnnotation(IncompatibleWith.class) != null).collect(Collectors.toSet());
     }
 
 

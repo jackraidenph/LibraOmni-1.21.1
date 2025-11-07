@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.runtime;
 
+import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.annotation.value.ValidatedExpression;
@@ -25,6 +26,7 @@ import java.lang.annotation.Target;
                 @Validated(value = AnnotationsPresentValidator.class, args = "dev.jackraidenph.libraomni.annotation.runtime.GeneratesBlockItem")
         }
 )
+@IncompatibleWith(ItemPropertiesCopy.class)
 public @interface ItemPropertiesByName {
     String value();
 }

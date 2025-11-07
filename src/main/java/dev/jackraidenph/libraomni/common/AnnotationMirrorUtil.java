@@ -2,9 +2,12 @@ package dev.jackraidenph.libraomni.common;
 
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.MirroredTypesException;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Repeatable;
@@ -36,6 +39,26 @@ public class AnnotationMirrorUtil {
 
     public static TypeElement toTypeElement(AnnotationMirror mirror) {
         return (TypeElement) mirror.getAnnotationType().asElement();
+    }
+
+    @Nonnull
+    public static TypeMirror mirrorClass(Supplier<Class<?>> supplier) {
+        try {
+            supplier.get();
+            throw new IllegalStateException("Method called in inappropriate context");
+        } catch (MirroredTypeException typeException) {
+            return typeException.getTypeMirror();
+        }
+    }
+
+    @Nonnull
+    public static List<? extends TypeMirror> mirrorClassArray(Supplier<Class<?>[]> supplier) {
+        try {
+            supplier.get();
+            throw new IllegalStateException("Method called in inappropriate context");
+        } catch (MirroredTypesException typeException) {
+            return typeException.getTypeMirrors();
+        }
     }
 
     public static boolean compareWithClass(AnnotationMirror annotationMirror, Class<?> clazz, Elements elements) {
