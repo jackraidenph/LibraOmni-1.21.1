@@ -5,8 +5,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
-public @interface BlockStateData {
-    String modelNamespace() default "minecraft";
+public @interface GeneratesBlockStateData {
+    String modelNamespace() default "";
 
     String modelName() default "";
 
