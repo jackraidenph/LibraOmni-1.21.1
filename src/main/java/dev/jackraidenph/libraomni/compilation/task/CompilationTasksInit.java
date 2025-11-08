@@ -9,6 +9,7 @@ enum CompilationTasksInit {
     GENERATE_ITEM_MODELS(new GenerateItemModelsTask()),
     GENERATE_BLOCK_STATES(new GenerateBlockStatesTask()),
     GENERATE_TAGS(new GenerateTagsTask()),
+    GENERATE_DROPS_ITSELF(new GenerateDropsTask()),
 
     //Not a must, but cleaner to run last
     CREATE_METADATA(new CreateMetadataTask());
