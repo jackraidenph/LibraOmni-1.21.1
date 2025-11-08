@@ -11,17 +11,17 @@
   [+] Transtitive annotation values delegation<br/>
   ```java
 //Marks an annotation as transitive.
-//Applying a transitive annotation to anything acts as if all the appropriately targeted annotations inside the transitive one were applied too
+//Applying a transitive annotation to anything acts as if all the applicable annotations inside the transitive one were applied too
 @Composed
 
 @Registered
-@InCreativeTab("")  //Due to Java's design, a target of delegenation cannot be ommitted (Can't be just @InCreativeTab)...
+@InCreativeTab("")  //Due to Java's design, a target of delegenation cannot be ommitted (Can't be @InCreativeTab)...
 @GeneratesBlockItem //...unless a default value is supplied
 @CubeAllModel("")
 @DefaultBlockState
 @BlockItemModel("")
 public @interface DefaultBlock {
-    //Filling this attribute acts as if a "value" attribute of the @Registered annotation was filled with the same value too
+    //Filling this attribute acts as if the "value" attribute of the @Registered annotation was filled with the same value too
     @Delegate(annotation = Registered.class, attribute = "value")
     String value() default "";
 
@@ -73,7 +73,7 @@ public @interface TexturedItem {
 //Available merge policies:
 //THROW(Fail if duplicate resource is encoutered),
 //OVERWRITE(Completely overwrite existing file with the new one),
-//PREFER_EXISTING(Merge resource, old keys are untouched, new can be added),
+//PREFER_EXISTING(Merge resources, old keys are untouched, the new ones are added),
 //PREFER_NEW(Merge resources, old keys are replaced with the new ones, new keys are added)
 libraOmni {
     annotationProcessorConfiguration = [
