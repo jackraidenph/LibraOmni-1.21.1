@@ -87,12 +87,13 @@ public final class ResourceManager {
         ResourceIdentifier identifier = resource.identifier();
 
         String newData = new String(resource.data());
+        if (policy.equals(JsonMergeConflictPolicy.OVERWRITE)) {
+            return newData;
+        }
+
         if (!identifier.getExtension().equals(ResourceIdentifier.JSON_EXT)) {
-            if (policy.equals(JsonMergeConflictPolicy.OVERWRITE)) {
-                return newData;
-            } else {
-                throw new IllegalStateException("Can't process resource [%s] with policy [%s]".formatted(resource, policy));
-            }
+            pEnv.getMessager().printWarning("Can't process not-JSON resource [%s] with [%s] policy, overwriting");
+            return newData;
         }
 
         String existing = new String(identifier.read(systemPathToExistingFile));
