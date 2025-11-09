@@ -34,31 +34,31 @@ public class AutoRegisters extends AbstractModContextExtension {
     private DeferredRegister.Items items = null;
     private DeferredRegister.Blocks blocks = null;
 
-    public static AutoRegisters mod(String modId) {
+    public static AutoRegisters forMod(String modId) {
         return LibraOmni.getModContextManager().getOrCreate(modId).getExtension(AutoRegisters.class);
     }
 
-    public static DeferredHolder<Item, BlockItem> blockItem(DeferredHolder<Block, ? extends Block> blockHolder) {
+    public static DeferredHolder<Item, BlockItem> getBlockItem(DeferredHolder<Block, ? extends Block> blockHolder) {
         return entry(blockHolder.getId().getNamespace(), Item.class, blockHolder.getId().getPath());
     }
 
     public static DeferredHolder<Item, BlockItem> registerBlockItem(String modId, DeferredHolder<Block, ? extends Block> blockHolder, Item.Properties properties) {
-        AutoRegisters autoRegisters = mod(modId);
+        AutoRegisters autoRegisters = forMod(modId);
         return autoRegisters.items().registerSimpleBlockItem(blockHolder, properties);
     }
 
     public static <T extends Block> DeferredHolder<Block, T> registerBlock(String modId, String id, Function<BlockBehaviour.Properties, T> func) {
-        AutoRegisters autoRegisters = mod(modId);
+        AutoRegisters autoRegisters = forMod(modId);
         return autoRegisters.blocks().registerBlock(id, func);
     }
 
     public static <T extends Item> DeferredHolder<Item, T> registerItem(String modId, String id, Function<Item.Properties, T> func) {
-        AutoRegisters autoRegisters = mod(modId);
+        AutoRegisters autoRegisters = forMod(modId);
         return autoRegisters.items().registerItem(id, func);
     }
 
     public static <R, T extends R> DeferredHolder<R, T> register(String modId, String id, Class<R> clazz, Supplier<T> supplier) {
-        AutoRegisters autoRegisters = mod(modId);
+        AutoRegisters autoRegisters = forMod(modId);
         return autoRegisters.getOrCreateRegister(clazz).register(id, supplier);
     }
 
@@ -70,7 +70,7 @@ public class AutoRegisters extends AbstractModContextExtension {
     }
 
     public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<R> entryType, String id) {
-        AutoRegisters autoRegisters = mod(modId);
+        AutoRegisters autoRegisters = forMod(modId);
 
         if (entryType == null) {
             throw new IllegalArgumentException("Entry supertype is null");
@@ -105,7 +105,7 @@ public class AutoRegisters extends AbstractModContextExtension {
         return retrieved;
     }
 
-    public static <R, T extends R> DeferredHolder<R, T> holder(ModContext modContext, AnnotatedElement element) {
+    public static <R, T extends R> DeferredHolder<R, T> getHolder(ModContext modContext, AnnotatedElement element) {
         DeferredHolder<?, ?> holder = SafeReflectionUtil.tryCastToDeferredHolder(element);
         if (holder == null) {
             holder = AutoRegisters.entry(

@@ -22,7 +22,7 @@ public class GenerateBlockItemsTask extends SequentialRuntimeTask {
     void processElement(ProxyAnnotatedElement element, String elementId, ModContext modContext) {
         AnnotatedElement object = element.original();
 
-        DeferredHolder<Block, ? extends Block> holder = AutoRegisters.holder(modContext, object);
+        DeferredHolder<Block, ? extends Block> holder = AutoRegisters.getHolder(modContext, object);
 
         DeferredHolder<Item, BlockItem> blockItem = AutoRegisters.registerBlockItem(
                 modContext.modId(),
