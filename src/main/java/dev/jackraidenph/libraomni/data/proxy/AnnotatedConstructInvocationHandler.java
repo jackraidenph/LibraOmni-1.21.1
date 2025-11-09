@@ -47,7 +47,7 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
             return null;
         }
         if (arr.length > 1) {
-            throw new UnsupportedOperationException("Please use #get(Declared)AnnotationsByType to get multiple instances of a @Repeatable annotation");
+            throw new UnsupportedOperationException("Please use #get(Declared)AnnotationsByType to get multiple instances of a @Repeatable annotation [%s], from element [%s]".formatted(clazz, original));
         }
         return arr[0];
     }
