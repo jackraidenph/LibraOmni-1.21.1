@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.common;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 
 public class StringUtilities {
     public static String snakeCase(String string) {
@@ -20,15 +21,48 @@ public class StringUtilities {
                 .toLowerCase();
     }
 
-//    public static String firstNotBlank(String... variants) {
-//        for (String variant : variants) {
-//            if (variant != null && !variant.isBlank()) {
-//                return variant;
-//            }
-//        }
-//
-//        return "";
-//    }
+    private static String[] splitNamespaceAndPath(String string, String defaultNamespace, String defaultPath) {
+        if (string.isBlank()) {
+            return new String[]{defaultNamespace, defaultPath};
+        } else {
+            if (string.indexOf(':') < 0) {
+                return new String[]{defaultNamespace, string};
+            } else {
+                return string.split(":");
+            }
+        }
+    }
+
+    private static String[] splitDirectoryAndFile(String root, String string) {
+        int dirSeparatorIndex = string.lastIndexOf('/');
+        if (dirSeparatorIndex > 0) {
+            return new String[]{
+                    root + '/' + string.substring(0, dirSeparatorIndex),
+                    string.substring(dirSeparatorIndex + 1)
+            };
+        }
+        return new String[]{root, string};
+    }
+
+    public static NamespaceDirectoryFile splitToNamespaceDirFilename(String str, String defaultNamespace, String dirRoot, String defaultFile) {
+        String[] namespacePath = splitNamespaceAndPath(str, defaultNamespace, defaultFile);
+        String namespace = namespacePath[0];
+        String[] dirFile = splitDirectoryAndFile(dirRoot, namespacePath[1]);
+        String dir = dirFile[0];
+        String file = dirFile[1];
+        return new NamespaceDirectoryFile(namespace, dir, file);
+    }
+
+    public record NamespaceDirectoryFile(String namespace, String directory, String file) {
+    }
+
+    public static String intArrayToHex(int[] arr) {
+        String[] res = new String[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            res[i] = Integer.toHexString(arr[i]);
+        }
+        return Arrays.toString(res);
+    }
 
     public static String quote(String str) {
         return "\"" + str + "\"";
