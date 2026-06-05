@@ -46,7 +46,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         RoundEnvironment proxyEnvironment = ProxyFactory.proxifyRuntimeEnvironment(roundEnvironment, processingEnv);
-        ProcessingContext context = new ProcessingContext(resourceManager, proxyEnvironment, processingEnv);
+        ProcessingContext context = new ProcessingContext(resourceManager, config, proxyEnvironment, processingEnv);
 
         findMods(roundEnvironment);
 
