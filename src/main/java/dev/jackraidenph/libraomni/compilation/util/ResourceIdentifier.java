@@ -48,7 +48,7 @@ public record ResourceIdentifier(String directory, String nameRoot, String exten
     }
 
     public Optional<Path> atLocation(Collection<Path> parentOrAbsolute) {
-        return parentOrAbsolute.stream().filter(path -> resolvePath(path).toFile().exists()).findFirst();
+        return parentOrAbsolute.stream().map(this::resolvePath).filter(resolved -> resolved.toFile().exists() && resolved.toFile().isFile()).findFirst();
     }
 
     public byte[] read(Filer filer) {
