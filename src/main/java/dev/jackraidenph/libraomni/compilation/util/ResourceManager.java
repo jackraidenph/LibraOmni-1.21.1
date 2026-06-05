@@ -7,7 +7,6 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -21,19 +20,27 @@ public final class ResourceManager {
         this.pEnv = pEnv;
     }
 
-    public void save(ResourceIdentifier identifier, String jsonString) {
-        save(new InMemoryResource(identifier, jsonString));
-    }
-
-    public void save(ResourceIdentifier identifier, String jsonString, Charset charset) {
-        save(new InMemoryResource(identifier, jsonString, charset));
-    }
-
     public void save(ResourceIdentifier identifier, Object toSerialize) {
         save(new InMemoryResource(identifier, toSerialize));
     }
 
+    public void save(ResourceIdentifier identifier, Object toSerialize, JsonMergeConflictPolicy forcedPolicy) {
+        save(new InMemoryResource(identifier, toSerialize), forcedPolicy);
+    }
+
+    public void save(ResourceIdentifier identifier, byte[] bytes) {
+        save(new InMemoryResource(identifier, bytes));
+    }
+
+    public void save(ResourceIdentifier identifier, byte[] bytes, JsonMergeConflictPolicy forcedPolicy) {
+        save(new InMemoryResource(identifier, bytes), forcedPolicy);
+    }
+
     public void save(InMemoryResource inMemoryResource) {
+        save(inMemoryResource, null);
+    }
+
+    public void save(InMemoryResource inMemoryResource, JsonMergeConflictPolicy forcedPolicy) {
         Filer filer = pEnv.getFiler();
         Messager messager = pEnv.getMessager();
 
@@ -50,29 +57,41 @@ public final class ResourceManager {
 
         byte[] toWrite = inMemoryResource.data();
 
-        if (pathToExisting.isPresent()) {
-            JsonMergeConflictPolicy policy = config.getConflictPolicy(inMemoryResource.identifier());
-            if (policy == null) {
-                policy = JsonMergeConflictPolicy.OVERWRITE;
-                pEnv.getMessager().printWarning("Conflict resolution policy for [%s] not found, assuming [%s]".formatted(inMemoryResource.identifier(), policy));
-            }
+        if (pathToExisting.isEmpty()) {
+            writeBytesToResourceLocation(resourceIdentifier, toWrite);
+            return;
+        }
 
-            if (!resourceIdentifier.isJson()) {
-                throw new UnsupportedOperationException("Resource [%s] already exists, can't resolve the conflict for non-JSON resources");
-            } else if (policy.equals(JsonMergeConflictPolicy.THROW)) {
-                throw new IllegalStateException("Resource [%s] already exists".formatted(inMemoryResource));
-            }
+        JsonMergeConflictPolicy policy = forcedPolicy != null
+                ? forcedPolicy
+                : getConflictPolicyFromConfig(inMemoryResource);
 
-            if (!policy.equals(JsonMergeConflictPolicy.OVERWRITE)) {
+        switch (policy) {
+            case THROW -> throw new IllegalStateException("Resource [%s] already exists".formatted(inMemoryResource));
+            case OVERWRITE ->
+                    pEnv.getMessager().printNote("Resource [%s] already exists [%s], overwriting".formatted(inMemoryResource, origin));
+            case PREFER_NEW, PREFER_EXISTING -> {
+                if (!resourceIdentifier.isJson()) {
+                    pEnv.getMessager().printWarning("Can't process not-JSON resource [%s] with [%s] policy, overwriting".formatted(inMemoryResource, policy));
+                    break;
+                }
+
                 pEnv.getMessager().printNote("Resource [%s] already exists [%s], merging with policy [%s]".formatted(inMemoryResource, origin, policy));
                 String merged = handleMergeJson(inMemoryResource, policy, pathToExisting.get());
                 toWrite = merged.getBytes();
-            } else {
-                pEnv.getMessager().printNote("Resource [%s] already exists [%s], overwriting".formatted(inMemoryResource, origin));
             }
         }
 
         writeBytesToResourceLocation(resourceIdentifier, toWrite);
+    }
+
+    private JsonMergeConflictPolicy getConflictPolicyFromConfig(InMemoryResource inMemoryResource) {
+        JsonMergeConflictPolicy conflictPolicy = config.getConflictPolicy(inMemoryResource.identifier());
+        if (conflictPolicy == null) {
+            pEnv.getMessager().printWarning("Conflict resolution policy for [%s] not found, assuming [%s]".formatted(inMemoryResource.identifier(), conflictPolicy));
+            return JsonMergeConflictPolicy.OVERWRITE;
+        }
+        return conflictPolicy;
     }
 
     private void writeBytesToResourceLocation(ResourceIdentifier resourceIdentifier, byte[] bytes) {
