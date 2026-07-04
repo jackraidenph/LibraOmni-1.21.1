@@ -10,6 +10,8 @@ enum CompilationTasksInit {
     GENERATE_BLOCK_STATES(new GenerateBlockStatesTask()),
     GENERATE_TAGS(new GenerateTagsTask()),
     GENERATE_DROPS_ITSELF(new GenerateDropsTask()),
+    GENERATE_PALETTED_TEXTURE(new GeneratePalettedTextureTask()),
+    GENERATE_RECOLORED_TEXTURE(new GenerateRecoloredTextureTask()),
 
     //Not a must, but cleaner to run last
     CREATE_METADATA(new CreateMetadataTask());
