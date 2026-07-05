@@ -75,32 +75,38 @@ public class PropertiesPool extends AbstractModContextExtension {
         public static BlockBehaviour.Properties getBlockPropertiesForElement(ProxyAnnotatedElement e, ModContext context) {
             BlockPropertiesByName propertiesByName = e.getAnnotation(BlockPropertiesByName.class);
             BlockPropertiesCopy copyFrom = e.getAnnotation(BlockPropertiesCopy.class);
-            if (propertiesByName != null) {
-                return getBlockProperties(propertiesByName.value(), context);
-            } else if (copyFrom != null) {
-                return copyBlockProperties(
-                        copyFrom.namespace().isBlank() ? "minecraft" : copyFrom.namespace(),
-                        copyFrom.value()
-                );
+            try {
+                if (propertiesByName != null) {
+                    return getBlockProperties(propertiesByName.value(), context);
+                } else if (copyFrom != null) {
+                    return copyBlockProperties(
+                            copyFrom.namespace().isBlank() ? "minecraft" : copyFrom.namespace(),
+                            copyFrom.value()
+                    );
+                }
+            } catch (Exception ex) {
+                LibraOmni.LOGGER.warn("Failed to get BlockBehaviour.Properties for element [{}], returning defaults: {}", e, ex.getLocalizedMessage());
             }
 
-            LibraOmni.LOGGER.warn("Failed to get BlockBehaviour.Properties for element [{}], returning defaults", e);
             return BlockBehaviour.Properties.of();
         }
 
         public static Item.Properties getItemPropertiesForElement(ProxyAnnotatedElement e, ModContext context) {
             ItemPropertiesByName propertiesByName = e.getAnnotation(ItemPropertiesByName.class);
             ItemPropertiesCopy copyFrom = e.getAnnotation(ItemPropertiesCopy.class);
-            if (propertiesByName != null) {
-                return getItemProperties(propertiesByName.value(), context);
-            } else if (copyFrom != null) {
-                return copyItemProperties(
-                        copyFrom.namespace().isBlank() ? "minecraft" : copyFrom.namespace(),
-                        copyFrom.value()
-                );
+            try {
+                if (propertiesByName != null) {
+                    return getItemProperties(propertiesByName.value(), context);
+                } else if (copyFrom != null) {
+                    return copyItemProperties(
+                            copyFrom.namespace().isBlank() ? "minecraft" : copyFrom.namespace(),
+                            copyFrom.value()
+                    );
+                }
+            } catch (Exception ex) {
+                LibraOmni.LOGGER.warn("Failed to get Item.Properties for element [{}}], returning defaults: {}", e, ex.getLocalizedMessage());
             }
 
-            LibraOmni.LOGGER.warn("Failed to get Item.Properties for element [{}}], returning defaults", e);
             return new Properties();
         }
 
