@@ -110,6 +110,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     public Set<String> getSupportedOptions() {
         return Set.of(
                 AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION,
+                AnnotationProcessorConstants.SOURCES_OPTION,
+                AnnotationProcessorConstants.CLASSPATH_OPTION,
                 AnnotationProcessorConstants.CONFIG_OPTION
         );
     }

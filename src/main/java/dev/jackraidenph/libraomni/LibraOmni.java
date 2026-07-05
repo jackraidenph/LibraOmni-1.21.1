@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
+import dev.jackraidenph.libraomni.experimental.ForwardingLoggerWrapper;
 import dev.jackraidenph.libraomni.runtime.*;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -12,7 +13,7 @@ import org.slf4j.Logger;
 public class LibraOmni {
 
     public static final String MOD_ID = "libraomni";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = ForwardingLoggerWrapper.make(LogUtils.getLogger());
     private static ModContextManager CONTEXT_MANAGER = null;
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {

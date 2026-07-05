@@ -2,9 +2,14 @@ package dev.jackraidenph.libraomni.data;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.CommonGson;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 
+import javax.annotation.processing.Filer;
+import javax.tools.FileObject;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.AnnotatedElement;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -15,6 +20,8 @@ import java.util.Optional;
 
 public class ModMetadataReader {
 
+    @SuppressWarnings("FieldMayBeFinal")
+    private static Filer COMPILATION_FILER = null;
     private ProjectMetadata projectMetadata = null;
     private boolean init = false;
 
@@ -35,9 +42,9 @@ public class ModMetadataReader {
     }
 
     public void readMetadataFile() {
-        try (InputStream inputStream = openResourceStream(ProjectMetadata.PATH)) {
+        try (InputStream inputStream = getProjectMetadataInputStream(COMPILATION_FILER)) {
             if (inputStream != null) {
-                String nativeMetadataJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                Reader nativeMetadataJson = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
                 this.projectMetadata = CommonGson.DEFAULT.fromJson(nativeMetadataJson, ProjectMetadata.class);
             } else {
                 LibraOmni.LOGGER.error("Failed to fetch metadata file");
@@ -47,6 +54,21 @@ public class ModMetadataReader {
             init = true;
         } catch (IOException ioException) {
             throw new RuntimeException(ioException);
+        }
+    }
+
+    private InputStream getProjectMetadataInputStream(Filer filer) throws IOException {
+        if (filer != null) {
+            ResourceIdentifier resourceIdentifier = ResourceIdentifier.builder()
+                    .setDirectory(ProjectMetadata.DIRECTORY)
+                    .setNameRoot(ProjectMetadata.FILE_ROOT)
+                    .setJsonExtension()
+                    .build();
+
+            FileObject fo = resourceIdentifier.asFileObject(filer);
+            return fo.openInputStream();
+        } else {
+            return openResourceStream(ProjectMetadata.PATH);
         }
     }
 

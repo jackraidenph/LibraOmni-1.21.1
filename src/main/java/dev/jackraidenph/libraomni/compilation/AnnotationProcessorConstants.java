@@ -13,6 +13,8 @@ public abstract class AnnotationProcessorConstants {
 
     public static final String NF_MOD_ANNOTATION_CLASS_NAME = "net.neoforged.fml.common.Mod";
 
-    public static final String RESOURCE_LOCATIONS_OPTION = "resources";
-    public static final String CONFIG_OPTION = "config";
+    public static final String RESOURCE_LOCATIONS_OPTION = "libraomni.resources";
+    public static final String CLASSPATH_OPTION = "libraomni.classpath";
+    public static final String SOURCES_OPTION = "libraomni.sources";
+    public static final String CONFIG_OPTION = "libraomni.config";
 }

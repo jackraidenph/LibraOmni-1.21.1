@@ -1,18 +1,27 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
+import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+
 import dev.jackraidenph.libraomni.annotation.meta.Id;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
-import java.util.Collection;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
 public class ModIdGetter {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
+    private final Map<String, List<String>> modClasses = new HashMap<>();
+
+    public List<String> getModClasses(String modId) {
+        return modClasses.getOrDefault(modId, List.of());
+    }
+
+    public Map<String, List<String>> getModClassesMap() {
+        return Collections.unmodifiableMap(modClasses);
+    }
 
     public static String getElementId(Element e) {
         Id id = e.getAnnotation(Id.class);
@@ -53,6 +62,10 @@ public class ModIdGetter {
                     String modId = getModId(e, modAnnotationType, annotationValue);
                     if (modId == null) {
                         return;
+                    }
+                    if (modAnnotationType.getQualifiedName().contentEquals(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME)) {
+                        String className = ((TypeElement) e).getQualifiedName().toString();
+                        modClasses.computeIfAbsent(modId, i -> new ArrayList<>()).add(className);
                     }
                     String pkg = getPackageOf(e);
                     String existing = forPackage(pkg);
