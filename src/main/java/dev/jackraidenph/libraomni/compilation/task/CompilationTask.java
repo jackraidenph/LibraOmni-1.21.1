@@ -8,7 +8,17 @@ import java.util.Set;
 
 interface CompilationTask {
 
-    void processRound(ModIdGetter modLocator, ProcessingContext processingContext);
+    default void processStage(ModIdGetter modLocator, ProcessingContext context) {
+        if (context.roundEnvironment().processingOver()) {
+            finish(modLocator, context);
+        } else {
+            processRound(modLocator, context);
+        }
+    }
+
+    default void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
+
+    }
 
     default void finish(ModIdGetter modLocator, ProcessingContext processingContext) {
 
