@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
+import com.google.common.base.Stopwatch;
 import dev.jackraidenph.libraomni.annotation.meta.ModPackage;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
@@ -18,6 +19,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     private final ModIdGetter modIdGetter = new ModIdGetter();
     private final AnnotationProcessorConfig config = new AnnotationProcessorConfig();
     private ResourceManager resourceManager;
+
+    private final Stopwatch stopwatch = Stopwatch.createUnstarted();
 
     private int round = 0;
 
@@ -58,23 +61,21 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         }
 
         for (CompilationTask compilationTask : this.tasks) {
-            long startTask = System.currentTimeMillis();
-
+            stopwatch.start();
 
             String taskName = compilationTask.getClass().getSimpleName();
 
             try {
-                if (!finishing) {
-                    compilationTask.processRound(modIdGetter, context);
-                    messager.printNote("Processing [%s] took %f seconds".formatted(taskName, (System.currentTimeMillis() - startTask) / 1_000_000D));
-                } else {
-                    compilationTask.finish(modIdGetter, context);
-                    messager.printNote("Finishing [%s] took %f seconds".formatted(taskName, (System.currentTimeMillis() - startTask) / 1_000_000D));
-                }
+                compilationTask.processStage(modIdGetter, context);
             } catch (Exception e) {
                 printStackTrace(e);
                 throw new RuntimeException("Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()), e);
             }
+
+            double elapsed = stopwatch.elapsed().getNano() / 1_000_000_000.;
+            stopwatch.reset();
+            String op = finishing ? "Finishing" : "Processing";
+            messager.printNote(op + "[%s] took %.4f seconds".formatted(taskName, elapsed));
         }
 
         this.round++;
