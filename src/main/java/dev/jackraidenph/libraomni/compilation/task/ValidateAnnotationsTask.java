@@ -64,7 +64,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
             }
         }
 
-        messager.printNote("---ANNOTATIONS SUCCESSFULLY VALIDATED---");
+        messager.printNote("---ANNOTATIONS VALIDATED SUCCESSFULLY---");
     }
 
     private void checkIncompatiblePresence(Element e, TypeElement annotation, Types types) {
