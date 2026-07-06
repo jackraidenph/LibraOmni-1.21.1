@@ -59,10 +59,9 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
         for (CompilationTask compilationTask : this.tasks) {
             long startTask = System.currentTimeMillis();
-            final String op = finishing ? "Finishing" : "Processing";
+
 
             String taskName = compilationTask.getClass().getSimpleName();
-            messager.printNote(op + " [" + taskName + "]");
 
             try {
                 if (!finishing) {
