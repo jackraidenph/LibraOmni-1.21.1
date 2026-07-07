@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
-import dev.jackraidenph.libraomni.annotation.value.ValidatedExpression;
+import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;

@@ -3,8 +3,8 @@ package dev.jackraidenph.libraomni.annotation.runtime;
 import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
-import dev.jackraidenph.libraomni.annotation.value.ValidatedExpression;
-import dev.jackraidenph.libraomni.annotation.value.ValidatedExpression.Type;
+import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
+import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression.Type;
 import dev.jackraidenph.libraomni.compilation.validation.HolderTypesValidator;
 import dev.jackraidenph.libraomni.compilation.validation.TypesValidator;
 

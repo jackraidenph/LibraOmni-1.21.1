@@ -1,6 +1,4 @@
-package dev.jackraidenph.libraomni.annotation.value;
-
-import dev.jackraidenph.libraomni.annotation.meta.Validated;
+package dev.jackraidenph.libraomni.annotation.meta;
 
 public @interface ValidatedExpression {
 
