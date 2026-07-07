@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;
@@ -13,10 +14,12 @@ import java.util.*;
 public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedElement> implements ProxyAnnotatedElement {
 
     private final AnnotatedElementCache cache;
+    private final ModMetadataReader modMetadataReader;
 
-    public AnnotatedElementInvocationHandler(AnnotatedElement original) {
+    public AnnotatedElementInvocationHandler(AnnotatedElement original, ModMetadataReader modMetadataReader) {
         super(original);
         this.cache = new AnnotatedElementCache();
+        this.modMetadataReader = modMetadataReader;
     }
 
     @Override
@@ -107,7 +110,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
             for (Annotation annotation : rootAnnotations) {
                 //No need to proxify first-level annotations, because they can't possibly have a parent annotation, unless the parent element itself is an annotation
                 Annotation selfOrProxy = original instanceof Annotation parent
-                        ? ProxyFactory.proxifyAnnotation(annotation, parent)
+                        ? ProxyFactory.proxifyAnnotation(annotation, parent, original, modMetadataReader)
                         : annotation;
                 cacheStep(selfOrProxy, addTo, declared);
             }
@@ -138,7 +141,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
                 }
 
                 cacheStep(
-                        ProxyFactory.proxifyAnnotation(metaAnnotation, currentAnnotation),
+                        ProxyFactory.proxifyAnnotation(metaAnnotation, currentAnnotation, original, modMetadataReader),
                         addTo,
                         declared
                 );

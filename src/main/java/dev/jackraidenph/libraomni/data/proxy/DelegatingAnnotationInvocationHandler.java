@@ -2,8 +2,13 @@ package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
+import dev.jackraidenph.libraomni.data.ModMetadataReader;
 
+import javax.annotation.Nullable;
+import javax.lang.model.element.Element;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -13,8 +18,11 @@ import java.util.stream.Collectors;
 public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvocationHandler<Annotation> {
 
     private final DelegateContainer delegateContainer;
+    private final Object annotated;
+    private final ModIdGetter modIdGetter;
+    private final ModMetadataReader modMetadataReader;
 
-    public DelegatingAnnotationInvocationHandler(Annotation original, DelegateContainer delegateContainer) {
+    public DelegatingAnnotationInvocationHandler(Annotation original, DelegateContainer delegateContainer, Object annotated, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
         super(original);
         Set<String> nonExistent = delegateContainer.nonExistentMethods(original);
         if (!nonExistent.isEmpty()) {
@@ -22,6 +30,9 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
                     .formatted(nonExistent, delegateContainer.getDelegatorBinaryName(), original));
         }
         this.delegateContainer = delegateContainer;
+        this.annotated = annotated;
+        this.modIdGetter = modIdGetter;
+        this.modMetadataReader = modMetadataReader;
     }
 
     private boolean checkReturnType(Class<?> oldReturnType, Class<?> newReturnType) {
@@ -38,7 +49,8 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
         }
 
         if (!delegateContainer.hasDelegateFor(name)) {
-            return super.invoke(proxy, method, args);
+            Object value = super.invoke(proxy, method, args);
+            return tryReplacePlaceholdersIfString(value);
         }
 
         Object val = delegateContainer.getDelegatedValue(name);
@@ -57,7 +69,39 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
             }
         }
 
+        transformed = tryReplacePlaceholdersIfString(transformed);
         return SafeReflectionUtil.selfOrSingletonArray(method.getReturnType(), transformed);
+    }
+
+    private Object tryReplacePlaceholdersIfString(Object value) {
+        if (!(value instanceof String str) || str.isBlank() || str.indexOf('{') < 0) {
+            return value;
+        }
+
+        str = str.replace("{mod_id}", getModId());
+
+        String id;
+        if (annotated instanceof AnnotatedElement annotatedElement) {
+            id = SafeReflectionUtil.idOrDefault(annotatedElement);
+        } else if (annotated instanceof Element annotatedConstruct) {
+            id = ModIdGetter.getElementId(annotatedConstruct);
+        } else {
+            throw new IllegalStateException("Object is not either of AnnotatedElement or AnnotatedConstruct, this shouldn't be possible?");
+        }
+
+        str = str.replace("{element_id}", id);
+
+        return str;
+    }
+
+    private String getModId() {
+        if (modIdGetter != null) {
+            return modIdGetter.forElement((Element) annotated);
+        } else if (modMetadataReader != null) {
+            return modMetadataReader.modIdOfElement((AnnotatedElement) annotated);
+        }
+
+        throw new IllegalStateException("Both ModIdGetter and ModMetadataReader are null");
     }
 
     private String toStringProxy(Annotation proxy) {

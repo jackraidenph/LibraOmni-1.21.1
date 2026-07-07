@@ -46,12 +46,14 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         this.modIdGetter.findMods(modRootAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
     }
 
+    private long elapsedTotal = 0;
+
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        RoundEnvironment proxyEnvironment = ProxyFactory.proxifyRuntimeEnvironment(roundEnvironment, processingEnv);
-        ProcessingContext context = new ProcessingContext(modIdGetter, resourceManager, config, proxyEnvironment, processingEnv);
-
         findMods(roundEnvironment);
+
+        RoundEnvironment proxyEnvironment = ProxyFactory.proxifyRuntimeEnvironment(roundEnvironment, processingEnv, modIdGetter);
+        ProcessingContext context = new ProcessingContext(modIdGetter, resourceManager, config, proxyEnvironment, processingEnv);
 
         Messager messager = this.processingEnv.getMessager();
         boolean finishing = roundEnvironment.processingOver();
@@ -73,13 +75,18 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
                 throw new RuntimeException("Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()), e);
             }
 
-            double elapsed = stopwatch.elapsed().getNano() / 1_000_000_000.;
+            long elapsed = stopwatch.elapsed().getNano();
+            elapsedTotal += elapsed;
             stopwatch.reset();
 
             if (wasOverriden) {
                 String op = finishing ? "Finishing" : "Processing";
-                messager.printNote(op + "[%s] took %.4f seconds".formatted(taskName, elapsed));
+                messager.printNote(op + "[%s] took %.4f seconds".formatted(taskName, elapsed / 1_000_000_000.));
             }
+        }
+
+        if(finishing) {
+            messager.printNote("LibraOmni processer finished, took %.4f seconds".formatted(elapsedTotal / 1_000_000_000.));
         }
 
         this.round++;

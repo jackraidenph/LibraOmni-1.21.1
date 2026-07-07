@@ -1,5 +1,8 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
+import dev.jackraidenph.libraomni.annotation.meta.Id;
+import dev.jackraidenph.libraomni.common.StringUtilities;
+
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
@@ -10,6 +13,15 @@ import java.util.TreeMap;
 
 public class ModIdGetter {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
+
+    public static String getElementId(Element e) {
+        Id id = e.getAnnotation(Id.class);
+        if (id != null && !id.value().isBlank()) {
+            return id.value();
+        }
+
+        return StringUtilities.snakeCase(e.getSimpleName().toString());
+    }
 
     private static String getModId(Element e, TypeElement annotationToSearch, String valueName) {
         AnnotationMirror foundMirror = null;

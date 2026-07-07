@@ -109,7 +109,8 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
 
     private Set<ProxyAnnotatedElement> getAnnotationAccessors(String modId) {
         return getElements(modId).stream()
-                .map(ProxyFactory::proxifyAnnotatedElement)
+//                .map(ProxyFactory::proxifyAnnotatedElement)
+                .map(e -> ProxyFactory.proxifyAnnotatedElement(e, modMetadataReader))
                 .collect(Collectors.toSet());
     }
 

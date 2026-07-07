@@ -22,9 +22,6 @@ class GenerateItemModelsTask extends SequentialCompilationTask {
         Map<String, Object> modelMap = new HashMap<>();
 
         String parent = annotation.parentModel();
-        if (parent == null || parent.isBlank()) {
-            parent = modId + ":block/" + elementId;
-        }
 
         modelMap.put("parent", parent);
         if (!textures.isEmpty()) {

@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
+import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
+
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -13,13 +15,15 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
 
     private final Set<Element> proxiedRootElements = new HashSet<>();
     private final Elements elementUtils;
+    private final ModIdGetter modIdGetter;
     private final Map<String, Set<? extends Element>> scannedElementsCacheByAnnotation = new HashMap<>();
 
-    public RoundEnvironmentInvocationHandler(RoundEnvironment original, ProcessingEnvironment processingEnvironment) {
+    public RoundEnvironmentInvocationHandler(RoundEnvironment original, ProcessingEnvironment processingEnvironment, ModIdGetter modIdGetter) {
         super(original);
         this.elementUtils = processingEnvironment.getElementUtils();
+        this.modIdGetter = modIdGetter;
         for (Element e : original.getRootElements()) {
-            Element proxy = (Element) ProxyFactory.proxifyAnnotatedConstructIfNotProxy(e, elementUtils);
+            Element proxy = (Element) ProxyFactory.proxifyAnnotatedConstructIfNotProxy(e, elementUtils, modIdGetter);
             proxiedRootElements.add(proxy);
         }
     }
@@ -31,7 +35,7 @@ public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocatio
     public Set<? extends Element> getElementsAnnotatedWithProxy(TypeElement annotationTypeElement) {
         String annotationName = annotationTypeElement.getQualifiedName().toString();
         if (!scannedElementsCacheByAnnotation.containsKey(annotationName)) {
-            RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner(elementUtils);
+            RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner(elementUtils, modIdGetter);
             for (Element e : getRootElementsProxy()) {
                 scanner.scan(e, annotationTypeElement);
             }

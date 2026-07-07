@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.data.proxy;
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.*;
@@ -17,10 +18,12 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
 
     private final AnnotatedConstructCache cache;
     private final Elements elementUtils;
+    private final ModIdGetter modIdGetter;
 
-    public AnnotatedConstructInvocationHandler(AnnotatedConstruct original, Elements elements) {
+    public AnnotatedConstructInvocationHandler(AnnotatedConstruct original, Elements elements, ModIdGetter modIdGetter) {
         super(original);
         elementUtils = elements;
+        this.modIdGetter = modIdGetter;
         this.cache = new AnnotatedConstructCache();
     }
 
@@ -151,7 +154,7 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
             }
 
             boolean delegated = delegates != null && !delegates.isEmpty();
-            Annotation proxyOrSelf = delegated ? ProxyFactory.proxifyAnnotation(annotation, delegates) : annotation;
+            Annotation proxyOrSelf = delegated ? ProxyFactory.proxifyAnnotation(annotation, delegates, original, modIdGetter) : annotation;
             List<Annotation> annotations = annotationMap.computeIfAbsent(annotation.annotationType(), k -> new ArrayList<>());
             annotations.add(proxyOrSelf);
         }

@@ -15,5 +15,5 @@ import java.lang.annotation.Target;
 public @interface BlockItemModel {
 
     @Delegate(annotation = ArbitraryItemModelData.class, attribute = "parentModel")
-    String value() default "";
+    String value() default "{mod_id}:block/{element_id}";
 }

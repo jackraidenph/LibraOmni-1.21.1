@@ -5,15 +5,34 @@ import dev.jackraidenph.libraomni.common.CommonGson;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.AnnotatedElement;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 
 public class ModMetadataReader {
 
     private ProjectMetadata projectMetadata = null;
     private boolean init = false;
+
+    public String modIdOfElement(AnnotatedElement annotatedElement) {
+        if (projectMetadata == null) {
+            throw new IllegalStateException("Metadata file not read yet");
+        }
+
+        Map<String, ModMetadata> metadataMap = projectMetadata.getModMetadataMap();
+        Optional<Entry<String, ModMetadata>> optional = metadataMap.
+                entrySet()
+                .stream()
+                .filter(e -> e.getValue().getAnnotatedData().getElements().contains(annotatedElement))
+                .findAny();
+
+        return optional.map(Entry::getKey).orElse(null);
+
+    }
 
     public void readMetadataFile() {
         try (InputStream inputStream = openResourceStream(ProjectMetadata.PATH)) {

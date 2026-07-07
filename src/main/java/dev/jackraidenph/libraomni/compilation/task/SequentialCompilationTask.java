@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.Id;
-import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
 import javax.lang.model.element.Element;
@@ -32,17 +32,8 @@ public abstract class SequentialCompilationTask implements CompilationTask {
                 );
                 continue;
             }
-            processElement(processingContext.modIdGetter().forElement(e), getId(e), e, processingContext);
+            processElement(processingContext.modIdGetter().forElement(e), ModIdGetter.getElementId(e), e, processingContext);
         }
-    }
-
-    private static String getId(Element e) {
-        Id id = e.getAnnotation(Id.class);
-        if (id != null && !id.value().isBlank()) {
-            return id.value();
-        }
-
-        return StringUtilities.snakeCase(e.getSimpleName().toString());
     }
 
     abstract void processElement(String modId, String elementId, Element element, ProcessingContext processingContext);

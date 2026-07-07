@@ -15,23 +15,6 @@ import java.util.*;
  */
 public class SafeReflectionUtil {
 
-    public static boolean isIntefaceMethodOverriden(Class<?> clazz, String methodName, Class<?>... paramTypes) {
-        if (clazz == null) {
-            return false;
-        }
-
-        try {
-            Method method = clazz.getMethod(methodName, paramTypes);
-            if (!method.isDefault()) {
-                return true;
-            }
-
-            return !method.getDeclaringClass().isInterface();
-        } catch (NoSuchMethodException e) {
-            return isIntefaceMethodOverriden(clazz.getSuperclass(), methodName, paramTypes);
-        }
-    }
-
     public static Class<?>[] inferTypes(Object... objects) {
         Class<?>[] typesArray = new Class[objects.length];
         for (int i = 0; i < objects.length; i++) {
@@ -212,7 +195,7 @@ public class SafeReflectionUtil {
     }
 
     public static String idOrDefault(AnnotatedElement element) {
-        return idOrDefault(ProxyFactory.proxifyAnnotatedElementIfNotProxy(element));
+        return idOrDefault(ProxyFactory.proxifyAnnotatedElementIfNotProxy(element, null));
     }
 
     public static DeferredHolder<?, ?> tryCastToDeferredHolder(AnnotatedElement element) {

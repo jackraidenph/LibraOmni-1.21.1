@@ -6,7 +6,10 @@ import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
+import dev.jackraidenph.libraomni.data.ModMetadataReader;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.AnnotatedConstruct;
@@ -39,7 +42,7 @@ public abstract class ProxyFactory {
             Validated.class
     );
 
-    public static Annotation proxifyAnnotation(Annotation annotation, DelegateContainer delegates) {
+    public static Annotation proxifyAnnotation(Annotation annotation, DelegateContainer delegates, Object annotatedElement, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
         if (annotation instanceof Composed || annotation.annotationType().getPackageName().startsWith("java.lang.annotation")) {
             return annotation;
         }
@@ -49,8 +52,16 @@ public abstract class ProxyFactory {
         return (Annotation) Proxy.newProxyInstance(
                 CLASSLOADER,
                 new Class[]{annotation.annotationType()},
-                new DelegatingAnnotationInvocationHandler(annotation, delegates)
+                new DelegatingAnnotationInvocationHandler(annotation, delegates, annotatedElement, modIdGetter, modMetadataReader)
         );
+    }
+
+    public static Annotation proxifyAnnotation(Annotation annotation, DelegateContainer delegates, Object annotatedElement, @Nullable ModIdGetter modIdGetter) {
+        return proxifyAnnotation(annotation, delegates, annotatedElement, modIdGetter, null);
+    }
+
+    public static Annotation proxifyAnnotation(Annotation annotation, DelegateContainer delegates, Object annotatedElement, @Nullable ModMetadataReader modMetadataReader) {
+        return proxifyAnnotation(annotation, delegates, annotatedElement, null, modMetadataReader);
     }
 
     private static DelegateContainer mapDelegatesFromAnnotation(Class<? extends Annotation> childType, Annotation parent) {
@@ -66,12 +77,20 @@ public abstract class ProxyFactory {
         return container;
     }
 
-    public static Annotation proxifyAnnotation(Annotation child, Annotation parent) {
+    public static Annotation proxifyAnnotation(Annotation child, Annotation parent, Object annotatedElement, @Nullable ModMetadataReader modMetadataReader) {
+        return proxifyAnnotation(child, parent, annotatedElement, null, modMetadataReader);
+    }
+
+    public static Annotation proxifyAnnotation(Annotation child, Annotation parent, Object annotatedElement, @Nullable ModIdGetter modIdGetter) {
+        return proxifyAnnotation(child, parent, annotatedElement, modIdGetter, null);
+    }
+
+    public static Annotation proxifyAnnotation(Annotation child, Annotation parent, Object annotatedElement, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
         if (parent == null) {
             return child;
         }
         DelegateContainer delegates = mapDelegatesFromAnnotation(child.annotationType(), parent);
-        return proxifyAnnotation(child, delegates);
+        return proxifyAnnotation(child, delegates, annotatedElement, modIdGetter, modMetadataReader);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -120,30 +139,30 @@ public abstract class ProxyFactory {
         return container;
     }
 
-    public static ProxyAnnotatedElement proxifyAnnotatedElement(AnnotatedElement element) {
+    public static ProxyAnnotatedElement proxifyAnnotatedElement(AnnotatedElement element, ModMetadataReader modMetadataReader) {
         return (ProxyAnnotatedElement) Proxy.newProxyInstance(
                 CLASSLOADER,
                 new Class[]{ProxyAnnotatedElement.class},
-                new AnnotatedElementInvocationHandler(element)
+                new AnnotatedElementInvocationHandler(element, modMetadataReader)
         );
     }
 
-    public static AnnotatedConstruct proxifyAnnotatedConstruct(AnnotatedConstruct construct, Elements elements) {
+    public static AnnotatedConstruct proxifyAnnotatedConstruct(AnnotatedConstruct construct, Elements elements, ModIdGetter modIdGetter) {
         return (AnnotatedConstruct) Proxy.newProxyInstance(
                 CLASSLOADER,
                 construct.getClass().getInterfaces(),
-                new AnnotatedConstructInvocationHandler(construct, elements)
+                new AnnotatedConstructInvocationHandler(construct, elements, modIdGetter)
         );
     }
 
-    public static AnnotatedConstruct proxifyAnnotatedConstructIfNotProxy(AnnotatedConstruct e, Elements elements) {
-        return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e, elements);
+    public static AnnotatedConstruct proxifyAnnotatedConstructIfNotProxy(AnnotatedConstruct e, Elements elements, ModIdGetter modIdGetter) {
+        return e instanceof Proxy ? e : (Element) ProxyFactory.proxifyAnnotatedConstruct(e, elements, modIdGetter);
     }
 
 
-    public static ProxyAnnotatedElement proxifyAnnotatedElementIfNotProxy(AnnotatedElement element) {
+    public static ProxyAnnotatedElement proxifyAnnotatedElementIfNotProxy(AnnotatedElement element, ModMetadataReader modMetadataReader) {
         //Proxy handler implements AnnotationAccessor
-        return (ProxyAnnotatedElement) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element));
+        return (ProxyAnnotatedElement) (element instanceof Proxy ? element : ProxyFactory.proxifyAnnotatedElement(element, modMetadataReader));
     }
 
     public static <T extends Annotation> T makeValueAnnotation(Class<T> type, Map<String, Object> attributes) {
@@ -155,11 +174,11 @@ public abstract class ProxyFactory {
         );
     }
 
-    public static RoundEnvironment proxifyRuntimeEnvironment(RoundEnvironment environment, ProcessingEnvironment processingEnvironment) {
+    public static RoundEnvironment proxifyRuntimeEnvironment(RoundEnvironment environment, ProcessingEnvironment processingEnvironment, ModIdGetter modIdGetter) {
         return (RoundEnvironment) Proxy.newProxyInstance(
                 CLASSLOADER,
                 environment.getClass().getInterfaces(),
-                new RoundEnvironmentInvocationHandler(environment, processingEnvironment)
+                new RoundEnvironmentInvocationHandler(environment, processingEnvironment, modIdGetter)
         );
     }
 }
