@@ -65,8 +65,9 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
             String taskName = compilationTask.getClass().getSimpleName();
 
+            boolean wasOverriden;
             try {
-                compilationTask.processStage(modIdGetter, context);
+                wasOverriden = compilationTask.processStage(modIdGetter, context);
             } catch (Exception e) {
                 printStackTrace(e);
                 throw new RuntimeException("Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()), e);
@@ -74,8 +75,11 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
             double elapsed = stopwatch.elapsed().getNano() / 1_000_000_000.;
             stopwatch.reset();
-            String op = finishing ? "Finishing" : "Processing";
-            messager.printNote(op + "[%s] took %.4f seconds".formatted(taskName, elapsed));
+
+            if (wasOverriden) {
+                String op = finishing ? "Finishing" : "Processing";
+                messager.printNote(op + "[%s] took %.4f seconds".formatted(taskName, elapsed));
+            }
         }
 
         this.round++;
