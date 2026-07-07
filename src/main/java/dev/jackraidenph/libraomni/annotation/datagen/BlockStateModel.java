@@ -11,6 +11,6 @@ import java.lang.annotation.Target;
 @GeneratesFiles
 
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
-public @interface BlockStateModelData {
+public @interface BlockStateModel {
     String model() default "";
 }

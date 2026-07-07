@@ -1,8 +1,9 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.datagen.BlockStateModelData;
+import dev.jackraidenph.libraomni.annotation.datagen.BlockStateModel;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.compilation.util.*;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.lang.model.element.Element;
 import java.lang.annotation.Annotation;
@@ -11,30 +12,19 @@ import java.util.*;
 class GenerateBlockStatesTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
-        BlockStateModelData generatesBlockStateModelData = element.getAnnotation(BlockStateModelData.class);
+        BlockStateModel generatesBlockStateModelData = element.getAnnotation(BlockStateModel.class);
         if (generatesBlockStateModelData == null) {
             throw new IllegalStateException();
         }
 
         String model = generatesBlockStateModelData.model();
-        int separator = model.indexOf(':');
-        String modelNamespace = null;
-        String modelName;
-        if (!model.isBlank()) {
-            if (separator > 0) {
-                String[] parts = model.split(":");
-                modelNamespace = parts[0];
-                modelName = parts[1];
-            } else {
-                modelName = model;
-            }
-        } else {
-            modelNamespace = modId;
-            modelName = elementId;
+        ResourceLocation resourceLocation = ResourceLocation.tryParse(model);
+        if (resourceLocation == null) {
+            throw new IllegalStateException("[%s] is not a valid resource location!".formatted(model));
         }
 
         processingContext.resourceManager().save(
-                defaultBlockState(elementId, modId, modelNamespace, modelName)
+                defaultBlockState(elementId, modId, resourceLocation.getNamespace(), resourceLocation.getPath())
         );
     }
 
@@ -65,6 +55,6 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
 
     @Override
     public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(BlockStateModelData.class);
+        return Set.of(BlockStateModel.class);
     }
 }
