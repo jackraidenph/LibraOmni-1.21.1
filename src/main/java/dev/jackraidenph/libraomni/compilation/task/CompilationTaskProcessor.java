@@ -85,8 +85,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             }
         }
 
-        if(finishing) {
-            messager.printNote("LibraOmni processer finished, took %.4f seconds".formatted(elapsedTotal / 1_000_000_000.));
+        if (finishing) {
+            messager.printNote("LibraOmni processor finished, took %.4f seconds".formatted(elapsedTotal / 1_000_000_000.));
         }
 
         this.round++;
