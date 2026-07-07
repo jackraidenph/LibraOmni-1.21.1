@@ -29,7 +29,7 @@ public class GenerateDropsTask extends SequentialCompilationTask {
 
         String dropsId = annotation.value();
         boolean mustSurviveExplosion = annotation.mustSurviveExplosion();
-        boolean limitToMinMax = annotation.useLimits();
+        boolean limitToMinMax = (annotation.minLimit() >= 0) && (annotation.maxLimit() >= 0);
         int min = annotation.min();
         int max = annotation.max();
         int fortuneBonus = annotation.fortuneBonus();

@@ -28,8 +28,6 @@ public @interface GeneratesDrops {
 
     boolean mustSurviveExplosion() default true;
 
-    boolean useLimits() default false;
-
     int min() default 1;
 
     /**
@@ -37,12 +35,12 @@ public @interface GeneratesDrops {
      */
     int minLimit() default -1;
 
+    int max() default 1;
+
     /**
      * -1 - same as max()
      */
     int maxLimit() default -1;
-
-    int max() default 1;
 
     int fortuneBonus() default 0;
 }
