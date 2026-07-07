@@ -16,17 +16,13 @@ public class GenerateTagsTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
         InTags inTags = element.getAnnotation(InTags.class);
-        if(inTags == null) {
-            throw new IllegalStateException();
-        }
-
         for (String tag : inTags.value()) {
             tagToEntries.computeIfAbsent(tag, k -> new ArrayList<>()).add(StringUtilities.makeNamespacedId(modId, elementId));
         }
     }
 
     @Override
-    public void finish(ProcessingContext processingContext) {
+    public void finish(ModIdGetter modLocator, ProcessingContext processingContext) {
         ResourceManager resourceManager = processingContext.resourceManager();
         for (Entry<String, List<String>> entry : tagToEntries.entrySet()) {
             String tag = entry.getKey();

@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.Id;
 import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
 import javax.lang.model.element.Element;
@@ -14,12 +15,12 @@ import java.util.Set;
 public abstract class SequentialCompilationTask implements CompilationTask {
 
     @Override
-    public void processRound(ProcessingContext processingContext) {
+    public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
         Set<? extends Element> elements = processingContext.roundEnvironment().getElementsAnnotatedWithAny(supportedAnnotations());
-        processElements(elements, processingContext);
+        processElements(modLocator, elements, processingContext);
     }
 
-    protected void processElements(Set<? extends Element> elements, ProcessingContext processingContext) {
+    protected void processElements(ModIdGetter modLocator, Set<? extends Element> elements, ProcessingContext processingContext) {
         for (Element e : elements) {
             if (skipAnnotations() && e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
                 continue;
@@ -32,7 +33,7 @@ public abstract class SequentialCompilationTask implements CompilationTask {
                 );
                 continue;
             }
-            processElement(processingContext.modIdGetter().forElement(e), getId(e), e, processingContext);
+            processElement(modLocator.forElement(e), getId(e), e, processingContext);
         }
     }
 

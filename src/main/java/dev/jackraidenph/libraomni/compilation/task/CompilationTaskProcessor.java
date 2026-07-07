@@ -49,7 +49,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         RoundEnvironment proxyEnvironment = ProxyFactory.proxifyRuntimeEnvironment(roundEnvironment, processingEnv);
-        ProcessingContext context = new ProcessingContext(modIdGetter, resourceManager, config, proxyEnvironment, processingEnv);
+        ProcessingContext context = new ProcessingContext(resourceManager, config, proxyEnvironment, processingEnv);
 
         findMods(roundEnvironment);
 
@@ -67,7 +67,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
             boolean wasOverriden;
             try {
-                wasOverriden = compilationTask.processStage(context);
+                wasOverriden = compilationTask.processStage(modIdGetter, context);
             } catch (Exception e) {
                 printStackTrace(e);
                 throw new RuntimeException("Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()), e);

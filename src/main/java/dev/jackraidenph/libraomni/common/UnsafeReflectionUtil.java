@@ -6,6 +6,23 @@ import java.util.Arrays;
 
 public class UnsafeReflectionUtil {
 
+    public static boolean isIntefaceMethodOverriden(Class<?> clazz, String methodName, Class<?>... paramTypes) {
+        if (clazz == null) {
+            throw new IllegalArgumentException("Failed to find the desired method, perhaps, the signature is wrong?");
+        }
+
+        try {
+            Method method = clazz.getMethod(methodName, paramTypes);
+            if (!method.isDefault()) {
+                return true;
+            }
+
+            return !method.getDeclaringClass().isInterface();
+        } catch (NoSuchMethodException e) {
+            return isIntefaceMethodOverriden(clazz.getSuperclass(), methodName, paramTypes);
+        }
+    }
+
     @Nonnull
     public static <T> T instantiateStatic(AnnotatedElement object, Object... args) {
         try {

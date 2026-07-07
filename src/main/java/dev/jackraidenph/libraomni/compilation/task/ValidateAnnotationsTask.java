@@ -6,6 +6,7 @@ import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.validation.Validator;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 final class ValidateAnnotationsTask implements CompilationTask {
 
     @Override
-    public void processRound(ProcessingContext processingContext) {
+    public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
         Messager messager = processingContext.processingEnvironment().getMessager();
 
         messager.printNote("---VALIDATING ANNOTATIONS---");
