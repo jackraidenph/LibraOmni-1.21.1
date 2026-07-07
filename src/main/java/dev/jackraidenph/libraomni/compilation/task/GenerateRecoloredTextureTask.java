@@ -6,6 +6,7 @@ import dev.jackraidenph.libraomni.common.StringUtilities.NamespaceDirectoryFile;
 import dev.jackraidenph.libraomni.common.ImageHelper;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier.ResourceBuilder;
 
 import javax.lang.model.element.Element;
 import java.lang.annotation.Annotation;
@@ -39,11 +40,17 @@ public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
         }
 
         String fileSuffix = annotation.suffix();
+        ResourceBuilder builder = ResourceIdentifier.builder()
+                .setAssetDirectory(parts.namespace(), parts.directory())
+                .setNameRoot(parts.file())
+                .setPngExtension();
+
+        ResourceIdentifier textureLocation = builder.build();
+        ResourceIdentifier saveOverride = fileSuffix.isBlank() ? null : builder.withSuffix(fileSuffix).build();
+
         ImageHelper.transformAndSavePng(
-                parts.namespace(),
-                parts.directory(),
-                parts.file(),
-                fileSuffix.isBlank() ? null : ResourceIdentifier.pngAsset(parts.namespace(), parts.directory(), parts.file() + "_" + fileSuffix),
+                textureLocation,
+                saveOverride,
                 image -> ImageHelper.remapColors(image, paletteSwap),
                 processingContext
         );

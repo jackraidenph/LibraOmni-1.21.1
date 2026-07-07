@@ -201,6 +201,11 @@ public record ResourceIdentifier(String directory, String nameRoot, String exten
             return this;
         }
 
+        public ResourceBuilder withSuffix(String suffix) {
+            this.fileNameRoot += "_" + suffix;
+            return this;
+        }
+
         public ResourceBuilder setJsonExtension() {
             return setExtension(JSON_EXT);
         }
