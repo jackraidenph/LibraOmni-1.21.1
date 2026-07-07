@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.compilation.validation;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
+import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -31,5 +32,10 @@ public class AnnotationsPresentValidator extends TypesValidator {
         if (!annotationsToBePresent.containsAll(actuallyPresent)) {
             throw new AnnotationValidationException("Annotations of type %s must be present on [%s]".formatted(args, validatedElement));
         }
+    }
+
+    @Override
+    public String toString(@Nullable List<String> args, Elements elements) {
+        return "Element must have all of the following annotations " + args;
     }
 }

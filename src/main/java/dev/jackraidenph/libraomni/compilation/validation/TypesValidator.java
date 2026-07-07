@@ -3,9 +3,11 @@ package dev.jackraidenph.libraomni.compilation.validation;
 import dev.jackraidenph.libraomni.common.ElementUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
+import javax.lang.model.util.Elements;
 import java.util.List;
 
 public class TypesValidator implements Validator {
@@ -32,5 +34,10 @@ public class TypesValidator implements Validator {
                     "[%s] must be assignable to any of [%s], got [%s]".formatted(validatedElement, toExtendOrImplement, typeElement)
             );
         }
+    }
+
+    @Override
+    public String toString(@Nullable List<String> args, Elements elements) {
+        return "Element must be either of types " + args;
     }
 }

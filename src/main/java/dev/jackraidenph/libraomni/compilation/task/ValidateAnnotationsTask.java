@@ -257,11 +257,6 @@ final class ValidateAnnotationsTask implements CompilationTask {
     }
 
     private static String validatedToString(Validated validated, Elements elements) {
-        StringBuilder builder = new StringBuilder();
-        StringJoiner argJoiner = new StringJoiner(", ", "(", ")");
-        for (String arg : validated.args()) {
-            argJoiner.add(arg);
-        }
-        return builder.append(validatorFromAnnotation(validated, elements).getClass().getSimpleName()).append(argJoiner).toString();
+        return validatorFromAnnotation(validated, elements).toString(List.of(validated.args()), elements);
     }
 }

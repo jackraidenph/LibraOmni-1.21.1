@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.compilation.validation;
 import dev.jackraidenph.libraomni.common.ElementUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -44,5 +45,10 @@ public final class HolderTypesValidator extends TypesValidator {
         }
 
         super.test(resolveDeferredHolder(validatedElement), validatedAnnotation, args, processingContext);
+    }
+
+    @Override
+    public String toString(@Nullable List<String> args, Elements elements) {
+        return "Element must be a DeferredHolder holding either of types " + args;
     }
 }
