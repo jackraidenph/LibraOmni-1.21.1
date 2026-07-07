@@ -13,6 +13,10 @@ class GenerateItemModelsTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
         ArbitraryItemModelData annotation = element.getAnnotation(ArbitraryItemModelData.class);
+        if (annotation == null) {
+            throw new IllegalStateException();
+        }
+
         Map<String, String> textures = mapTextures(annotation);
 
         Map<String, Object> modelMap = new HashMap<>();

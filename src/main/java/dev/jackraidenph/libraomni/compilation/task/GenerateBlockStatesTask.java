@@ -12,6 +12,9 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
         BlockStateModelData generatesBlockStateModelData = element.getAnnotation(BlockStateModelData.class);
+        if (generatesBlockStateModelData == null) {
+            throw new IllegalStateException();
+        }
 
         String model = generatesBlockStateModelData.model();
         int separator = model.indexOf(':');
