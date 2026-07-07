@@ -66,11 +66,24 @@ public class ImageHelper {
         return newImage;
     }
 
-    public static void transformAndSavePng(String namespace, String directory, String file, Function<BufferedImage, BufferedImage> transform, ProcessingContext processingContext) {
+    public static void transformAndSavePng(
+            String namespace,
+            String directory,
+            String file,
+            Function<BufferedImage, BufferedImage> transform,
+            ProcessingContext processingContext
+    ) {
         transformAndSavePng(namespace, directory, file, null, transform, processingContext);
     }
 
-    public static void transformAndSavePng(String namespace, String directory, String file, @Nullable ResourceIdentifier saveTo, Function<BufferedImage, BufferedImage> transform, ProcessingContext processingContext) {
+    public static void transformAndSavePng(
+            String namespace,
+            String directory,
+            String file,
+            @Nullable ResourceIdentifier saveLocationOverride,
+            Function<BufferedImage, BufferedImage> transform,
+            ProcessingContext processingContext
+    ) {
         ResourceManager resourceManager = processingContext.resourceManager();
         Filer filer = processingContext.processingEnvironment().getFiler();
         ResourceIdentifier textureLocation = ResourceIdentifier.pngAsset(namespace, directory, file);
@@ -87,7 +100,7 @@ public class ImageHelper {
             BufferedImage newImage = transform.apply(image);
             ImageIO.write(newImage, "png", outputStream);
             byte[] bytes = outputStream.toByteArray();
-            resourceManager.save(saveTo == null ? textureLocation : saveTo, bytes, JsonMergeConflictPolicy.OVERWRITE);
+            resourceManager.save(saveLocationOverride == null ? textureLocation : saveLocationOverride, bytes, JsonMergeConflictPolicy.OVERWRITE);
         } catch (IOException ioException) {
             throw new RuntimeException(ioException);
         }
