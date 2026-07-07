@@ -77,6 +77,14 @@ public class ImageHelper {
     }
 
     public static void transformAndSavePng(
+            ResourceIdentifier textureLocation,
+            Function<BufferedImage, BufferedImage> transform,
+            ProcessingContext processingContext
+    ) {
+        transformAndSavePng(textureLocation, null, transform, processingContext);
+    }
+
+    public static void transformAndSavePng(
             String namespace,
             String directory,
             String file,
@@ -84,9 +92,22 @@ public class ImageHelper {
             Function<BufferedImage, BufferedImage> transform,
             ProcessingContext processingContext
     ) {
+        transformAndSavePng(
+                ResourceIdentifier.pngAsset(namespace, directory, file),
+                saveLocationOverride,
+                transform,
+                processingContext
+        );
+    }
+
+    public static void transformAndSavePng(
+            ResourceIdentifier textureLocation,
+            @Nullable ResourceIdentifier saveLocationOverride,
+            Function<BufferedImage, BufferedImage> transform,
+            ProcessingContext processingContext
+    ) {
         ResourceManager resourceManager = processingContext.resourceManager();
         Filer filer = processingContext.processingEnvironment().getFiler();
-        ResourceIdentifier textureLocation = ResourceIdentifier.pngAsset(namespace, directory, file);
         Optional<Path> existingTexture = textureLocation.atLocation(filer);
         if (existingTexture.isEmpty()) {
             existingTexture = textureLocation.atLocation(processingContext.config().getResourceSetDirs());
