@@ -2,9 +2,9 @@ package dev.jackraidenph.libraomni.runtime.extension;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.runtime.BlockPropertiesByName;
-import dev.jackraidenph.libraomni.annotation.runtime.BlockPropertiesCopy;
+import dev.jackraidenph.libraomni.annotation.runtime.BlockPropertiesCopyOf;
 import dev.jackraidenph.libraomni.annotation.runtime.ItemPropertiesByName;
-import dev.jackraidenph.libraomni.annotation.runtime.ItemPropertiesCopy;
+import dev.jackraidenph.libraomni.annotation.runtime.ItemPropertiesCopyOf;
 import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import net.minecraft.core.component.DataComponentType;
@@ -74,7 +74,7 @@ public class PropertiesPool extends AbstractModContextExtension {
     public static class Util {
         public static BlockBehaviour.Properties getBlockPropertiesForElement(ProxyAnnotatedElement e, ModContext context) {
             BlockPropertiesByName propertiesByName = e.getAnnotation(BlockPropertiesByName.class);
-            BlockPropertiesCopy copyFrom = e.getAnnotation(BlockPropertiesCopy.class);
+            BlockPropertiesCopyOf copyFrom = e.getAnnotation(BlockPropertiesCopyOf.class);
             try {
                 if (propertiesByName != null) {
                     return getBlockProperties(propertiesByName.value(), context);
@@ -93,7 +93,7 @@ public class PropertiesPool extends AbstractModContextExtension {
 
         public static Item.Properties getItemPropertiesForElement(ProxyAnnotatedElement e, ModContext context) {
             ItemPropertiesByName propertiesByName = e.getAnnotation(ItemPropertiesByName.class);
-            ItemPropertiesCopy copyFrom = e.getAnnotation(ItemPropertiesCopy.class);
+            ItemPropertiesCopyOf copyFrom = e.getAnnotation(ItemPropertiesCopyOf.class);
             try {
                 if (propertiesByName != null) {
                     return getItemProperties(propertiesByName.value(), context);

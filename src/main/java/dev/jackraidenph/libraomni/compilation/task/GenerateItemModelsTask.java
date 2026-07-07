@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.value.KeyValue;
-import dev.jackraidenph.libraomni.annotation.datagen.GeneratesItemModelData;
+import dev.jackraidenph.libraomni.annotation.value.StringPair;
+import dev.jackraidenph.libraomni.annotation.datagen.ArbitraryItemModelData;
 import dev.jackraidenph.libraomni.compilation.util.*;
 
 import javax.lang.model.element.Element;
@@ -12,7 +12,7 @@ class GenerateItemModelsTask extends SequentialCompilationTask {
 
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
-        GeneratesItemModelData annotation = element.getAnnotation(GeneratesItemModelData.class);
+        ArbitraryItemModelData annotation = element.getAnnotation(ArbitraryItemModelData.class);
         Map<String, String> textures = mapTextures(annotation);
 
         Map<String, Object> modelMap = new HashMap<>();
@@ -37,9 +37,9 @@ class GenerateItemModelsTask extends SequentialCompilationTask {
         );
     }
 
-    private Map<String, String> mapTextures(GeneratesItemModelData annotation) {
+    private Map<String, String> mapTextures(ArbitraryItemModelData annotation) {
         Map<String, String> textures = new HashMap<>();
-        for (KeyValue keyValue : annotation.value()) {
+        for (StringPair keyValue : annotation.value()) {
             String textureName = keyValue.value();
             if (textureName.isBlank()) {
                 continue;
@@ -58,6 +58,6 @@ class GenerateItemModelsTask extends SequentialCompilationTask {
 
     @Override
     public final Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(GeneratesItemModelData.class);
+        return Set.of(ArbitraryItemModelData.class);
     }
 }

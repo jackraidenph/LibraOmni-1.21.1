@@ -1,6 +1,7 @@
-package dev.jackraidenph.libraomni.annotation.datagen;
+package dev.jackraidenph.libraomni.annotation.runtime;
 
-
+import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
+import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
 import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression.Type;
@@ -8,9 +9,14 @@ import dev.jackraidenph.libraomni.compilation.validation.HolderTypesValidator;
 import dev.jackraidenph.libraomni.compilation.validation.TypesValidator;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.FIELD, ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@NeedsRuntimeProcessing
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD})
+
 @ValidatedExpression(
         type = Type.OR,
         value = {
@@ -18,29 +24,9 @@ import java.lang.annotation.Target;
                 @Validated(value = HolderTypesValidator.class, args = "net.minecraft.world.level.block.Block"),
         }
 )
-public @interface GeneratesDrops {
-    /**
-     * If not filled - drops itself
-     */
-    String value() default "";
+@IncompatibleWith(BlockPropertiesByName.class)
+public @interface BlockPropertiesCopyOf {
+    String namespace() default "";
 
-    String silkTouchAlternative() default "";
-
-    boolean mustSurviveExplosion() default true;
-
-    int min() default 1;
-
-    /**
-     * -1 - same as min()
-     */
-    int minLimit() default -1;
-
-    int max() default 1;
-
-    /**
-     * -1 - same as max()
-     */
-    int maxLimit() default -1;
-
-    int fortuneBonus() default 0;
+    String value();
 }

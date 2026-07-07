@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
         }
 )
 @IncompatibleWith(ItemPropertiesByName.class)
-public @interface ItemPropertiesCopy {
+public @interface ItemPropertiesCopyOf {
     String namespace() default "";
 
     String value();

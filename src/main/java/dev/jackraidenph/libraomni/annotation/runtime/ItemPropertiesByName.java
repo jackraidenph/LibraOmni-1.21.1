@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
                 @Validated(value = AnnotationsPresentValidator.class, args = "dev.jackraidenph.libraomni.annotation.runtime.GeneratesBlockItem")
         }
 )
-@IncompatibleWith(ItemPropertiesCopy.class)
+@IncompatibleWith(ItemPropertiesCopyOf.class)
 public @interface ItemPropertiesByName {
     String value();
 }

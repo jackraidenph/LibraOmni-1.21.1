@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.datagen.GeneratesPalettedTexture;
+import dev.jackraidenph.libraomni.annotation.datagen.TextureWithPalete;
 import dev.jackraidenph.libraomni.common.ImageHelper;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.common.StringUtilities.NamespaceDirectoryFile;
@@ -14,12 +14,12 @@ import java.util.Set;
 public class GeneratePalettedTextureTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
-        GeneratesPalettedTexture annotation = element.getAnnotation(GeneratesPalettedTexture.class);
+        TextureWithPalete annotation = element.getAnnotation(TextureWithPalete.class);
         if (annotation == null) {
             throw new IllegalStateException();
         }
 
-        String parentTexture = annotation.parentTexture();
+        String parentTexture = annotation.originalTexture();
 
         NamespaceDirectoryFile parts = StringUtilities.splitToNamespaceDirFilename(
                 parentTexture,
@@ -28,7 +28,7 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
                 elementId
         );
 
-        String fileSuffix = annotation.suffix();
+        String fileSuffix = annotation.newTexturesuffix();
         ResourceBuilder builder = ResourceIdentifier.builder()
                 .setAssetDirectory(parts.namespace(), parts.directory())
                 .setNameRoot(parts.file())
@@ -52,6 +52,6 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
 
     @Override
     public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(GeneratesPalettedTexture.class);
+        return Set.of(TextureWithPalete.class);
     }
 }

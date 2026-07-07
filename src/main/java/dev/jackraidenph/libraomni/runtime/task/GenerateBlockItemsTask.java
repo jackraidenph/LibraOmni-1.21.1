@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.runtime.GeneratesBlockItem;
+import dev.jackraidenph.libraomni.annotation.runtime.WithBlockItem;
 import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
@@ -44,7 +44,7 @@ public class GenerateBlockItemsTask extends SequentialRuntimeTask {
 
     @Override
     public Set<Class<? extends Annotation>> getSupportedAnnotations() {
-        return Set.of(GeneratesBlockItem.class);
+        return Set.of(WithBlockItem.class);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.datagen.GeneratesRecoloredTexture;
+import dev.jackraidenph.libraomni.annotation.datagen.TextureWithColorsSwapped;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.common.StringUtilities.NamespaceDirectoryFile;
 import dev.jackraidenph.libraomni.common.ImageHelper;
@@ -17,12 +17,12 @@ import java.util.Set;
 public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
-        GeneratesRecoloredTexture annotation = element.getAnnotation(GeneratesRecoloredTexture.class);
+        TextureWithColorsSwapped annotation = element.getAnnotation(TextureWithColorsSwapped.class);
         if(annotation == null) {
             throw new IllegalStateException();
         }
 
-        String parentTexture = annotation.parentTexture();
+        String parentTexture = annotation.originalTexture();
         NamespaceDirectoryFile parts = StringUtilities.splitToNamespaceDirFilename(
                 parentTexture,
                 "minecraft",
@@ -39,7 +39,7 @@ public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
             paletteSwap.put(annotation.oldColors()[i], annotation.newColors()[i]);
         }
 
-        String fileSuffix = annotation.suffix();
+        String fileSuffix = annotation.newTexturesuffix();
         ResourceBuilder builder = ResourceIdentifier.builder()
                 .setAssetDirectory(parts.namespace(), parts.directory())
                 .setNameRoot(parts.file())
@@ -63,6 +63,6 @@ public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
 
     @Override
     public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(GeneratesRecoloredTexture.class);
+        return Set.of(TextureWithColorsSwapped.class);
     }
 }

@@ -1,21 +1,25 @@
 package dev.jackraidenph.libraomni.annotation.datagen;
 
+import dev.jackraidenph.libraomni.annotation.info.GeneratesFiles;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
+@GeneratesFiles
+
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
-public @interface GeneratesRecoloredTexture {
+public @interface TextureWithColorsSwapped {
     /**
      * If left blank - assumes the texture with the name of the element the annotation is applied to
      *
      * @return An existing texture used for generating a new one
      */
-    String parentTexture() default "";
+    String originalTexture() default "";
 
     /**
      * @return A suffix appended to the generated texture's file name
      */
-    String suffix() default "";
+    String newTexturesuffix() default "";
 
     /**
      * @return A palette of ARGB colors to be exchanged to the new palette. Must be the same size as the #newPalette()

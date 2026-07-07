@@ -1,6 +1,5 @@
 package dev.jackraidenph.libraomni.annotation.runtime;
 
-import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
@@ -13,20 +12,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@NeedsRuntimeProcessing
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.FIELD})
-
+@Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
+@NeedsRuntimeProcessing
 @ValidatedExpression(
         type = Type.OR,
         value = {
                 @Validated(value = TypesValidator.class, args = "net.minecraft.world.level.block.Block"),
-                @Validated(value = HolderTypesValidator.class, args = "net.minecraft.world.level.block.Block"),
+                @Validated(value = HolderTypesValidator.class, args = "net.minecraft.world.level.block.Block")
         }
 )
-@IncompatibleWith(BlockPropertiesByName.class)
-public @interface BlockPropertiesCopy {
-    String namespace() default "";
-
-    String value();
+public @interface WithBlockItem {
 }

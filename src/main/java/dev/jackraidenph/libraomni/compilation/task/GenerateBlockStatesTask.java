@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.datagen.GeneratesBlockStateModelData;
+import dev.jackraidenph.libraomni.annotation.datagen.BlockStateModelData;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.compilation.util.*;
 
@@ -11,7 +11,7 @@ import java.util.*;
 class GenerateBlockStatesTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
-        GeneratesBlockStateModelData generatesBlockStateModelData = element.getAnnotation(GeneratesBlockStateModelData.class);
+        BlockStateModelData generatesBlockStateModelData = element.getAnnotation(BlockStateModelData.class);
 
         String model = generatesBlockStateModelData.model();
         int separator = model.indexOf(':');
@@ -62,6 +62,6 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
 
     @Override
     public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(GeneratesBlockStateModelData.class);
+        return Set.of(BlockStateModelData.class);
     }
 }

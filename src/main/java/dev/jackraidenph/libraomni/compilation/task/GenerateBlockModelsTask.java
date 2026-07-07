@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.value.KeyValue;
-import dev.jackraidenph.libraomni.annotation.datagen.GeneratesBlockModelData;
+import dev.jackraidenph.libraomni.annotation.value.StringPair;
+import dev.jackraidenph.libraomni.annotation.datagen.ArbitraryBlockModelData;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
@@ -15,8 +15,8 @@ class GenerateBlockModelsTask extends SequentialCompilationTask {
 
     @Override
     public void processElement(String modId, @Nullable String elementId, Element element, ProcessingContext processingContext) {
-        GeneratesBlockModelData[] annotations = element.getAnnotationsByType(GeneratesBlockModelData.class);
-        for (GeneratesBlockModelData annotation : annotations) {
+        ArbitraryBlockModelData[] annotations = element.getAnnotationsByType(ArbitraryBlockModelData.class);
+        for (ArbitraryBlockModelData annotation : annotations) {
             Map<String, String> textures = mapTextures(modId, elementId, annotation);
             processingContext.resourceManager().save(
                     ResourceIdentifier.jsonAsset(modId, "models/block", elementId),
@@ -25,9 +25,9 @@ class GenerateBlockModelsTask extends SequentialCompilationTask {
         }
     }
 
-    private Map<String, String> mapTextures(String modId, String elementId, GeneratesBlockModelData annotation) {
+    private Map<String, String> mapTextures(String modId, String elementId, ArbitraryBlockModelData annotation) {
         Map<String, String> textures = new HashMap<>();
-        for (KeyValue keyValue : annotation.value()) {
+        for (StringPair keyValue : annotation.value()) {
             String textureName = keyValue.value();
             if (textureName == null || textureName.isBlank()) {
                 continue;
@@ -50,6 +50,6 @@ class GenerateBlockModelsTask extends SequentialCompilationTask {
 
     @Override
     public final Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(GeneratesBlockModelData.class);
+        return Set.of(ArbitraryBlockModelData.class);
     }
 }

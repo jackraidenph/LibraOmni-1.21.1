@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.datagen.GeneratesDrops;
+import dev.jackraidenph.libraomni.annotation.datagen.Drops;
 import dev.jackraidenph.libraomni.common.LootTableData;
 import dev.jackraidenph.libraomni.common.LootTableData.CompositeEntry;
 import dev.jackraidenph.libraomni.common.LootTableData.EntryData;
@@ -18,13 +18,13 @@ import java.util.*;
 public class GenerateDropsTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
-        GeneratesDrops generatesDrops = element.getAnnotation(GeneratesDrops.class);
+        Drops generatesDrops = element.getAnnotation(Drops.class);
         if (generatesDrops != null) {
             processDropsItself(modId, elementId, generatesDrops, processingContext);
         }
     }
 
-    private void processDropsItself(String modId, String elementId, GeneratesDrops annotation, ProcessingContext processingContext) {
+    private void processDropsItself(String modId, String elementId, Drops annotation, ProcessingContext processingContext) {
         ResourceManager resourceManager = processingContext.resourceManager();
 
         String dropsId = annotation.value();
@@ -135,6 +135,6 @@ public class GenerateDropsTask extends SequentialCompilationTask {
 
     @Override
     public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(GeneratesDrops.class);
+        return Set.of(Drops.class);
     }
 }
