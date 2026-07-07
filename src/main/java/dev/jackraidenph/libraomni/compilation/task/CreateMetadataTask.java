@@ -5,7 +5,6 @@ import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.IsRuntimeTask;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
-import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 
 import javax.annotation.processing.Messager;
@@ -23,7 +22,7 @@ final class CreateMetadataTask implements CompilationTask {
     private final ProjectMetadata projectMetadata = new ProjectMetadata();
 
     @Override
-    public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
+    public void processRound(ProcessingContext processingContext) {
         RoundEnvironment roundEnvironment = processingContext.roundEnvironment();
 
         //Find annotations to use for processing runtime data
@@ -43,7 +42,7 @@ final class CreateMetadataTask implements CompilationTask {
                 continue;
             }
 
-            String modId = modLocator.forElement(e);
+            String modId = processingContext.modIdGetter().forElement(e);
             if (modId == null) {
                 continue;
             }
@@ -57,7 +56,7 @@ final class CreateMetadataTask implements CompilationTask {
         //Process user-defined runtime tasks
         for (Element e : roundEnvironment.getElementsAnnotatedWith(IsRuntimeTask.class)) {
             String name = ((TypeElement) e).getQualifiedName().toString();
-            String modId = modLocator.forElement(e);
+            String modId = processingContext.modIdGetter().forElement(e);
             if (modId == null) {
                 messager.printWarning("Got runtime task [" + name + "], but failed to compute the owning mod");
                 continue;
@@ -68,7 +67,7 @@ final class CreateMetadataTask implements CompilationTask {
     }
 
     @Override
-    public void finish(ModIdGetter modLocator, ProcessingContext processingContext) {
+    public void finish(ProcessingContext processingContext) {
         processingContext.resourceManager().save(
                 ResourceIdentifier.builder()
                         .setDirectory(ProjectMetadata.DIRECTORY)
