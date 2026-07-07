@@ -13,7 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class AnnotationsPresentValidator extends TypesValidator {
+public class AnnotationsPresentValidator implements Validator {
     @Override
     public void test(Element validatedElement, TypeElement validatedAnnotation, List<String> args, ProcessingContext processingContext) {
         if (args == null || args.isEmpty()) {
