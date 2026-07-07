@@ -30,60 +30,81 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
         messager.printNote("---VALIDATING ANNOTATIONS---");
 
-        Set<TypeElement> annotations = getTypeElementAnnotations(processingContext.roundEnvironment());
+        Set<TypeElement> annotations = getAllAnnotationsAsTypeElements(processingContext.roundEnvironment());
 
-        Set<TypeElement> toCheckIncompatible = getRequiringIncompatibleCheck(annotations);
-        for (TypeElement checkIncompatible : toCheckIncompatible) {
-            Set<? extends Element> annotatedElements = annotatedWith(checkIncompatible, processingContext.roundEnvironment());
+        Set<TypeElement> requiringIncompatibleCheck = getRequiringIncompatibleCheck(annotations);
+        for (TypeElement typeElement : requiringIncompatibleCheck) {
+            Set<? extends Element> annotatedElements = elementsAnnotatedWith(typeElement, processingContext.roundEnvironment());
             for (Element e : annotatedElements) {
-                checkIncompatiblePresence(e, checkIncompatible, processingContext.processingEnvironment().getTypeUtils());
+                checkIncompatiblePresence(e, typeElement, processingContext.processingEnvironment().getTypeUtils());
             }
         }
 
-        Set<TypeElement> validatedAnnotations = getRequiringValidation(annotations);
-        for (TypeElement validatedAnnotation : validatedAnnotations) {
-            Set<? extends Element> annotatedElements = annotatedWith(validatedAnnotation, processingContext.roundEnvironment());
-
-            Validated singular = validatedAnnotation.getAnnotation(Validated.class);
-            ValidatedExpression expression = validatedAnnotation.getAnnotation(ValidatedExpression.class);
-
-            if (singular != null && expression != null) {
-                throw new IllegalStateException("Either @Validated or @ValidatedExpression is permitted, but not both");
-            }
-
-            Elements elements = processingContext.processingEnvironment().getElementUtils();
-            messager.printNote("Found validation constraint [%s] for [@%s]".formatted(
-                    singular != null ? validatedToString(singular, elements) : expressionToString(expression, elements),
-                    validatedAnnotation.getSimpleName()
-            ));
-
-            if (singular != null) {
-                processSingular(singular, validatedAnnotation, annotatedElements, processingContext);
-            } else {
-                processExpression(expression, validatedAnnotation, annotatedElements, processingContext);
-            }
+        Set<TypeElement> validatedAnnotations = getAnnotationsRequiringValidation(annotations);
+        for (TypeElement annotationToValidate : validatedAnnotations) {
+            Set<? extends Element> elementsToValidate = elementsAnnotatedWith(annotationToValidate, processingContext.roundEnvironment());
+            validateElementsAgainstAnnotation(annotationToValidate, elementsToValidate, processingContext);
         }
 
         messager.printNote("---ANNOTATIONS VALIDATED SUCCESSFULLY---");
     }
 
-    private void checkIncompatiblePresence(Element e, TypeElement annotation, Types types) {
+    private static void validateElementsAgainstAnnotation(
+            TypeElement annotationToValidate,
+            Set<? extends Element> elementsToValidate,
+            ProcessingContext processingContext
+    ) {
+        Messager messager = processingContext.processingEnvironment().getMessager();
+
+        Validated constraintSingular = annotationToValidate.getAnnotation(Validated.class);
+        ValidatedExpression constraintExpression = annotationToValidate.getAnnotation(ValidatedExpression.class);
+
+        if (constraintSingular != null && constraintExpression != null) {
+            throw new IllegalStateException("Either @Validated or @ValidatedExpression is permitted, but not both");
+        }
+
+        Elements elements = processingContext.processingEnvironment().getElementUtils();
+
+        if (constraintSingular != null) {
+            messager.printNote("Found validation constraint [%s] for [@%s]".formatted(
+                    validatedToString(constraintSingular, elements),
+                    annotationToValidate.getSimpleName()
+            ));
+            processSingular(constraintSingular, annotationToValidate, elementsToValidate, processingContext);
+        } else if (constraintExpression != null) {
+            messager.printNote("Found validation constraint expression [%s] for [@%s]".formatted(
+                    expressionToString(constraintExpression, elements),
+                    annotationToValidate.getSimpleName()
+            ));
+            processExpression(constraintExpression, annotationToValidate, elementsToValidate, processingContext);
+        }
+    }
+
+    private static void checkIncompatiblePresence(Element element, TypeElement annotation, Types types) {
         IncompatibleWith incompatibleWith = annotation.getAnnotation(IncompatibleWith.class);
         if (incompatibleWith == null) {
             return;
         }
 
-        for (AnnotationMirror annotationMirror : e.getAnnotationMirrors()) {
-            for (TypeMirror typeMirror : AnnotationMirrorUtil.mirrorClassArray(incompatibleWith::value)) {
-                TypeMirror mirrorToCheck = AnnotationMirrorUtil.toTypeElement(annotationMirror).asType();
-                if (types.isSameType(mirrorToCheck, typeMirror)) {
-                    throw new AnnotationValidationException("Annotations [%s] and [%s] are incompatible, encountered on element [%s]".formatted(annotation, typeMirror, e));
-                }
-            }
-        }
+        List<? extends TypeMirror> incompatibleList = AnnotationMirrorUtil.mirrorClassArray(incompatibleWith::value);
+
+        element.getAnnotationMirrors()
+                .stream().map(AnnotationMirrorUtil::toTypeElement)
+                .map(TypeElement::asType)
+                .filter(typeToCheck -> containsTypeMirror(typeToCheck, incompatibleList, types))
+                .findAny()
+                .ifPresent(incompatible -> {
+                    throw new AnnotationValidationException(
+                            "Annotations [%s] and [%s] are incompatible, encountered on element [%s]".formatted(annotation, incompatible, element)
+                    );
+                });
     }
 
-    private void processSingular(
+    private static boolean containsTypeMirror(TypeMirror typeMirror, Collection<? extends TypeMirror> collection, Types types) {
+        return collection.stream().anyMatch(e -> types.isSameType(e, typeMirror));
+    }
+
+    private static void processSingular(
             Validated singular,
             TypeElement validatedAnnotation,
             Collection<? extends Element> toValidate,
@@ -99,7 +120,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
         }
     }
 
-    private void processExpression(
+    private static void processExpression(
             ValidatedExpression expression,
             TypeElement validatedAnnotation,
             Collection<? extends Element> toValidate,
@@ -122,26 +143,33 @@ final class ValidateAnnotationsTask implements CompilationTask {
         }
     }
 
-    private void validateOr(
+    private static void validateOr(
             Element element,
             TypeElement validatedAnnotation,
             List<Map.Entry<Validator, List<String>>> validatorsAndArgs,
             ProcessingContext processingContext
     ) {
-        StringJoiner exceptionJoiner = new StringJoiner("\nOR\n", "\n", "");
+        AnnotationValidationException accumulator = new AnnotationValidationException(
+                """
+                        None of validators in ValidatedExpression OR clause validated successfully, \
+                        fix either of following exceptions, \
+                        element [%s], annotation [@%s]\
+                        """.formatted(element, validatedAnnotation.getSimpleName())
+        );
+
         for (Map.Entry<Validator, List<String>> e : validatorsAndArgs) {
             try {
                 validate(element, validatedAnnotation, e.getKey(), e.getValue(), processingContext);
                 //Won't get called unless validate doesn't throw, which means successful validation
                 return;
             } catch (AnnotationValidationException validationException) {
-                exceptionJoiner.add(validationException.getLocalizedMessage());
+                accumulator.addSuppressed(validationException);
             }
         }
-        throw new AnnotationValidationException("None of validators in ValidatedExpression clause validated successfully, element [%s], annotation [@%s]: %s".formatted(element, validatedAnnotation.getSimpleName(), exceptionJoiner));
+        throw accumulator;
     }
 
-    private void validateAnd(
+    private static void validateAnd(
             Element element,
             TypeElement validatedAnnotation,
             List<Map.Entry<Validator, List<String>>> validatorsAndArgs,
@@ -152,11 +180,11 @@ final class ValidateAnnotationsTask implements CompilationTask {
         }
     }
 
-    private void validate(Element validatedElement,
-                          TypeElement validatedAnnotation,
-                          Validator validator,
-                          List<String> args,
-                          ProcessingContext processingContext
+    private static void validate(Element validatedElement,
+                                 TypeElement validatedAnnotation,
+                                 Validator validator,
+                                 List<String> args,
+                                 ProcessingContext processingContext
     ) {
         if (validatedElement.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
             return;
@@ -169,11 +197,9 @@ final class ValidateAnnotationsTask implements CompilationTask {
         } catch (Exception otherException) {
             throw new AnnotationValidationException(validatedAnnotation, validatedAnnotation, otherException);
         }
-
-        processingContext.processingEnvironment().getMessager().printNote("[%s] was validated with no problems".formatted(validatedElement));
     }
 
-    private Set<? extends Element> annotatedWith(TypeElement typeElement, RoundEnvironment roundEnvironment) {
+    private static Set<? extends Element> elementsAnnotatedWith(TypeElement typeElement, RoundEnvironment roundEnvironment) {
         return roundEnvironment
                 .getElementsAnnotatedWith(typeElement)
                 .stream()
@@ -181,7 +207,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 .collect(Collectors.toSet());
     }
 
-    private Set<TypeElement> getTypeElementAnnotations(RoundEnvironment roundEnvironment) {
+    private static Set<TypeElement> getAllAnnotationsAsTypeElements(RoundEnvironment roundEnvironment) {
         return roundEnvironment
                 .getRootElements()
                 .stream()
@@ -191,7 +217,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 .collect(Collectors.toSet());
     }
 
-    private Set<TypeElement> getRequiringValidation(Set<TypeElement> annotations) {
+    private static Set<TypeElement> getAnnotationsRequiringValidation(Set<TypeElement> annotations) {
         return annotations.stream()
                 .filter(e -> e.getAnnotation(Validated.class) != null
                         || e.getAnnotation(ValidatedExpression.class) != null
@@ -199,12 +225,12 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 .collect(Collectors.toSet());
     }
 
-    private Set<TypeElement> getRequiringIncompatibleCheck(Set<TypeElement> annotations) {
+    private static Set<TypeElement> getRequiringIncompatibleCheck(Set<TypeElement> annotations) {
         return annotations.stream().filter(e -> e.getAnnotation(IncompatibleWith.class) != null).collect(Collectors.toSet());
     }
 
 
-    private Validator validatorFromAnnotation(
+    private static Validator validatorFromAnnotation(
             Validated validatorAnnotation,
             Elements elementUtil
     ) {
@@ -222,7 +248,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
         throw new IllegalStateException("Failed to get validator from [%s]".formatted(validatorAnnotation));
     }
 
-    private String expressionToString(ValidatedExpression expression, Elements elements) {
+    private static String expressionToString(ValidatedExpression expression, Elements elements) {
         StringJoiner atomJoiner = new StringJoiner(' ' + expression.type().name() + ' ');
         for (Validated term : expression.value()) {
             atomJoiner.add(validatedToString(term, elements));
@@ -230,7 +256,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
         return atomJoiner.toString();
     }
 
-    private String validatedToString(Validated validated, Elements elements) {
+    private static String validatedToString(Validated validated, Elements elements) {
         StringBuilder builder = new StringBuilder();
         StringJoiner argJoiner = new StringJoiner(", ", "(", ")");
         for (String arg : validated.args()) {
