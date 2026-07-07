@@ -1,8 +1,13 @@
 package dev.jackraidenph.libraomni.gradle;
 
+import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -13,6 +18,7 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,15 +39,24 @@ public class BootstrapPlugin implements Plugin<Project> {
     public void apply(Project project) {
 
         /// Gather resource directories to AP argument
-
         TaskContainer tasks = project.getTasks();
+        ExtensionContainer extensions = project.getExtensions();
+
+        JavaPluginExtension javaExt;
+        try {
+            javaExt = extensions.getByType(JavaPluginExtension.class);
+        } catch (UnknownDomainObjectException e) {
+            throw new IllegalStateException("Java extension is not found, probably, LibraOmni plugin is defined before Java plugin, change this");
+        }
+
+
         JavaCompile javaCompile = (JavaCompile) tasks.getByName(COMPILE_JAVA);
 
-        ExtensionContainer extensions = project.getExtensions();
-        JavaPluginExtension javaExt = extensions.getByType(JavaPluginExtension.class);
-
         String compileTaskName = javaCompile.getName();
-        Set<File> resourceDirs = javaExt.getSourceSets()
+
+        SourceSetContainer sourceSets = javaExt.getSourceSets();
+
+        Set<File> resourceDirs = sourceSets
                 .stream()
                 .filter(s -> s.getCompileJavaTaskName().equals(compileTaskName))
                 .flatMap(s -> s.getResources().getSrcDirs().stream())
@@ -79,8 +94,35 @@ public class BootstrapPlugin implements Plugin<Project> {
             if (extension == null) {
                 return;
             }
+
+            SourceSet main = sourceSets.getByName("main");
+
             javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.CONFIG_OPTION + '=' + extension.annotationProcessorConfiguration);
+            javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.CLASSPATH_OPTION + '=' + main.getCompileClasspath().getAsPath());
+            javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.SOURCES_OPTION + '=' + main.getJava().getAsPath());
         });
+
+        NamedDomainObjectProvider<SourceSet> libraOmniSourceSetProvider = javaExt.getSourceSets().register("libraOmniAnnotationProcessor");
+        SourceSet libraOmniSourceSet = libraOmniSourceSetProvider.get();
+
+        try {
+            Object neoForgeExtension = extensions.getByName("neoForge");
+            Method method = neoForgeExtension.getClass().getMethod("addModdingDependenciesTo", SourceSet.class);
+
+            project.afterEvaluate(proj -> UnsafeReflectionUtil.getMethodValue(method, neoForgeExtension, libraOmniSourceSet));
+        } catch (UnknownDomainObjectException e) {
+            throw new IllegalStateException("NeoForge extension is not found, probably, LibraOmni plugin is defined before NeoForge's ModDev, change this");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        ConfigurationContainer configurations = project.getConfigurations();
+
+        Configuration apConfig = configurations.getByName("annotationProcessor");
+        Configuration sourceSetCompileClassPath = configurations.getByName(libraOmniSourceSet.getCompileClasspathConfigurationName());
+
+        apConfig.extendsFrom(sourceSetCompileClassPath);
+        apConfig.exclude(Map.of("group", "net.fabricmc"));
     }
 
     private LibraOmniExtension getExtension(Project project) {
