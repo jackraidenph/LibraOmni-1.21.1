@@ -8,7 +8,7 @@ import java.util.Set;
 
 interface CompilationTask {
 
-    default boolean processStage(ModIdGetter modLocator, ProcessingContext context) {
+    default boolean processStage(ProcessingContext context) {
         boolean finish = context.roundEnvironment().processingOver();
 
         //Means that the called method is empty, no need to call it at all
@@ -21,19 +21,19 @@ interface CompilationTask {
         }
 
         if (finish) {
-            finish(modLocator, context);
+            finish(context);
         } else {
-            processRound(modLocator, context);
+            processRound(context);
         }
 
         return true;
     }
 
-    default void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
+    default void processRound(ProcessingContext processingContext) {
 
     }
 
-    default void finish(ModIdGetter modLocator, ProcessingContext processingContext) {
+    default void finish(ProcessingContext processingContext) {
 
     }
 
