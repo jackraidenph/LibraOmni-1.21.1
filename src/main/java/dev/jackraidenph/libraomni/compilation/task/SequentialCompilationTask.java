@@ -14,6 +14,7 @@ import java.util.Set;
  */
 public abstract class SequentialCompilationTask implements CompilationTask {
 
+    @Override
     public void processRound(ModIdGetter modLocator, ProcessingContext processingContext) {
         Set<? extends Element> elements = processingContext.roundEnvironment().getElementsAnnotatedWithAny(supportedAnnotations());
         processElements(modLocator, elements, processingContext);
