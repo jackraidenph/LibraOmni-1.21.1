@@ -67,7 +67,7 @@ public class FakeModContainer extends ModContainer {
 
                 constructor.newInstance(constructorArgs);
             } catch (Throwable e) {
-                throw new RuntimeException("Failed to construct a mod through fake mod contained of [%s]".formatted(modId), e);
+                throw new RuntimeException("Failed to construct a mod through fake mod container of [%s]".formatted(modId), e);
             }
         }
     }
