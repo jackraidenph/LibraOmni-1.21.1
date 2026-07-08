@@ -30,7 +30,6 @@ import javax.annotation.processing.ProcessingEnvironment;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,29 +48,9 @@ public class BlackMagicBootstrap {
         return BLACK_MAGIC_MODE;
     }
 
-    private static final String LOG4J_CONFIG_PROPERTY = "log4j2.configurationFile";
-
-    /**
-     * @return Old configuration file location
-     */
-    private static String shutOffLog4j() {
-        String oldLocation = System.getProperty(LOG4J_CONFIG_PROPERTY);
-
-        URL log4jConfig = LibraOmni.class.getClassLoader().getResource("META-INF/libraomni-log4j2.xml");
-        if (log4jConfig != null) {
-            System.setProperty(LOG4J_CONFIG_PROPERTY, log4jConfig.toString());
-        } else {
-            System.err.println("LibraOmni failed to fetch log4j NO-OP confing. Log4j errors can be safely ignored, please report this");
-        }
-
-        return oldLocation;
-    }
-
     @SuppressWarnings("UnstableApiUsage")
     public static void bootstrapBlackMagic(ModIdGetter modLocator, ProcessingContext processingContext) {
         BLACK_MAGIC_MODE = true;
-
-        String originalLog4JConfig = shutOffLog4j();
 
         Map<String, Class<?>> classes = BlackMagicUtil.compileAndLoad(processingContext);
 
@@ -142,13 +121,6 @@ public class BlackMagicBootstrap {
         for (ModContainer container : fakeContainers) {
             executeSyncLifeCycleEvent("Common", container, FMLCommonSetupEvent::new);
             executeSyncLifeCycleEvent("Client", container, FMLClientSetupEvent::new);
-        }
-
-        //Restore original Log4J config
-        if (originalLog4JConfig != null) {
-            System.setProperty(LOG4J_CONFIG_PROPERTY, originalLog4JConfig);
-        } else {
-            System.getProperties().remove(LOG4J_CONFIG_PROPERTY);
         }
     }
 

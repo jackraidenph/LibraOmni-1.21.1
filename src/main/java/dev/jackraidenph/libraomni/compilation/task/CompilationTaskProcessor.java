@@ -5,6 +5,7 @@ import dev.jackraidenph.libraomni.annotation.meta.ModPackage;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.experimental.BlackMagicUtil;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -27,6 +28,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
+        BlackMagicUtil.shutOffLog4j();
         config.init(processingEnv);
         this.resourceManager = new ResourceManager(config, processingEnv);
         CompilationTasksInit.init(this);
@@ -86,6 +88,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         }
 
         if (finishing) {
+            //Restore original Log4J config
+            BlackMagicUtil.restoreLog4j();
             messager.printNote("LibraOmni processor finished, took %.4f seconds".formatted(elapsedTotal / 1_000_000_000.));
         }
 

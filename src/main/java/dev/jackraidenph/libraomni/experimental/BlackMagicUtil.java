@@ -10,11 +10,37 @@ import javax.tools.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 public class BlackMagicUtil {
+
+    private static final String LOG4J_CONFIG_PROPERTY = "log4j2.configurationFile";
+
+    private static String oldLog4JConfig = null;
+
+    public static void shutOffLog4j() {
+        String oldLocation = System.getProperty(LOG4J_CONFIG_PROPERTY);
+
+        URL log4jConfig = LibraOmni.class.getClassLoader().getResource("META-INF/libraomni-log4j2.xml");
+        if (log4jConfig != null) {
+            System.setProperty(LOG4J_CONFIG_PROPERTY, log4jConfig.toString());
+        } else {
+            System.err.println("LibraOmni failed to fetch log4j NO-OP confing. Log4j errors can be safely ignored, please report this");
+        }
+
+        oldLog4JConfig = oldLocation;
+    }
+
+    public static void restoreLog4j() {
+        if (oldLog4JConfig != null) {
+            System.setProperty(LOG4J_CONFIG_PROPERTY, oldLog4JConfig);
+        } else {
+            System.getProperties().remove(LOG4J_CONFIG_PROPERTY);
+        }
+    }
 
     public static Map<String, Class<?>> compileAndLoad(ProcessingContext context) {
         ProcessingEnvironment processingEnvironment = context.processingEnvironment();
