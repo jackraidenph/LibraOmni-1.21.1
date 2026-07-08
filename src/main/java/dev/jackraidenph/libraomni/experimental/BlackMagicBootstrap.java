@@ -61,11 +61,19 @@ public class BlackMagicBootstrap {
 
         for (String modId : mods) {
             List<Class<?>> modClasses = new ArrayList<>();
-            modLocator.getModClasses(modId).stream().map(classes::get).filter(Objects::nonNull).forEach(modClasses::add);
+            modLocator.getModClasses(modId).stream()
+                    .map(classes::get)
+                    .filter(Objects::nonNull)
+                    .forEach(modClasses::add);
             fakeContainers.add(new FakeModContainer(modId, modClasses));
         }
 
-        List<ModInfo> modInfos = fakeContainers.stream().map(ModContainer::getModInfo).map(i -> (ModInfo) i).collect(Collectors.toList());
+        fakeContainers.addFirst(new FakeModContainer(LibraOmni.MOD_ID, List.of(LibraOmni.class)));
+
+        List<ModInfo> modInfos = fakeContainers.stream()
+                .map(ModContainer::getModInfo)
+                .map(ModInfo.class::cast)
+                .collect(Collectors.toList());
 
         ModList.of(List.of(), modInfos);
         try {
@@ -84,15 +92,11 @@ public class BlackMagicBootstrap {
         Logger messagerLogger = new MessagerLogger(LibraOmni.class, processingEnvironment.getMessager());
         bootstrapLibraOmni(messagerLogger, processingEnvironment.getFiler());
 
-        LibraOmni.LOGGER.warn("Launching Libra Omni in compilation processing stage, GOD BLESS YOUR SOUL");
-        ModContainer libraOmni = new FakeModContainer(LibraOmni.MOD_ID, List.of(LibraOmni.class));
+        LibraOmni.LOGGER.warn("Launching LibraOmni in compilation processing stage, GOD BLESS YOUR SOUL");
 
-        //noinspection InstantiationOfUtilityClass
-        new LibraOmni(libraOmni.getEventBus(), libraOmni);
-
-        fakeContainers.forEach(c -> ((FakeModContainer) c).construct());
-
-        fakeContainers.addFirst(libraOmni);
+        fakeContainers.stream()
+                .map(FakeModContainer.class::cast)
+                .forEach(FakeModContainer::construct);
 
         for (ModContainer container : fakeContainers) {
             executeSyncLifeCycleEvent("Contruct", container, FMLConstructModEvent::new);
