@@ -13,6 +13,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class CompilationTaskProcessor extends AbstractProcessor {
@@ -79,7 +80,12 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             }
 
             if (compilationTask.requiresBlackMagicEnabled() && isBlackMagicAllowed(context) && !BlackMagicBootstrap.isBlackMagicActive()) {
+                stopwatch.start();
                 BlackMagicBootstrap.bootstrapBlackMagic(modIdGetter, context);
+                long elapsedBootstrap = stopwatch.elapsed(TimeUnit.NANOSECONDS);
+                stopwatch.reset();
+                messager.printNote("Bootstrapping Black Magic took %.4f seconds".formatted(elapsedBootstrap / 1_000_000_000.));
+                elapsedTotal += elapsedBootstrap;
             }
 
             stopwatch.start();
