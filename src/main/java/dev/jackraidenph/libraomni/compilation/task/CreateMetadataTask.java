@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.IsRuntimeTask;
+import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
@@ -64,17 +65,19 @@ final class CreateMetadataTask implements CompilationTask {
 
             projectMetadata.getOrCreateModMetadata(modId).addRuntimeTask(name);
         }
+
+        saveMetadataFile(processingContext);
     }
 
-    @Override
-    public void finish(ProcessingContext processingContext) {
+    private void saveMetadataFile(ProcessingContext processingContext) {
         processingContext.resourceManager().save(
                 ResourceIdentifier.builder()
                         .setDirectory(ProjectMetadata.DIRECTORY)
                         .setNameRoot(ProjectMetadata.FILE_ROOT)
                         .setJsonExtension()
                         .build(),
-                projectMetadata
+                projectMetadata,
+                JsonMergeConflictPolicy.PREFER_NEW
         );
     }
 
