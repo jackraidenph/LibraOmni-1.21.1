@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.experimental;
 
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
@@ -11,6 +12,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.DeferredWorkQueue;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -21,8 +23,8 @@ import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.fml.event.lifecycle.ModLifecycleEvent;
 import net.neoforged.fml.loading.LoadingModList;
 import net.neoforged.fml.loading.moddiscovery.ModInfo;
-import net.neoforged.neoforge.registries.GameData;
-import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.registries.*;
 import org.slf4j.Logger;
 
 import javax.annotation.processing.Filer;
@@ -68,7 +70,8 @@ public class BlackMagicBootstrap {
             fakeContainers.add(new FakeModContainer(modId, modClasses));
         }
 
-        fakeContainers.addFirst(new FakeModContainer(LibraOmni.MOD_ID, List.of(LibraOmni.class)));
+        ModContainer libraOmniContainer = new FakeModContainer(LibraOmni.MOD_ID, List.of(LibraOmni.class));
+        fakeContainers.addFirst(libraOmniContainer);
 
         List<ModInfo> modInfos = fakeContainers.stream()
                 .map(ModContainer::getModInfo)
@@ -87,6 +90,27 @@ public class BlackMagicBootstrap {
         LoadingModList.of(List.of(), List.of(), modInfos, List.of(), Map.of());
 
         Bootstrap.bootStrap();
+
+        IEventBus libraOmniEventBus = libraOmniContainer.getEventBus();
+        if (libraOmniEventBus != null) {
+            registerNeoForgeRegistry("ATTRIBUTES", libraOmniEventBus);
+            registerNeoForgeRegistry("COMMAND_ARGUMENT_TYPES", libraOmniEventBus);
+            registerNeoForgeRegistry("BIOME_MODIFIER_SERIALIZERS", libraOmniEventBus);
+            registerNeoForgeRegistry("STRUCTURE_MODIFIER_SERIALIZERS", libraOmniEventBus);
+            registerNeoForgeRegistry("HOLDER_SET_TYPES", libraOmniEventBus);
+            registerNeoForgeRegistry("VANILLA_FLUID_TYPES", libraOmniEventBus);
+            registerNeoForgeRegistry("ENTITY_PREDICATE_CODECS", libraOmniEventBus);
+            registerNeoForgeRegistry("ITEM_SUB_PREDICATES", libraOmniEventBus);
+            registerNeoForgeRegistry("INGREDIENT_TYPES", libraOmniEventBus);
+            registerNeoForgeRegistry("CONDITION_CODECS", libraOmniEventBus);
+            registerNeoForgeRegistry("GLOBAL_LOOT_MODIFIER_SERIALIZERS", libraOmniEventBus);
+
+            NeoForgeRegistriesSetup.setup(libraOmniEventBus);
+            ModifyRegistriesEvent modifyRegistriesEvent = UnsafeReflectionUtil.tryConstruct(ModifyRegistriesEvent.class);
+            NewRegistryEvent newRegistryEvent = UnsafeReflectionUtil.tryConstruct(NewRegistryEvent.class);
+            libraOmniEventBus.post(modifyRegistriesEvent);
+            libraOmniEventBus.post(newRegistryEvent);
+        }
 
         ProcessingEnvironment processingEnvironment = processingContext.processingEnvironment();
         Logger messagerLogger = new MessagerLogger(LibraOmni.class, processingEnvironment.getMessager());
@@ -155,6 +179,17 @@ public class BlackMagicBootstrap {
             filerField.set(null, filer);
         } catch (Exception e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    private static void registerNeoForgeRegistry(String name, IEventBus eventBus) {
+        try {
+            Field field = NeoForgeMod.class.getDeclaredField(name);
+            field.setAccessible(true);
+            DeferredRegister<?> register = (DeferredRegister<?>) field.get(null);
+            register.register(eventBus);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }
