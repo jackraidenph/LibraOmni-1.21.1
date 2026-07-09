@@ -98,6 +98,7 @@ public class BootstrapPlugin implements Plugin<Project> {
             SourceSet main = sourceSets.getByName("main");
 
             javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.CONFIG_OPTION + '=' + extension.annotationProcessorConfiguration);
+            javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.ENABLE_BLACK_MAGIC_OPTION + '=' + extension.blackMagicEnabled);
             javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.CLASSPATH_OPTION + '=' + main.getCompileClasspath().getAsPath());
             javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.SOURCES_OPTION + '=' + main.getJava().getAsPath());
         });
@@ -131,10 +132,6 @@ public class BootstrapPlugin implements Plugin<Project> {
 
     public static class LibraOmniExtension {
         public Map<String, String> annotationProcessorConfiguration = Map.of();
-
-        @Override
-        public String toString() {
-            return annotationProcessorConfiguration.toString();
-        }
+        public boolean blackMagicEnabled = false;
     }
 }
