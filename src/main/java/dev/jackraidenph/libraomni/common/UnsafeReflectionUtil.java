@@ -140,6 +140,7 @@ public class UnsafeReflectionUtil {
 
     public static <T> T getConstructorValue(Constructor<T> constructor, Object... args) {
         try {
+            constructor.setAccessible(true);
             return constructor.newInstance(args);
         } catch (InvocationTargetException e) {
             throw new RuntimeException("There was an exception inside the empty constructor", e);
