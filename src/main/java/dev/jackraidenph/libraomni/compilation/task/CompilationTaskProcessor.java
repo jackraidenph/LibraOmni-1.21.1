@@ -65,13 +65,23 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         }
 
         for (CompilationTask compilationTask : this.tasks) {
-            stopwatch.start();
-
+            String op = finishing ? "Finishing" : "Processing";
             String taskName = compilationTask.getClass().getSimpleName();
 
-            boolean wasOverriden;
+            if (compilationTask.requiresBlackMagicEnabled() && !isBlackMagicAllowed(context)) {
+                messager.printNote("""
+                        %s [%s] denied due to the task requiring black magic, \
+                        but it's disabled. If you want it to work, \
+                        enable it in the Gradle plugin.
+                        """.formatted(op, taskName));
+                continue;
+            }
+
+            stopwatch.start();
+
+            boolean executed;
             try {
-                wasOverriden = compilationTask.processStage(context);
+                executed = compilationTask.processStage(context);
             } catch (Exception e) {
                 printStackTrace(e);
                 throw new RuntimeException("Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()), e);
@@ -81,9 +91,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             elapsedTotal += elapsed;
             stopwatch.reset();
 
-            if (wasOverriden) {
-                String op = finishing ? "Finishing" : "Processing";
-                messager.printNote(op + "[%s] took %.4f seconds".formatted(taskName, elapsed / 1_000_000_000.));
+            if (executed) {
+                messager.printNote("%s [%s] took %.4f seconds".formatted(op, taskName, elapsed / 1_000_000_000.));
             }
         }
 
@@ -95,6 +104,21 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
         this.round++;
         return false;
+    }
+
+    private static boolean isBlackMagicAllowed(ProcessingContext processingContext) {
+        ProcessingEnvironment environment = processingContext.processingEnvironment();
+        Map<String, String> options = environment.getOptions();
+        String blackMagicAllowedStr = options.get(AnnotationProcessorConstants.ENABLE_BLACK_MAGIC_OPTION);
+        if (blackMagicAllowedStr == null) {
+            return false;
+        }
+
+        try {
+            return Boolean.parseBoolean(blackMagicAllowedStr);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void printStackTrace(Throwable throwable) {
@@ -116,7 +140,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
                 AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION,
                 AnnotationProcessorConstants.SOURCES_OPTION,
                 AnnotationProcessorConstants.CLASSPATH_OPTION,
-                AnnotationProcessorConstants.CONFIG_OPTION
+                AnnotationProcessorConstants.CONFIG_OPTION,
+                AnnotationProcessorConstants.ENABLE_BLACK_MAGIC_OPTION
         );
     }
 

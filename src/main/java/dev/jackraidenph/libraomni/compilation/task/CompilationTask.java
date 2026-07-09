@@ -41,4 +41,8 @@ interface CompilationTask {
     default Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of();
     }
+
+    default boolean requiresBlackMagicEnabled() {
+        return false;
+    }
 }
