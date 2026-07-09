@@ -47,6 +47,7 @@ fun date(): String {
 base {
     archivesName.set(modId)
     version = modVersion
+    group = modGroup
 }
 
 listOf("jar").forEach { taskName ->
