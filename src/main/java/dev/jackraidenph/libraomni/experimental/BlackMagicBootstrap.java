@@ -116,7 +116,7 @@ public class BlackMagicBootstrap {
         Logger messagerLogger = new MessagerLogger(LibraOmni.class, processingEnvironment.getMessager());
         bootstrapLibraOmni(messagerLogger, processingEnvironment.getFiler());
 
-        LibraOmni.LOGGER.warn("Launching LibraOmni in compilation processing stage, GOD BLESS YOUR SOUL");
+        LibraOmni.LOGGER.warn("Launching LibraOmni in compilation processing mode, best of luck");
 
         fakeContainers.stream()
                 .map(FakeModContainer.class::cast)
