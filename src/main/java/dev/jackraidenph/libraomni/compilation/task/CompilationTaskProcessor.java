@@ -5,6 +5,7 @@ import dev.jackraidenph.libraomni.annotation.meta.ModPackage;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.experimental.BlackMagicBootstrap;
 import dev.jackraidenph.libraomni.experimental.BlackMagicUtil;
 
 import javax.annotation.processing.*;
@@ -75,6 +76,10 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
                         enable it in the Gradle plugin.
                         """.formatted(op, taskName));
                 continue;
+            }
+
+            if (compilationTask.requiresBlackMagicEnabled() && isBlackMagicAllowed(context) && !BlackMagicBootstrap.isBlackMagicActive()) {
+                BlackMagicBootstrap.bootstrapBlackMagic(modIdGetter, context);
             }
 
             stopwatch.start();
