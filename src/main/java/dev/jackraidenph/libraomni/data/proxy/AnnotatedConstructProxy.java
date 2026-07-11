@@ -14,13 +14,13 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedConstruct> {
+public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstruct> {
 
     private final AnnotatedConstructCache cache;
     private final Elements elementUtils;
     private final ModIdGetter modIdGetter;
 
-    public AnnotatedConstructInvocationHandler(AnnotatedConstruct original, Elements elements, ModIdGetter modIdGetter) {
+    public AnnotatedConstructProxy(AnnotatedConstruct original, Elements elements, ModIdGetter modIdGetter) {
         super(original);
         elementUtils = elements;
         this.modIdGetter = modIdGetter;
@@ -31,7 +31,7 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
         if (ProxyFactory.ONLY_DIRECT.contains(clazz)) {
             //noinspection unchecked
             A[] arr = (A[]) Array.newInstance(clazz, 1);
-            arr[0] = original.getAnnotation(clazz);
+            arr[0] = proxiedObject.getAnnotation(clazz);
             return arr;
         }
         List<Annotation> annotations = cache.annotationMap.get(clazz);
@@ -50,7 +50,7 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
             return null;
         }
         if (arr.length > 1) {
-            throw new UnsupportedOperationException("Please use #get(Declared)AnnotationsByType to get multiple instances of a @Repeatable annotation [%s], from element [%s]".formatted(clazz, original));
+            throw new UnsupportedOperationException("Please use #get(Declared)AnnotationsByType to get multiple instances of a @Repeatable annotation [%s], from element [%s]".formatted(clazz, proxiedObject));
         }
         return arr[0];
     }
@@ -75,7 +75,7 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
         protected final Map<Class<? extends Annotation>, List<Annotation>> annotationMap = new HashMap<>();
 
         private AnnotatedConstructCache() {
-            cacheRecursive(original);
+            cacheRecursive(proxiedObject);
         }
 
         private void cacheRecursive(AnnotatedConstruct original) {
@@ -84,7 +84,7 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
             }
         }
 
-        private void cacheStep(AnnotationMirror currentMirror, int inContainerIndex, DelegateContainer delegates, AnnotatedConstruct construct) {
+        private void cacheStep(AnnotationMirror currentMirror, int inContainerIndex, AttributeReplacements delegates, AnnotatedConstruct construct) {
             TypeElement currentElement;
             if (AnnotationMirrorUtil.isRepeatableContainer(currentMirror)) {
                 //If current AnnotationMirror is a container for @Repeatable annotations - ignore it, unwrap its contents and continue with them
@@ -125,7 +125,7 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
             }
         }
 
-        private DelegateContainer fromMeta(AnnotationMirror current, AnnotationMirror meta, DelegateContainer context) {
+        private AttributeReplacements fromMeta(AnnotationMirror current, AnnotationMirror meta, AttributeReplacements context) {
             String childName = AnnotationMirrorUtil.toTypeElement(meta).getQualifiedName().toString();
             return ProxyFactory.mapDelegatesFromAnnotationMirror(elementUtils, childName, current, context);
         }
@@ -148,13 +148,13 @@ public class AnnotatedConstructInvocationHandler extends ObjectPreservingInvocat
             return typeElement;
         }
 
-        private void addAnnotation(DelegateContainer delegates, Annotation annotation) {
+        private void addAnnotation(AttributeReplacements delegates, Annotation annotation) {
             if (ProxyFactory.ONLY_DIRECT.contains(annotation.annotationType())) {
                 return;
             }
 
             boolean delegated = delegates != null && !delegates.isEmpty();
-            Annotation proxyOrSelf = delegated ? ProxyFactory.proxifyAnnotation(annotation, delegates, original, modIdGetter) : annotation;
+            Annotation proxyOrSelf = delegated ? ProxyFactory.makeAnnotationProxy(annotation, delegates, proxiedObject, modIdGetter) : annotation;
             List<Annotation> annotations = annotationMap.computeIfAbsent(annotation.annotationType(), k -> new ArrayList<>());
             annotations.add(proxyOrSelf);
         }

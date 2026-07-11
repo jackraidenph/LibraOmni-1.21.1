@@ -195,7 +195,7 @@ public class SafeReflectionUtil {
     }
 
     public static String idOrDefault(AnnotatedElement element) {
-        return idOrDefault(ProxyFactory.proxifyAnnotatedElementIfNotProxy(element, null));
+        return idOrDefault(ProxyFactory.tryMakeAnnotatedElementProxy(element, null));
     }
 
     public static DeferredHolder<?, ?> tryCastToDeferredHolder(AnnotatedElement element) {

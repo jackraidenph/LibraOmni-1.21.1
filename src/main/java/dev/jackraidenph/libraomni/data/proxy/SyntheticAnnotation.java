@@ -9,12 +9,12 @@ import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Objects;
 
-public class ValueAnnotationInvocationHandler implements InvocationHandler, Annotation {
+public class SyntheticAnnotation<T extends Annotation> implements InvocationHandler, Annotation {
 
-    private final Class<? extends Annotation> type;
+    private final Class<T> type;
     private final Map<String, Object> attributes;
 
-    public ValueAnnotationInvocationHandler(Class<? extends Annotation> type, Map<String, Object> attributes) {
+    public SyntheticAnnotation(Class<T> type, Map<String, Object> attributes) {
         for (Method m : type.getDeclaredMethods()) {
             int mods = m.getModifiers();
             if (!Modifier.isAbstract(mods) || m.isDefault()) {
@@ -27,6 +27,10 @@ public class ValueAnnotationInvocationHandler implements InvocationHandler, Anno
         }
         this.type = type;
         this.attributes = attributes;
+    }
+
+    public static <T extends Annotation> T create(Class<? extends T> type, Map<String, Object> attributeValues) {
+        return ProxyFactory.makeValueAnnotation(type, attributeValues);
     }
 
     @Override

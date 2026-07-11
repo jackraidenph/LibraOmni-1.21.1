@@ -5,10 +5,10 @@ import java.util.function.Function;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Delegate {
-    Class<? extends Annotation> annotation();
-
+public @interface Replaces {
     String attribute();
+
+    Class<? extends Annotation> in();
 
     Class<? extends Function<Object, Object>> transformer() default NoOpTransformer.class;
 

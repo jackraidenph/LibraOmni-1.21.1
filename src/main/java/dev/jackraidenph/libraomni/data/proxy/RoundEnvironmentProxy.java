@@ -11,19 +11,19 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class RoundEnvironmentInvocationHandler extends ObjectPreservingInvocationHandler<RoundEnvironment> {
+public class RoundEnvironmentProxy extends AbstractObjectProxy<RoundEnvironment> {
 
     private final Set<Element> proxiedRootElements = new HashSet<>();
     private final Elements elementUtils;
     private final ModIdGetter modIdGetter;
     private final Map<String, Set<? extends Element>> scannedElementsCacheByAnnotation = new HashMap<>();
 
-    public RoundEnvironmentInvocationHandler(RoundEnvironment original, ProcessingEnvironment processingEnvironment, ModIdGetter modIdGetter) {
+    public RoundEnvironmentProxy(RoundEnvironment original, ProcessingEnvironment processingEnvironment, ModIdGetter modIdGetter) {
         super(original);
         this.elementUtils = processingEnvironment.getElementUtils();
         this.modIdGetter = modIdGetter;
         for (Element e : original.getRootElements()) {
-            Element proxy = (Element) ProxyFactory.proxifyAnnotatedConstructIfNotProxy(e, elementUtils, modIdGetter);
+            Element proxy = (Element) ProxyFactory.tryMakeAnnotatedConstructProxy(e, elementUtils, modIdGetter);
             proxiedRootElements.add(proxy);
         }
     }

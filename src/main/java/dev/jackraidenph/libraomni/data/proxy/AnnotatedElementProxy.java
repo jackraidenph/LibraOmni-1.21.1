@@ -11,12 +11,12 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocationHandler<AnnotatedElement> implements ProxyAnnotatedElement {
+public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement> implements ProxyAnnotatedElement {
 
     private final AnnotatedElementCache cache;
     private final ModMetadataReader modMetadataReader;
 
-    public AnnotatedElementInvocationHandler(AnnotatedElement original, ModMetadataReader modMetadataReader) {
+    public AnnotatedElementProxy(AnnotatedElement original, ModMetadataReader modMetadataReader) {
         super(original);
         this.cache = new AnnotatedElementCache();
         this.modMetadataReader = modMetadataReader;
@@ -24,7 +24,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
 
     @Override
     public AnnotatedElement original() {
-        return original;
+        return proxiedObject;
     }
 
     public <T extends Annotation> T getAnnotationFrom(@NotNull Class<T> annotationClass, Map<Class<? extends Annotation>, List<Annotation>> map) {
@@ -50,7 +50,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
     public <T extends Annotation> T getAnnotation(@NotNull Class<T> annotationClass) {
         //Do not use computed cache for special-case service meta-annotations
         if (ProxyFactory.ONLY_DIRECT.contains(annotationClass)) {
-            return original.getAnnotation(annotationClass);
+            return proxiedObject.getAnnotation(annotationClass);
         }
         return getAnnotationFrom(annotationClass, cache.annotations);
     }
@@ -59,7 +59,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
     public <T extends Annotation> T getDeclaredAnnotation(@NotNull Class<T> annotationClass) {
         //Do not use computed cache for special-case service meta-annotations
         if (ProxyFactory.ONLY_DIRECT.contains(annotationClass)) {
-            return original.getDeclaredAnnotation(annotationClass);
+            return proxiedObject.getDeclaredAnnotation(annotationClass);
         }
         return getAnnotationFrom(annotationClass, cache.declaredAnnotations);
     }
@@ -99,7 +99,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
         private final Map<Class<? extends Annotation>, List<Annotation>> declaredAnnotations = new HashMap<>();
 
         private AnnotatedElementCache() {
-            AnnotatedElement element = original;
+            AnnotatedElement element = proxiedObject;
             //Cache directly accessible
             cacheRecursive(element.getAnnotations(), annotations, false);
             //Cache declared
@@ -109,8 +109,8 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
         private void cacheRecursive(Annotation[] rootAnnotations, Map<Class<? extends Annotation>, List<Annotation>> addTo, boolean declared) {
             for (Annotation annotation : rootAnnotations) {
                 //No need to proxify first-level annotations, because they can't possibly have a parent annotation, unless the parent element itself is an annotation
-                Annotation selfOrProxy = original instanceof Annotation parent
-                        ? ProxyFactory.proxifyAnnotation(annotation, parent, original, modMetadataReader)
+                Annotation selfOrProxy = proxiedObject instanceof Annotation parent
+                        ? ProxyFactory.makeAnnotationProxy(annotation, parent, proxiedObject, modMetadataReader)
                         : annotation;
                 cacheStep(selfOrProxy, addTo, declared);
             }
@@ -141,7 +141,7 @@ public class AnnotatedElementInvocationHandler extends ObjectPreservingInvocatio
                 }
 
                 cacheStep(
-                        ProxyFactory.proxifyAnnotation(metaAnnotation, currentAnnotation, original, modMetadataReader),
+                        ProxyFactory.makeAnnotationProxy(metaAnnotation, currentAnnotation, proxiedObject, modMetadataReader),
                         addTo,
                         declared
                 );

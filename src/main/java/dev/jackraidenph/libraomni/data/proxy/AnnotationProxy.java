@@ -15,19 +15,19 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvocationHandler<Annotation> {
+public class AnnotationProxy extends AbstractObjectProxy<Annotation> {
 
-    private final DelegateContainer delegateContainer;
+    private final AttributeReplacements delegateContainer;
     private final Object annotated;
     private final ModIdGetter modIdGetter;
     private final ModMetadataReader modMetadataReader;
 
-    public DelegatingAnnotationInvocationHandler(Annotation original, DelegateContainer delegateContainer, Object annotated, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
+    public AnnotationProxy(Annotation original, AttributeReplacements delegateContainer, Object annotated, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
         super(original);
-        Set<String> nonExistent = delegateContainer.nonExistentMethods(original);
+        Set<String> nonExistent = delegateContainer.getNonCommonMethods(original);
         if (!nonExistent.isEmpty()) {
             throw new IllegalStateException("Can't delegate methods %s from [%s] that don't exist in [%s]"
-                    .formatted(nonExistent, delegateContainer.getDelegatorBinaryName(), original));
+                    .formatted(nonExistent, delegateContainer.getParentAnotationBinaryName(), original));
         }
         this.delegateContainer = delegateContainer;
         this.annotated = annotated;
@@ -48,13 +48,13 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
             return toStringProxy((Annotation) proxy);
         }
 
-        if (!delegateContainer.hasDelegateFor(name)) {
+        if (!delegateContainer.hasReplacementFor(name)) {
             Object value = super.invoke(proxy, method, args);
             return tryReplacePlaceholdersIfString(value);
         }
 
-        Object val = delegateContainer.getDelegatedValue(name);
-        Object transformed = delegateContainer.getTransformedValue(name);
+        Object val = delegateContainer.getReplacementValue(name);
+        Object transformed = delegateContainer.getTransformedReplacementValue(name);
         if (!val.equals(transformed)) {
             Class<?> oldReturnType = method.getReturnType();
             Class<?> newReturnType = (transformed instanceof Annotation annotation) ? annotation.annotationType() : transformed.getClass();
@@ -62,7 +62,7 @@ public class DelegatingAnnotationInvocationHandler extends ObjectPreservingInvoc
                 throw new IllegalStateException("Couldn't transform value [%s] of [%s], value of type [%s] is not applicable to [%s] "
                         .formatted(
                                 name,
-                                original.annotationType(),
+                                proxiedObject.annotationType(),
                                 newReturnType.getName(),
                                 oldReturnType.getName()
                         ));

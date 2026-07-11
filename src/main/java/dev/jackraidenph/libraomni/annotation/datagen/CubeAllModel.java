@@ -2,9 +2,9 @@ package dev.jackraidenph.libraomni.annotation.datagen;
 
 import dev.jackraidenph.libraomni.annotation.info.GeneratesFiles;
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
-import dev.jackraidenph.libraomni.annotation.meta.Delegate;
+import dev.jackraidenph.libraomni.annotation.meta.Replaces;
 import dev.jackraidenph.libraomni.annotation.value.StringPair;
-import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.data.proxy.SyntheticAnnotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -21,13 +21,13 @@ import java.util.function.Function;
 @Composed
 public @interface CubeAllModel {
 
-    @Delegate(annotation = ArbitraryBlockModelData.class, attribute = "value", transformer = StringToAllTextureTransformer.class)
+    @Replaces(in = ArbitraryBlockModelData.class, attribute = "value", transformer = StringToAllTextureTransformer.class)
     String value() default "";
 
     class StringToAllTextureTransformer implements Function<Object, Object> {
         @Override
         public StringPair apply(Object string) {
-            return ProxyFactory.makeValueAnnotation(StringPair.class, Map.of("key", "all", "value", string));
+            return SyntheticAnnotation.create(StringPair.class, Map.of("key", "all", "value", string));
         }
     }
 }

@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
-import dev.jackraidenph.libraomni.annotation.meta.Delegate;
+import dev.jackraidenph.libraomni.annotation.meta.Replaces;
 import dev.jackraidenph.libraomni.annotation.meta.Id;
 
 import java.lang.annotation.ElementType;
@@ -15,6 +15,6 @@ import java.lang.annotation.Target;
 @Id
 public @interface Registered {
 
-    @Delegate(annotation = Id.class, attribute = "value")
+    @Replaces(in = Id.class, attribute = "value")
     String value() default "";
 }
