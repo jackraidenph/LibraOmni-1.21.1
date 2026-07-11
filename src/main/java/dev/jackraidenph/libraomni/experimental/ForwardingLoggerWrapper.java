@@ -12,7 +12,7 @@ public class ForwardingLoggerWrapper implements LoggerWrapper {
     private Logger logger;
 
     private ForwardingLoggerWrapper(Logger logger) {
-        setLogger(logger);
+        this.logger = logger;
     }
 
     @Override
