@@ -80,39 +80,34 @@ public class AttributeReplacements {
         return clazz;
     }
 
-    private TypeMirror getTransformerTypeMirror(String attributeName) {
+    private Class<? extends Function<Object, Object>> getTransformerClass(String attributeName) {
         Replaces annotation = getReplacementAnnotation(attributeName);
         if (annotation == null) {
             throw new IllegalStateException("@%s annotation not found for attribute [%s]".formatted(Replaces.class.getSimpleName(), attributeName));
         }
 
+        Class<? extends Function<Object, Object>> transformerClazz;
         try {
-            Class<? extends Function<Object, Object>> transformerType = annotation.transformer();
+            transformerClazz = annotation.transformer();
+            return transformerClazz;
         } catch (MirroredTypeException mirroredTypeException) {
-            return mirroredTypeException.getTypeMirror();
-        }
-
-        throw new IllegalStateException();
-    }
-
-    private Class<? extends Function<Object, Object>> getTransformerClass(TypeMirror typeMirror) {
-        //noinspection unchecked
-        Class<? extends Function<Object, Object>> transformerType = (Class<? extends Function<Object, Object>>) tryGetClass(typeMirror);
-        if (transformerType == null) {
-            throw new IllegalArgumentException("""
+            TypeMirror typeMirror = mirroredTypeException.getTypeMirror();
+            //noinspection unchecked
+            transformerClazz = (Class<? extends Function<Object, Object>>) tryGetClass(typeMirror);
+            if (transformerClazz == null) {
+                throw new IllegalArgumentException("""
                     Transformer class [%s] not found.
                     Most probably, you are trying to use custom transformer implementation
                     for a compile-time annotation.
                     This won't work, your transformer is not yet compiled.
                     """.formatted(typeMirror.toString()));
+            }
+            return transformerClazz;
         }
-
-        return transformerType;
     }
 
     private Function<Object, Object> constructTransformerInstance(String attributeName) {
-        TypeMirror typeMirror = getTransformerTypeMirror(attributeName);
-        Class<? extends Function<Object, Object>> trasnformerClass = getTransformerClass(typeMirror);
+        Class<? extends Function<Object, Object>> trasnformerClass = getTransformerClass(attributeName);
         return UnsafeReflectionUtil.tryConstruct(trasnformerClass);
     }
 
@@ -122,8 +117,8 @@ public class AttributeReplacements {
             return null;
         }
 
-        String transformerName = getTransformerTypeMirror(attributeName).toString();
-        if (transformerName.equals(NoOpTransformer.class.getCanonicalName())) {
+        String transformerName = getTransformerClass(attributeName).getName();
+        if (transformerName.equals(NoOpTransformer.class.getName())) {
             return oldVal;
         }
 
