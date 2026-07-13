@@ -21,6 +21,10 @@ public class SafeReflectionUtil {
     }
 
     public static Class<?>[] inferTypes(Object... objects) {
+        if (objects == null) {
+            return new Class[0];
+        }
+
         Class<?>[] typesArray = new Class[objects.length];
         for (int i = 0; i < objects.length; i++) {
             typesArray[i] = objects[i].getClass();
