@@ -108,6 +108,7 @@ public class UnsafeReflectionUtil {
             if (context == null && !Modifier.isStatic(method.getModifiers())) {
                 throw new IllegalArgumentException("Trying to get value statically from a non-static method [%s]".formatted(method.getName()));
             }
+            method.setAccessible(true);
 
             //noinspection unchecked
             return (T) method.invoke(context, args);
