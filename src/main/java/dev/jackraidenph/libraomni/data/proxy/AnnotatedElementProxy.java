@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
+import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import org.jetbrains.annotations.NotNull;
@@ -8,26 +9,25 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Repeatable;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
 import java.util.*;
 
-public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement> implements ProxyAnnotatedElement {
+public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement> {
 
     private final AnnotatedElementCache cache;
     private final ModMetadataReader modMetadataReader;
 
-    public AnnotatedElementProxy(AnnotatedElement original, ModMetadataReader modMetadataReader) {
-        super(original);
+    public AnnotatedElementProxy(AnnotatedElement proxiedObject, ModMetadataReader modMetadataReader) {
+        super(proxiedObject);
         this.cache = new AnnotatedElementCache();
         this.modMetadataReader = modMetadataReader;
     }
 
-    @Override
-    public AnnotatedElement original() {
+    @InterceptorFor("proxiedElement")
+    private AnnotatedElement proxiedElement() {
         return proxiedObject;
     }
 
-    public <T extends Annotation> T getAnnotationFrom(@NotNull Class<T> annotationClass, Map<Class<? extends Annotation>, List<Annotation>> map) {
+    private <T extends Annotation> T getAnnotationFrom(@NotNull Class<T> annotationClass, Map<Class<? extends Annotation>, List<Annotation>> map) {
         if (SafeReflectionUtil.isRepeatableContainer(annotationClass)) {
             throw new UnsupportedOperationException("Repeatable annotation containers are not supported for proxified annotations, please use #get(Declared)AnnotationsByType");
         }
@@ -44,10 +44,8 @@ public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement>
         return annotationClass.cast(byClass.getFirst());
     }
 
-    /// OVERRIDES
-
-    @Override
-    public <T extends Annotation> T getAnnotation(@NotNull Class<T> annotationClass) {
+    @InterceptorFor("getAnnotation")
+    private <T extends Annotation> T getAnnotation(@NotNull Class<T> annotationClass) {
         //Do not use computed cache for special-case service meta-annotations
         if (ProxyFactory.ONLY_DIRECT.contains(annotationClass)) {
             return proxiedObject.getAnnotation(annotationClass);
@@ -55,8 +53,8 @@ public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement>
         return getAnnotationFrom(annotationClass, cache.annotations);
     }
 
-    @Override
-    public <T extends Annotation> T getDeclaredAnnotation(@NotNull Class<T> annotationClass) {
+    @InterceptorFor("getDeclaredAnnotation")
+    private <T extends Annotation> T getDeclaredAnnotation(@NotNull Class<T> annotationClass) {
         //Do not use computed cache for special-case service meta-annotations
         if (ProxyFactory.ONLY_DIRECT.contains(annotationClass)) {
             return proxiedObject.getDeclaredAnnotation(annotationClass);
@@ -64,31 +62,38 @@ public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement>
         return getAnnotationFrom(annotationClass, cache.declaredAnnotations);
     }
 
-    @Override
-    public @NotNull Annotation[] getAnnotations() {
+    @InterceptorFor("getAnnotations")
+    private @NotNull Annotation[] getAnnotations() {
         return cache.annotations.values().stream().flatMap(List::stream).toArray(Annotation[]::new);
     }
 
-    @Override
-    public @NotNull Annotation[] getDeclaredAnnotations() {
+    @InterceptorFor("getDeclaredAnnotations")
+    private @NotNull Annotation[] getDeclaredAnnotations() {
         return cache.declaredAnnotations.values().stream().flatMap(List::stream).toArray(Annotation[]::new);
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) {
-        String name = method.getName();
-        return switch (name) {
-            case "isAnnotationPresent" -> isAnnotationPresent((Class<? extends Annotation>) args[0]);
-            case "getAnnotation" -> getAnnotation((Class<? extends Annotation>) args[0]);
-            case "getAnnotations" -> getAnnotations();
-            case "getAnnotationsByType" -> getAnnotationsByType((Class<? extends Annotation>) args[0]);
-            case "getDeclaredAnnotation" -> getDeclaredAnnotation((Class<? extends Annotation>) args[0]);
-            case "getDeclaredAnnotationsByType" -> getDeclaredAnnotationsByType((Class<? extends Annotation>) args[0]);
-            case "getDeclaredAnnotations" -> getDeclaredAnnotations();
-            case "original" -> original();
-            default -> super.invoke(proxy, method, args);
-        };
+    @InterceptorFor("isAnnotationPresent")
+    private boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+        return getAnnotation(annotationClass) != null;
+    }
+
+    private static <T extends Annotation> T[] getAnnotationsFrom(Class<T> annotationClass, Map<Class<? extends Annotation>, List<Annotation>> map) {
+        List<Annotation> annotations = map.entrySet().stream()
+                .filter(e -> e.getKey().equals(annotationClass))
+                .flatMap(e -> e.getValue().stream())
+                .toList();
+        T[] arr = SafeReflectionUtil.genericArray(annotationClass, annotations.size());
+        return annotations.toArray(arr);
+    }
+
+    @InterceptorFor("getAnnotationsByType")
+    private <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
+        return getAnnotationsFrom(annotationClass, cache.annotations);
+    }
+
+    @InterceptorFor("getDeclaredAnnotationsByType")
+    private <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
+        return getAnnotationsFrom(annotationClass, cache.declaredAnnotations);
     }
 
     /// CACHE IMPL

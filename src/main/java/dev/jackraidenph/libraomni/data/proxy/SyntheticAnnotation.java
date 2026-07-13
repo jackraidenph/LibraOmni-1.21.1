@@ -1,20 +1,21 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
+import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Objects;
 
-public class SyntheticAnnotation<T extends Annotation> implements InvocationHandler, Annotation {
+public class SyntheticAnnotation<T extends Annotation> extends AbstractInterceptorProxy {
 
     private final Class<T> type;
     private final Map<String, Object> attributes;
 
     public SyntheticAnnotation(Class<T> type, Map<String, Object> attributes) {
+        super();
         for (Method m : type.getDeclaredMethods()) {
             int mods = m.getModifiers();
             if (!Modifier.isAbstract(mods) || m.isDefault()) {
@@ -22,7 +23,7 @@ public class SyntheticAnnotation<T extends Annotation> implements InvocationHand
             }
             String mName = m.getName();
             if (!attributes.containsKey(mName)) {
-                throw new IllegalArgumentException("Failed to create value annotation for type [%s], method [%s] is not filled".formatted(type, mName));
+                throw new IllegalArgumentException("Failed to create value annotation for type [%s], attribute [%s] is not filled".formatted(type, mName));
             }
         }
         this.type = type;
@@ -35,23 +36,11 @@ public class SyntheticAnnotation<T extends Annotation> implements InvocationHand
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
-        String name = method.getName();
-
-        switch (name) {
-            case "toString" -> {
-                return toString();
-            }
-            case "hashCode" -> {
-                return hashCode();
-            }
-            case "equals" -> {
-                return equals(args[0]);
-            }
-            case "annotationType" -> {
-                return annotationType();
-            }
+        if (hasInterceptorsFor(method)) {
+            return super.invoke(proxy, method, args);
         }
 
+        String name = method.getName();
         Object val = attributes.get(name);
         if (val != null) {
             return val;
@@ -60,17 +49,19 @@ public class SyntheticAnnotation<T extends Annotation> implements InvocationHand
         return method.getDefaultValue();
     }
 
-    @Override
+    @InterceptorFor("annotationType")
     public Class<? extends Annotation> annotationType() {
         return this.type;
     }
 
     @Override
+    @InterceptorFor("toString")
     public String toString() {
         return "ValueProxy@" + type.getName() + attributes.toString();
     }
 
     @Override
+    @InterceptorFor("equals")
     public boolean equals(Object obj) {
         if (!(obj instanceof Annotation annotation)) {
             return false;
@@ -92,6 +83,7 @@ public class SyntheticAnnotation<T extends Annotation> implements InvocationHand
     }
 
     @Override
+    @InterceptorFor("hashCode")
     public int hashCode() {
         return Objects.hash(type, attributes);
     }

@@ -17,19 +17,19 @@ import java.util.stream.Collectors;
 
 public class AnnotationProxy extends AbstractObjectProxy<Annotation> {
 
-    private final AttributeReplacements delegateContainer;
+    private final AttributeReplacements attributeReplacements;
     private final Object annotated;
     private final ModIdGetter modIdGetter;
     private final ModMetadataReader modMetadataReader;
 
-    public AnnotationProxy(Annotation original, AttributeReplacements delegateContainer, Object annotated, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
-        super(original);
-        Set<String> nonExistent = delegateContainer.getNonCommonMethods(original);
+    public AnnotationProxy(Annotation proxiedObject, AttributeReplacements attributeReplacements, Object annotated, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
+        super(proxiedObject);
+        Set<String> nonExistent = attributeReplacements.getNonCommonMethods(proxiedObject);
         if (!nonExistent.isEmpty()) {
             throw new IllegalStateException("Can't delegate methods %s from [%s] that don't exist in [%s]"
-                    .formatted(nonExistent, delegateContainer.getParentAnotationBinaryName(), original));
+                    .formatted(nonExistent, attributeReplacements.getParentAnotationBinaryName(), proxiedObject));
         }
-        this.delegateContainer = delegateContainer;
+        this.attributeReplacements = attributeReplacements;
         this.annotated = annotated;
         this.modIdGetter = modIdGetter;
         this.modMetadataReader = modMetadataReader;
@@ -48,16 +48,16 @@ public class AnnotationProxy extends AbstractObjectProxy<Annotation> {
             return toStringProxy((Annotation) proxy);
         }
 
-        if (!delegateContainer.hasReplacementFor(name)) {
+        if (!attributeReplacements.hasReplacementFor(name)) {
             Object value = super.invoke(proxy, method, args);
             return tryReplacePlaceholdersIfString(value);
         }
 
-        Object val = delegateContainer.getReplacementValue(name);
-        Object transformed = delegateContainer.getTransformedReplacementValue(name);
-        if (!val.equals(transformed)) {
+        Object replacementValue = attributeReplacements.getReplacementValue(name);
+        Object transformedReplacementValue = attributeReplacements.getTransformedReplacementValue(name);
+        if (!replacementValue.equals(transformedReplacementValue)) {
             Class<?> oldReturnType = method.getReturnType();
-            Class<?> newReturnType = (transformed instanceof Annotation annotation) ? annotation.annotationType() : transformed.getClass();
+            Class<?> newReturnType = (transformedReplacementValue instanceof Annotation annotation) ? annotation.annotationType() : transformedReplacementValue.getClass();
             if (!checkReturnType(oldReturnType, newReturnType)) {
                 throw new IllegalStateException("Couldn't transform value [%s] of [%s], value of type [%s] is not applicable to [%s] "
                         .formatted(
@@ -69,8 +69,8 @@ public class AnnotationProxy extends AbstractObjectProxy<Annotation> {
             }
         }
 
-        transformed = tryReplacePlaceholdersIfString(transformed);
-        return SafeReflectionUtil.selfOrSingletonArray(method.getReturnType(), transformed);
+        transformedReplacementValue = tryReplacePlaceholdersIfString(transformedReplacementValue);
+        return SafeReflectionUtil.selfOrSingletonArray(method.getReturnType(), transformedReplacementValue);
     }
 
     private Object tryReplacePlaceholdersIfString(Object value) {
@@ -80,14 +80,12 @@ public class AnnotationProxy extends AbstractObjectProxy<Annotation> {
 
         str = str.replace("{mod_id}", getModId());
 
-        String id;
-        if (annotated instanceof AnnotatedElement annotatedElement) {
-            id = SafeReflectionUtil.idOrDefault(annotatedElement);
-        } else if (annotated instanceof Element annotatedConstruct) {
-            id = ModIdGetter.getElementId(annotatedConstruct);
-        } else {
-            throw new IllegalStateException("Object is not either of AnnotatedElement or AnnotatedConstruct, this shouldn't be possible?");
-        }
+        String id = switch (annotated) {
+            case AnnotatedElement annotatedElement -> SafeReflectionUtil.idOrDefault(annotatedElement);
+            case Element annotatedConstruct -> ModIdGetter.getElementId(annotatedConstruct);
+            default ->
+                    throw new IllegalStateException("Object is not either of AnnotatedElement or AnnotatedConstruct, this shouldn't be possible?");
+        };
 
         str = str.replace("{element_id}", id);
 

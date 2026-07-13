@@ -2,19 +2,24 @@ package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
-public abstract class AbstractObjectProxy<T> implements InvocationHandler {
+public abstract class AbstractObjectProxy<T> extends AbstractInterceptorProxy {
 
     protected final T proxiedObject;
 
-    public AbstractObjectProxy(T proxiedObject) {
+    protected AbstractObjectProxy(T proxiedObject) {
+        super();
         this.proxiedObject = proxiedObject;
     }
 
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
+        if (hasInterceptorsFor(method)) {
+            return super.invoke(proxy, method, args);
+        }
+
         return UnsafeReflectionUtil.getMethodValue(method, proxiedObject, args);
     }
 }

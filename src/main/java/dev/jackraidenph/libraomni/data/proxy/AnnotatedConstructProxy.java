@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Composed;
+import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
@@ -11,7 +12,6 @@ import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Repeatable;
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstruct> {
@@ -20,14 +20,15 @@ public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstr
     private final Elements elementUtils;
     private final ModIdGetter modIdGetter;
 
-    public AnnotatedConstructProxy(AnnotatedConstruct original, Elements elements, ModIdGetter modIdGetter) {
-        super(original);
+    public AnnotatedConstructProxy(AnnotatedConstruct proxiedObject, Elements elements, ModIdGetter modIdGetter) {
+        super(proxiedObject);
         elementUtils = elements;
         this.modIdGetter = modIdGetter;
         this.cache = new AnnotatedConstructCache();
     }
 
-    private <A extends Annotation> A[] getAnnotationsByTypeProxy(Class<A> clazz) {
+    @InterceptorFor("getAnnotationsByType")
+    private <A extends Annotation> A[] getAnnotationsByType(Class<A> clazz) {
         if (ProxyFactory.ONLY_DIRECT.contains(clazz)) {
             //noinspection unchecked
             A[] arr = (A[]) Array.newInstance(clazz, 1);
@@ -44,28 +45,21 @@ public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstr
         return (A[]) Array.newInstance(clazz, 0);
     }
 
-    private <A extends Annotation> A getAnnotationProxy(Class<A> clazz) {
-        A[] arr = getAnnotationsByTypeProxy(clazz);
+    @InterceptorFor("getAnnotation")
+    private <A extends Annotation> A getAnnotation(Class<A> clazz) {
+        A[] arr = getAnnotationsByType(clazz);
         if (arr.length == 0) {
             return null;
         }
         if (arr.length > 1) {
-            throw new UnsupportedOperationException("Please use #get(Declared)AnnotationsByType to get multiple instances of a @Repeatable annotation [%s], from element [%s]".formatted(clazz, proxiedObject));
+            throw new UnsupportedOperationException("Please use #getAnnotationsByType to get multiple instances of a @Repeatable annotation [%s], from element [%s]".formatted(clazz, proxiedObject));
         }
         return arr[0];
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) {
-        String name = method.getName();
-        return switch (name) {
-            case "getAnnotationMirrors" -> cache.annotationMirrorsMap.values().stream().flatMap(List::stream).toList();
-            case "getAnnotation" -> getAnnotationProxy((Class<? extends Annotation>) args[0]);
-            case "getAnnotationsByType" -> getAnnotationsByTypeProxy((Class<? extends Annotation>) args[0]);
-            case null -> throw new IllegalStateException();
-            default -> super.invoke(proxy, method, args);
-        };
+    @InterceptorFor("getAnnotationMirrors")
+    private List<AnnotationMirror> getAnnotationMirrors() {
+        return cache.annotationMirrorsMap.values().stream().flatMap(List::stream).toList();
     }
 
     /// CACHE IMPL

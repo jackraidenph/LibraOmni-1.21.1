@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
+import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -8,7 +9,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class RoundEnvironmentProxy extends AbstractObjectProxy<RoundEnvironment> {
@@ -28,15 +28,17 @@ public class RoundEnvironmentProxy extends AbstractObjectProxy<RoundEnvironment>
         }
     }
 
-    public Set<? extends Element> getRootElementsProxy() {
+    @InterceptorFor("getRootElements")
+    public Set<? extends Element> getRootElements() {
         return Collections.unmodifiableSet(proxiedRootElements);
     }
 
-    public Set<? extends Element> getElementsAnnotatedWithProxy(TypeElement annotationTypeElement) {
+    @InterceptorFor("getElementsAnnotatedWith")
+    public Set<? extends Element> getElementsAnnotatedWith(TypeElement annotationTypeElement) {
         String annotationName = annotationTypeElement.getQualifiedName().toString();
         if (!scannedElementsCacheByAnnotation.containsKey(annotationName)) {
             RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner(elementUtils, modIdGetter);
-            for (Element e : getRootElementsProxy()) {
+            for (Element e : getRootElements()) {
                 scanner.scan(e, annotationTypeElement);
             }
             scannedElementsCacheByAnnotation.put(annotationName, scanner.getElements());
@@ -48,58 +50,31 @@ public class RoundEnvironmentProxy extends AbstractObjectProxy<RoundEnvironment>
         return elements;
     }
 
-    public Set<? extends Element> getElementsAnnotatedWithProxy(Class<? extends Annotation> annotationClass) {
+    @InterceptorFor("getElementsAnnotatedWith")
+    public Set<? extends Element> getElementsAnnotatedWith(Class<? extends Annotation> annotationClass) {
         TypeElement element = elementUtils.getTypeElement(annotationClass.getName());
         if (element == null) {
             return Set.of();
         }
 
-        return getElementsAnnotatedWithProxy(element);
+        return getElementsAnnotatedWith(element);
     }
 
-    public Set<? extends Element> getElementsAnnotatedWithAnyProxy(Set<Class<? extends Annotation>> annotations) {
+    @InterceptorFor("getElementsAnnotatedWithAny")
+    public Set<? extends Element> getElementsAnnotatedWithAny(Set<Class<? extends Annotation>> annotations) {
         Set<Element> elements = new LinkedHashSet<>();
         for (Class<? extends Annotation> a : annotations) {
-            elements.addAll(getElementsAnnotatedWithProxy(a));
+            elements.addAll(getElementsAnnotatedWith(a));
         }
         return elements;
     }
 
-    public Set<? extends Element> getElementsAnnotatedWithAnyProxy(TypeElement... annotations) {
+    @InterceptorFor("getElementsAnnotatedWithAny")
+    public Set<? extends Element> getElementsAnnotatedWithAny(TypeElement... annotations) {
         Set<Element> elements = new LinkedHashSet<>();
         for (TypeElement a : annotations) {
-            elements.addAll(getElementsAnnotatedWithProxy(a));
+            elements.addAll(getElementsAnnotatedWith(a));
         }
         return elements;
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) {
-        String name = method.getName();
-
-        if (name.equals("getRootElements")) {
-            return getRootElementsProxy();
-        } else if (args != null) {
-            Object arg0 = args[0];
-            if (name.equals("getElementsAnnotatedWith")) {
-                if (arg0 instanceof Class<?> annotationClass) {
-                    //noinspection unchecked
-                    return getElementsAnnotatedWithProxy((Class<? extends Annotation>) annotationClass);
-                } else if (arg0 instanceof TypeElement annotationType) {
-                    return getElementsAnnotatedWithProxy(annotationType);
-                } else {
-                    throw new UnsupportedOperationException();
-                }
-            } else if (name.equals("getElementsAnnotatedWithAny")) {
-                if (arg0 instanceof Set<?> annotationSet) {
-                    //noinspection unchecked
-                    return getElementsAnnotatedWithAnyProxy((Set<Class<? extends Annotation>>) annotationSet);
-                } else if (arg0.getClass().isArray() && TypeElement.class.isAssignableFrom(arg0.getClass().componentType())) {
-                    return getElementsAnnotatedWithAnyProxy((TypeElement[]) arg0);
-                }
-            }
-        }
-
-        return super.invoke(proxy, method, args);
     }
 }
