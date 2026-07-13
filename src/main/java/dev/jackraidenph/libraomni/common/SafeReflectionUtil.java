@@ -15,6 +15,11 @@ import java.util.*;
  */
 public class SafeReflectionUtil {
 
+    @SuppressWarnings("unchecked")
+    public static <T> T[] genericArray(Class<T> clazz, int... dimensions) {
+        return (T[]) Array.newInstance(clazz, dimensions);
+    }
+
     public static Class<?>[] inferTypes(Object... objects) {
         Class<?>[] typesArray = new Class[objects.length];
         for (int i = 0; i < objects.length; i++) {
