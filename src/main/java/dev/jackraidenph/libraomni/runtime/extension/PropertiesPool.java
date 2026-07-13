@@ -5,7 +5,7 @@ import dev.jackraidenph.libraomni.annotation.runtime.BlockPropertiesByName;
 import dev.jackraidenph.libraomni.annotation.runtime.BlockPropertiesCopyOf;
 import dev.jackraidenph.libraomni.annotation.runtime.ItemPropertiesByName;
 import dev.jackraidenph.libraomni.annotation.runtime.ItemPropertiesCopyOf;
-import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
@@ -72,7 +72,7 @@ public class PropertiesPool extends AbstractModContextExtension {
     }
 
     public static class Util {
-        public static BlockBehaviour.Properties getBlockPropertiesForElement(ProxyAnnotatedElement e, ModContext context) {
+        public static BlockBehaviour.Properties getBlockPropertiesForElement(ProxiedAnnotatedElement e, ModContext context) {
             BlockPropertiesByName propertiesByName = e.getAnnotation(BlockPropertiesByName.class);
             BlockPropertiesCopyOf copyFrom = e.getAnnotation(BlockPropertiesCopyOf.class);
             try {
@@ -91,7 +91,7 @@ public class PropertiesPool extends AbstractModContextExtension {
             return BlockBehaviour.Properties.of();
         }
 
-        public static Item.Properties getItemPropertiesForElement(ProxyAnnotatedElement e, ModContext context) {
+        public static Item.Properties getItemPropertiesForElement(ProxiedAnnotatedElement e, ModContext context) {
             ItemPropertiesByName propertiesByName = e.getAnnotation(ItemPropertiesByName.class);
             ItemPropertiesCopyOf copyFrom = e.getAnnotation(ItemPropertiesCopyOf.class);
             try {

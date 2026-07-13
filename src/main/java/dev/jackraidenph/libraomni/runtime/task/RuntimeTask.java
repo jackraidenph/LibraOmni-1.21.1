@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.runtime.task;
 
-import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 
@@ -9,7 +9,7 @@ import java.util.Set;
 
 public interface RuntimeTask {
 
-    void process(Set<ProxyAnnotatedElement> elements, ModContext modContext);
+    void process(Set<ProxiedAnnotatedElement> elements, ModContext modContext);
 
     LifecycleStage getExecutionStage();
 

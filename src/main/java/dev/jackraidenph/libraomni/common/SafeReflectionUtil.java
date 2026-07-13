@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.common;
 
 import dev.jackraidenph.libraomni.annotation.meta.Id;
-import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -223,8 +223,8 @@ public class SafeReflectionUtil {
         return null;
     }
 
-    public static String id(ProxyAnnotatedElement e) {
-        AnnotatedElement object = e.original();
+    public static String id(ProxiedAnnotatedElement e) {
+        AnnotatedElement object = e.proxiedElement();
         String holderId = holderId(object);
         if (holderId != null && !holderId.isBlank()) {
             return holderId;
@@ -234,7 +234,7 @@ public class SafeReflectionUtil {
         if (id != null && id.value() != null) {
             //If @Id is actually present, but blank, use object's name
             if (id.value().isBlank()) {
-                return StringUtilities.snakeCase(objectName(e.original()));
+                return StringUtilities.snakeCase(objectName(e.proxiedElement()));
             }
             return id.value();
         }
@@ -242,13 +242,13 @@ public class SafeReflectionUtil {
         return null;
     }
 
-    public static String idOrDefault(ProxyAnnotatedElement element) {
+    public static String idOrDefault(ProxiedAnnotatedElement element) {
         String id = id(element);
         if (id != null && !id.isBlank()) {
             return id;
         }
 
-        return StringUtilities.snakeCase(objectName(element.original()));
+        return StringUtilities.snakeCase(objectName(element.proxiedElement()));
     }
 
     public static <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<?> child) {

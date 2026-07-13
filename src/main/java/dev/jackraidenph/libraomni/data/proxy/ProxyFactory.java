@@ -139,10 +139,10 @@ public abstract class ProxyFactory {
         return container;
     }
 
-    public static ProxyAnnotatedElement makeAnnotatedElementProxy(AnnotatedElement element, ModMetadataReader modMetadataReader) {
-        return (ProxyAnnotatedElement) Proxy.newProxyInstance(
+    public static ProxiedAnnotatedElement makeAnnotatedElementProxy(AnnotatedElement element, ModMetadataReader modMetadataReader) {
+        return (ProxiedAnnotatedElement) Proxy.newProxyInstance(
                 CLASSLOADER,
-                new Class[]{ProxyAnnotatedElement.class},
+                new Class[]{ProxiedAnnotatedElement.class},
                 new AnnotatedElementProxy(element, modMetadataReader)
         );
     }
@@ -160,9 +160,9 @@ public abstract class ProxyFactory {
     }
 
 
-    public static ProxyAnnotatedElement tryMakeAnnotatedElementProxy(AnnotatedElement element, ModMetadataReader modMetadataReader) {
+    public static ProxiedAnnotatedElement tryMakeAnnotatedElementProxy(AnnotatedElement element, ModMetadataReader modMetadataReader) {
         //Proxy handler implements AnnotationAccessor
-        return (ProxyAnnotatedElement) (element instanceof Proxy ? element : ProxyFactory.makeAnnotatedElementProxy(element, modMetadataReader));
+        return (ProxiedAnnotatedElement) (element instanceof Proxy ? element : ProxyFactory.makeAnnotatedElementProxy(element, modMetadataReader));
     }
 
     protected static <T extends Annotation> T makeValueAnnotation(Class<T> type, Map<String, Object> attributes) {

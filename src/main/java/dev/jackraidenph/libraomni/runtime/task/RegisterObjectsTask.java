@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.runtime.*;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.data.proxy.ProxyAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
@@ -20,18 +20,18 @@ import java.util.Set;
 public class RegisterObjectsTask extends SequentialRuntimeTask {
 
     @Override
-    public void processElement(ProxyAnnotatedElement element, String elementId, ModContext modContext) {
+    public void processElement(ProxiedAnnotatedElement element, String elementId, ModContext modContext) {
         DeferredHolder<?, ?> registered = registerArbitrary(element, elementId, modContext);
-        if ((element.original() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {
+        if ((element.proxiedElement() instanceof Field field) && DeferredHolder.class.isAssignableFrom(field.getType())) {
             UnsafeReflectionUtil.tryInject(field, registered);
         }
     }
 
     @SuppressWarnings("unchecked") //A lot of unchecked warnings are actually checked via Class#isAssignableFrom
-    private static <T> DeferredHolder<? super T, T> registerArbitrary(ProxyAnnotatedElement element, String id, ModContext modContext) {
+    private static <T> DeferredHolder<? super T, T> registerArbitrary(ProxiedAnnotatedElement element, String id, ModContext modContext) {
         String modId = modContext.modId();
 
-        AnnotatedElement tempObject = element.original();
+        AnnotatedElement tempObject = element.proxiedElement();
         //Gets later passed to lambdas
         final AnnotatedElement object;
         //If we are trying to inject into a DeferredHolder - treat it as if we tried to register a class
