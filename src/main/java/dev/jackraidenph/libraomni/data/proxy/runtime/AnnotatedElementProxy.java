@@ -1,7 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
-import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
 import org.jetbrains.annotations.NotNull;
 

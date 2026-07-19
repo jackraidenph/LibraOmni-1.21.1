@@ -1,7 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy.compile;
 
 import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
-import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
 
 import javax.lang.model.AnnotatedConstruct;

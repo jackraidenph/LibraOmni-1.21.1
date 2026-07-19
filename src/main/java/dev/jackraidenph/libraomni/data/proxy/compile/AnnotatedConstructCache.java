@@ -6,7 +6,6 @@ import dev.jackraidenph.libraomni.common.ElementUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
 import dev.jackraidenph.libraomni.data.proxy.UnfoldingCache;
-import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,7 +15,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.util.*;
-import java.util.Map.Entry;
 
 public class AnnotatedConstructCache implements UnfoldingCache<AnnotationMirror> {
 

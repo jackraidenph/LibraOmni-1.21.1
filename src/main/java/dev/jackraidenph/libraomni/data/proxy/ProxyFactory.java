@@ -1,7 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
-import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.data.proxy.compile.AnnotatedConstructProxy;
 import dev.jackraidenph.libraomni.data.proxy.compile.RoundEnvironmentProxy;
 import dev.jackraidenph.libraomni.data.proxy.runtime.AnnotatedElementProxy;
@@ -14,7 +13,6 @@ import javax.lang.model.AnnotatedConstruct;
 import java.lang.annotation.*;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Proxy;
-import java.util.List;
 import java.util.Map;
 
 public abstract class ProxyFactory {
