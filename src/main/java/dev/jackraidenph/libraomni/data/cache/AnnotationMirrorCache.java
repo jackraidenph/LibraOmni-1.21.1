@@ -60,7 +60,7 @@ public class AnnotationMirrorCache implements AnnotatedConstruct {
             TypeElement type = ElementUtil.mirrorToElement(typeMirror);
 
             //Deny unfolding into special service annotationts
-            if (CacheUtil.isUnfoldUnsupported(type)) {
+            if (ElementUtil.isUnfoldUnsupported(type)) {
                 throw new IllegalArgumentException("Annotation type [%s] does not support unfolding into".formatted(ElementUtil.Javac.binaryName(type)));
             }
 
@@ -86,7 +86,7 @@ public class AnnotationMirrorCache implements AnnotatedConstruct {
         String binaryName = ElementUtil.Javac.binaryName(type);
         Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(binaryName, Annotation.class);
 
-        if (clazz == null || CacheUtil.isUnfoldUnsupported(type)) {
+        if (clazz == null || ElementUtil.isUnfoldUnsupported(type)) {
             return null;
         }
 
@@ -95,7 +95,7 @@ public class AnnotationMirrorCache implements AnnotatedConstruct {
         for (Entry<? extends ExecutableElement, ? extends AnnotationValue> kv : mirror.getElementValues().entrySet()) {
             String attribute = kv.getKey().getSimpleName().toString();
             Object value = kv.getValue().getValue();
-            value = CacheUtil.normalizeValue(value);
+            value = ElementUtil.tryConvertInternalRepresentation(value);
 
             reflectiveReplacements.put(attribute, value);
         }

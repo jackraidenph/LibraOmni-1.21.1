@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
 
+/**
+ * A utility class with hellper methods to work with and ONLY with AnnotationMirrors
+ */
 public class AnnotationMirrorUtil {
 
     public static ExecutableElement getExecutableElementByName(AnnotationMirror mirror, String name) {

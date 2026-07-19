@@ -6,6 +6,7 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type;
+import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.*;
@@ -14,14 +15,67 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.lang.annotation.Inherited;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Supplier;
 
 import static com.sun.tools.javac.code.TypeTag.CLASS;
 
+/**
+ * A utility class with hellper methods to work with the contents of javax.lang.model
+ */
 public final class ElementUtil {
 
     private static final String OBJECT_STR = Object.class.getName();
+
+    public static boolean isUnfoldUnsupported(TypeElement type) {
+        return AnnotationProcessorConstants.UNFOLD_UNSUPPORTED.stream()
+                .anyMatch(c -> ElementUtil.Javac.binaryName(type).equals(c.getName()));
+    }
+
+    public static Object tryConvertInternalRepresentation(Object internal) {
+        if (internal instanceof com.sun.tools.javac.util.List<?> sunList) {
+            return sunListToArray(sunList);
+        }
+
+        if (internal instanceof Symbol.VarSymbol varSymbol) {
+            if (varSymbol.getKind().equals(ElementKind.ENUM_CONSTANT)) {
+                return varSymbolToEnum(varSymbol);
+            } else {
+                throw new UnsupportedOperationException("Ecountered VarSymbol of kind [%s]".formatted(varSymbol.getKind()));
+            }
+        }
+
+        return internal;
+    }
+
+    public static Object varSymbolToEnum(Symbol.VarSymbol varSymbol) {
+        String binary = varSymbol.owner.flatName().toString();
+        var clazz = SafeReflectionUtil.forNameSubclass(binary, Enum.class);
+        if (clazz == null) {
+            throw new IllegalStateException("Failed to instantiate enum class for name [%s]".formatted(binary));
+        }
+        //noinspection unchecked
+        return Enum.valueOf(clazz, varSymbol.name.toString());
+    }
+
+    public static Object sunListToArray(com.sun.tools.javac.util.List<?> sunList) {
+        if (sunList.isEmpty()) {
+            return new Object[0];
+        }
+
+        Attribute.Constant first = (Attribute.Constant) sunList.getFirst();
+
+        String binary = first.type.tsym.flatName().toString();
+        Class<?> clazz = SafeReflectionUtil.forName(binary);
+
+        Object arr = Array.newInstance(clazz, sunList.size());
+        for (int i = 0; i < sunList.size(); i++) {
+            Array.set(arr, i, ((Attribute.Constant) sunList.get(i)).value);
+        }
+
+        return arr;
+    }
 
     public static ExecutableElement getExecutableElementByName(String name, TypeElement typeElement) {
         return ElementFilter.methodsIn(typeElement.getEnclosedElements())
