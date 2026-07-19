@@ -17,6 +17,10 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
     private final Class<T> type;
     private final Map<String, Object> attributes;
 
+    public static <T extends Annotation> T create(Class<? extends T> type, Map<String, Object> attributeValues) {
+        return ProxyFactory.sythesizeAnnotation(type, attributeValues);
+    }
+
     public SyntheticAnnotation(Class<T> type, Map<String, Object> attributes) {
         super();
 
@@ -37,10 +41,6 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
 
     private boolean containsNonDefaultMethods() {
         return Arrays.stream(annotationType().getDeclaredMethods()).map(Method::getDefaultValue).anyMatch(Objects::isNull);
-    }
-
-    public static <T extends Annotation> T create(Class<? extends T> type, Map<String, Object> attributeValues) {
-        return ProxyFactory.sythesizeAnnotation(type, attributeValues);
     }
 
     @Override

@@ -44,7 +44,7 @@ public abstract class ProxyFactory {
         );
     }
 
-    protected static <T extends Annotation> T sythesizeAnnotation(Class<T> type, Map<String, Object> attributes) {
+    public static <T extends Annotation> T sythesizeAnnotation(Class<T> type, Map<String, Object> attributes) {
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(
                 CLASSLOADER,
