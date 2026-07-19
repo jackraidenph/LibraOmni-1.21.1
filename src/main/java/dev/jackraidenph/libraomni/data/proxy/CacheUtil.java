@@ -18,8 +18,8 @@ public class CacheUtil {
         Map<Class<?>, Map<String, Object>> replacements = new HashMap<>();
 
         for (Method method : annotation.annotationType().getDeclaredMethods()) {
-            Replaces replacer = method.getAnnotation(Replaces.class);
-            if (replacer == null) {
+            Replaces replacementInfo = method.getAnnotation(Replaces.class);
+            if (replacementInfo == null) {
                 continue;
             }
 
@@ -31,21 +31,21 @@ public class CacheUtil {
 
             Method targetMethod;
             try {
-                targetMethod = replacer.in().getDeclaredMethod(replacer.attribute());
+                targetMethod = replacementInfo.in().getDeclaredMethod(replacementInfo.attribute());
             } catch (NoSuchMethodException e) {
-                throw new IllegalArgumentException("Attribute [%s] doesn't exist in annotation [%s]".formatted(replacer.attribute(), replacer.in()));
+                throw new IllegalArgumentException("Attribute [%s] doesn't exist in annotation [%s]".formatted(replacementInfo.attribute(), replacementInfo.in()));
             }
 
-            value = TransformerUtil.tryTransform(value, replacer, targetMethod);
+            value = TransformerUtil.tryTransform(value, replacementInfo, targetMethod);
 
-            Class<?> target = replacer.in();
-            replacements.computeIfAbsent(target, v -> new HashMap<>()).put(replacer.attribute(), value);
+            Class<?> target = replacementInfo.in();
+            replacements.computeIfAbsent(target, v -> new HashMap<>()).put(replacementInfo.attribute(), value);
         }
 
         return replacements;
     }
 
-    //Keys are TypeElements' binary names, because, unlike classes, TypeElements somehow don't works as Map keys
+    //Keys are TypeElements' binary names, because, unlike classes, TypeElements somehow don't work as Map keys
     public static Map<String, Map<ExecutableElement, AnnotationValue>> getReplacementValues(AnnotationMirror annotationMirror) {
         Map<String, Map<ExecutableElement, AnnotationValue>> replacements = new HashMap<>();
 
@@ -55,23 +55,23 @@ public class CacheUtil {
             ExecutableElement attribute = e.getKey();
             AnnotationValue unwrapped = e.getValue();
 
-            Replaces replacer = attribute.getAnnotation(Replaces.class);
-            if (replacer == null) {
+            Replaces replacementInfo = attribute.getAnnotation(Replaces.class);
+            if (replacementInfo == null) {
                 continue;
             }
 
-            TypeMirror target = ElementUtil.mirrorClass(replacer::in);
+            TypeMirror target = ElementUtil.mirrorClass(replacementInfo::in);
 
             ExecutableElement targetAttributeElement = ElementUtil.getExecutableElementByName(
-                    replacer.attribute(),
+                    replacementInfo.attribute(),
                     ElementUtil.mirrorToElement(target)
             );
 
             if (targetAttributeElement == null) {
-                throw new IllegalArgumentException("Attribute [%s] doesn't exist in annotation [%s]".formatted(replacer.attribute(), target));
+                throw new IllegalArgumentException("Attribute [%s] doesn't exist in annotation [%s]".formatted(replacementInfo.attribute(), target));
             }
 
-            Object newValue = TransformerUtil.tryTransform(unwrapped.getValue(), replacer, targetAttributeElement);
+            Object newValue = TransformerUtil.tryTransform(unwrapped.getValue(), replacementInfo, targetAttributeElement);
             unwrapped = new AnnotationValueWrapper(newValue, unwrapped);
 
             TypeElement element = ElementUtil.mirrorToElement(target);
