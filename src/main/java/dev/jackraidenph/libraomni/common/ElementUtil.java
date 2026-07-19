@@ -99,9 +99,6 @@ public final class ElementUtil {
 
     public static Object attributeArrayToArray(Attribute.Array array) {
         Class<?> clazz = fromTypeMirror(array.type);
-        System.out.println();
-        System.out.println(array);
-        System.out.println(clazz);
         Attribute[] vals = array.values;
         Object arr = Array.newInstance(clazz, vals.length);
         for (int i = 0; i < vals.length; i++) {
