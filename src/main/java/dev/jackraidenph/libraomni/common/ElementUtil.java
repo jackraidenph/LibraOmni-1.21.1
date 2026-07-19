@@ -4,9 +4,12 @@ import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Attribute.Compound;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.util.Pair;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.*;
@@ -14,6 +17,7 @@ import javax.lang.model.type.*;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -64,17 +68,58 @@ public final class ElementUtil {
             return new Object[0];
         }
 
-        Attribute.Constant first = (Attribute.Constant) sunList.getFirst();
+        Object firstAttr = sunList.getFirst();
+        if (!(firstAttr instanceof Attribute attr)) {
+            throw new UnsupportedOperationException("[%s] is not an Attribute".formatted(firstAttr));
+        }
 
-        String binary = first.type.tsym.flatName().toString();
-        Class<?> clazz = SafeReflectionUtil.forName(binary);
-
+        Class<?> clazz = fromTypeMirror(attr.type);
         Object arr = Array.newInstance(clazz, sunList.size());
+
         for (int i = 0; i < sunList.size(); i++) {
-            Array.set(arr, i, ((Attribute.Constant) sunList.get(i)).value);
+            Array.set(arr, i, attributeToObject((Attribute) sunList.get(i)));
         }
 
         return arr;
+    }
+
+    public static Object attributeToObject(Attribute attribute) {
+        return switch (attribute) {
+            case Attribute.Constant constant -> constant.getValue();
+            case Attribute.Class clazz -> fromTypeMirror(clazz.getValue());
+            case Attribute.Compound compound -> compoundToAnnotation(compound);
+            case Attribute.Enum enoom -> varSymbolToEnum(enoom.value);
+            case Attribute.Array arr -> attributeArrayToArray(arr);
+            case Attribute.UnresolvedClass unresolved ->
+                    UnsafeReflectionUtil.tryConstruct(fromTypeMirror(unresolved.type), fromTypeMirror(unresolved.classType));
+            case Attribute.Error error -> UnsafeReflectionUtil.tryConstruct(fromTypeMirror(error.type));
+            default -> throw new UnsupportedOperationException();
+        };
+    }
+
+    public static Object attributeArrayToArray(Attribute.Array array) {
+        Class<?> clazz = fromTypeMirror(array.type);
+        System.out.println();
+        System.out.println(array);
+        System.out.println(clazz);
+        Attribute[] vals = array.values;
+        Object arr = Array.newInstance(clazz, vals.length);
+        for (int i = 0; i < vals.length; i++) {
+            Array.set(arr, i, attributeToObject(vals[i]));
+        }
+        return arr;
+    }
+
+    public static Annotation compoundToAnnotation(Attribute.Compound compound) {
+        Map<String, Object> values = new HashMap<>();
+        //noinspection unchecked
+        Class<? extends Annotation> type = (Class<? extends Annotation>) fromTypeMirror(compound.type);
+        for (Pair<MethodSymbol, Attribute> pair : compound.values) {
+            String attributeName = pair.fst.name.toString();
+            values.put(attributeName, attributeToObject(pair.snd));
+        }
+
+        return SyntheticAnnotation.create(type, values);
     }
 
     public static ExecutableElement getExecutableElementByName(String name, TypeElement typeElement) {
@@ -320,6 +365,9 @@ public final class ElementUtil {
         }
 
         public static String binaryName(TypeMirror typeMirror) {
+            if (typeMirror instanceof PrimitiveType primitiveType) {
+                return primitiveType.toString();
+            }
             if (typeMirror instanceof ArrayType arrayType) {
                 return "[L" + binaryName(mirrorToElement(arrayType.getComponentType())) + ";";
             }
