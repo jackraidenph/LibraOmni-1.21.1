@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.data.cache;
+package dev.jackraidenph.libraomni.data.proxy.compile;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -1,8 +1,8 @@
-package dev.jackraidenph.libraomni.data.proxy;
+package dev.jackraidenph.libraomni.data.proxy.compile;
 
 import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
-import dev.jackraidenph.libraomni.data.cache.AnnotationMirrorCache;
+import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
 
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.*;
@@ -11,13 +11,13 @@ import java.util.*;
 
 public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstruct> {
 
-    private final AnnotationMirrorCache cache;
+    private final AnnotatedConstructCache cache;
     private final ModIdGetter modIdGetter;
 
     public AnnotatedConstructProxy(AnnotatedConstruct proxiedObject, ModIdGetter modIdGetter) {
         super(proxiedObject);
         this.modIdGetter = modIdGetter;
-        this.cache = new AnnotationMirrorCache(proxiedObject);
+        this.cache = new AnnotatedConstructCache(proxiedObject);
     }
 
     @InterceptorFor("getAnnotationsByType")

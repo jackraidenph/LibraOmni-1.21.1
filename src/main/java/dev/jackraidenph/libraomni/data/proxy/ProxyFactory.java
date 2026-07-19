@@ -2,6 +2,11 @@ package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
+import dev.jackraidenph.libraomni.data.proxy.compile.AnnotatedConstructProxy;
+import dev.jackraidenph.libraomni.data.proxy.compile.RoundEnvironmentProxy;
+import dev.jackraidenph.libraomni.data.proxy.runtime.AnnotatedElementProxy;
+import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;

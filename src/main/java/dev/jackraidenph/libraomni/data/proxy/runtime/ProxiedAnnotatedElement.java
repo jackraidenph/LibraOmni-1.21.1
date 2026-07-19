@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.data.proxy;
+package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import java.lang.reflect.AnnotatedElement;
 

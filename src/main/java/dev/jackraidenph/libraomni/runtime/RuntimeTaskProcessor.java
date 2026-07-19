@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.runtime;
 
 import com.google.common.collect.Streams;
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;

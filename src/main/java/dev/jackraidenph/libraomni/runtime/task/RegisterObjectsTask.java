@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.runtime.*;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;

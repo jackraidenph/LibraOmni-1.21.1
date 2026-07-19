@@ -1,22 +1,21 @@
-package dev.jackraidenph.libraomni.data.proxy;
+package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
-import dev.jackraidenph.libraomni.data.cache.AnnotationCache;
+import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.util.*;
 
 public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement> {
 
-    private final AnnotationCache cache;
+    private final AnnotatedElementCache cache;
     private ModMetadataReader modMetadataReader;
 
     public AnnotatedElementProxy(AnnotatedElement proxiedObject, ModMetadataReader modMetadataReader) {
         super(proxiedObject);
-        this.cache = new AnnotationCache(proxiedObject);
+        this.cache = new AnnotatedElementCache(proxiedObject);
     }
 
     @InterceptorFor("proxiedElement")

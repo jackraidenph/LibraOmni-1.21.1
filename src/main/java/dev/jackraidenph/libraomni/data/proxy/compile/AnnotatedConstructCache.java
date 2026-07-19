@@ -1,10 +1,11 @@
-package dev.jackraidenph.libraomni.data.cache;
+package dev.jackraidenph.libraomni.data.proxy.compile;
 
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.ElementUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.data.proxy.SyntheticAnnotation;
+import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
+import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,12 +17,12 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class AnnotationMirrorCache implements AnnotatedConstruct {
+public class AnnotatedConstructCache implements AnnotatedConstruct {
 
     protected final Map<TypeElement, List<AnnotationMirror>> annotationMirrorsMap = new HashMap<>();
     protected final Map<Class<? extends Annotation>, List<Annotation>> annotationsMap = new HashMap<>();
 
-    public AnnotationMirrorCache(AnnotatedConstruct construct) {
+    public AnnotatedConstructCache(AnnotatedConstruct construct) {
         List<? extends AnnotationMirror> mirrors = construct instanceof Element e
                 ? ElementUtil.Javac.getAllAnnotationMirrors(e)
                 : construct.getAnnotationMirrors();

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.data.cache;
+package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
 import dev.jackraidenph.libraomni.common.*;

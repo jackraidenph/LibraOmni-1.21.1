@@ -1,7 +1,9 @@
-package dev.jackraidenph.libraomni.data.proxy;
+package dev.jackraidenph.libraomni.data.proxy.compile;
 
 import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
+import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
+import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;

@@ -1,21 +1,21 @@
-package dev.jackraidenph.libraomni.data.cache;
+package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
-import dev.jackraidenph.libraomni.data.proxy.SyntheticAnnotation;
+import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.*;
 
-public class AnnotationCache implements AnnotatedElement {
+public class AnnotatedElementCache implements AnnotatedElement {
 
     private final Map<Class<? extends Annotation>, List<Annotation>> annotations = new HashMap<>();
     private final Map<Class<? extends Annotation>, List<Annotation>> declaredAnnotations = new HashMap<>();
 
-    public AnnotationCache(AnnotatedElement annotatedElement) {
+    public AnnotatedElementCache(AnnotatedElement annotatedElement) {
         cache(annotatedElement.getAnnotations(), false);
         cache(annotatedElement.getDeclaredAnnotations(), true);
     }

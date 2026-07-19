@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.runtime.WithBlockItem;
-import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;

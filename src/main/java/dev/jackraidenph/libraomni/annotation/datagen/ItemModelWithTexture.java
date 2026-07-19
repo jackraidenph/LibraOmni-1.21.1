@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.annotation.info.GeneratesFiles;
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.annotation.value.StringPair;
-import dev.jackraidenph.libraomni.data.proxy.SyntheticAnnotation;
+import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

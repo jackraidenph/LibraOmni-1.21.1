@@ -5,7 +5,7 @@ import dev.jackraidenph.libraomni.annotation.runtime.BlockPropertiesByName;
 import dev.jackraidenph.libraomni.annotation.runtime.BlockPropertiesCopyOf;
 import dev.jackraidenph.libraomni.annotation.runtime.ItemPropertiesByName;
 import dev.jackraidenph.libraomni.annotation.runtime.ItemPropertiesCopyOf;
-import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
