@@ -38,7 +38,7 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
     }
 
     public static <T extends Annotation> T create(Class<? extends T> type, Map<String, Object> attributeValues) {
-        return ProxyFactory.makeValueAnnotation(type, attributeValues);
+        return ProxyFactory.sythesizeAnnotation(type, attributeValues);
     }
 
     @Override

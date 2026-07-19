@@ -23,7 +23,7 @@ public class RoundEnvironmentProxy extends AbstractObjectProxy<RoundEnvironment>
         this.elementUtils = processingEnvironment.getElementUtils();
         this.modIdGetter = modIdGetter;
         for (Element e : original.getRootElements()) {
-            Element proxy = (Element) ProxyFactory.tryMakeAnnotatedConstructProxy(e, modIdGetter);
+            Element proxy = (Element) ProxyFactory.makeAnnotatedConstructProxy(e, modIdGetter);
             proxiedRootElements.add(proxy);
         }
     }
