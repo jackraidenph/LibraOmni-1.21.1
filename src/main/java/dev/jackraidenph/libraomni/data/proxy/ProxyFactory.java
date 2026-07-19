@@ -14,33 +14,34 @@ import javax.lang.model.AnnotatedConstruct;
 import java.lang.annotation.*;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.Map;
 
 public abstract class ProxyFactory {
 
     private static final ClassLoader CLASSLOADER = ProxyFactory.class.getClassLoader();
 
-    public static ProxiedAnnotatedElement makeAnnotatedElementProxy(AnnotatedElement element, ModMetadataReader modMetadataReader) {
-        if(element instanceof Proxy) {
+    public static ProxiedAnnotatedElement makeAnnotatedElementProxy(AnnotatedElement element) {
+        if (element instanceof Proxy) {
             return (ProxiedAnnotatedElement) element;
         }
 
         return (ProxiedAnnotatedElement) Proxy.newProxyInstance(
                 CLASSLOADER,
                 new Class[]{ProxiedAnnotatedElement.class},
-                new AnnotatedElementProxy(element, modMetadataReader)
+                new AnnotatedElementProxy(element)
         );
     }
 
     public static AnnotatedConstruct makeAnnotatedConstructProxy(AnnotatedConstruct construct, ModIdGetter modIdGetter) {
-        if(construct instanceof Proxy) {
+        if (construct instanceof Proxy) {
             return construct;
         }
 
         return (AnnotatedConstruct) Proxy.newProxyInstance(
                 CLASSLOADER,
                 construct.getClass().getInterfaces(),
-                new AnnotatedConstructProxy(construct, modIdGetter)
+                new AnnotatedConstructProxy(construct)
         );
     }
 
@@ -56,7 +57,7 @@ public abstract class ProxyFactory {
     public static RoundEnvironment makeRuntimeEnvironmentProxy(RoundEnvironment environment, ProcessingEnvironment processingEnvironment, ModIdGetter modIdGetter) {
         return (RoundEnvironment) Proxy.newProxyInstance(
                 CLASSLOADER,
-                environment.getClass().getInterfaces(),
+                new Class[]{RoundEnvironment.class},
                 new RoundEnvironmentProxy(environment, processingEnvironment, modIdGetter)
         );
     }

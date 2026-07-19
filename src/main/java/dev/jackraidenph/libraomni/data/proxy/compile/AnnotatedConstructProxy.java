@@ -9,29 +9,30 @@ import javax.lang.model.element.*;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
-public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstruct> {
+public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstruct> implements AnnotatedConstruct {
 
     private final AnnotatedConstructCache cache;
-    private final ModIdGetter modIdGetter;
 
-    public AnnotatedConstructProxy(AnnotatedConstruct proxiedObject, ModIdGetter modIdGetter) {
+    public AnnotatedConstructProxy(AnnotatedConstruct proxiedObject) {
         super(proxiedObject);
-        this.modIdGetter = modIdGetter;
         this.cache = new AnnotatedConstructCache(proxiedObject);
     }
 
+    @Override
     @InterceptorFor("getAnnotationsByType")
-    private <A extends Annotation> A[] getAnnotationsByType(Class<A> clazz) {
+    public  <A extends Annotation> A[] getAnnotationsByType(Class<A> clazz) {
         return cache.getAnnotationsByType(clazz);
     }
 
+    @Override
     @InterceptorFor("getAnnotation")
-    private <A extends Annotation> A getAnnotation(Class<A> clazz) {
+    public <A extends Annotation> A getAnnotation(Class<A> clazz) {
         return cache.getAnnotation(clazz);
     }
 
+    @Override
     @InterceptorFor("getAnnotationMirrors")
-    private List<? extends AnnotationMirror> getAnnotationMirrors() {
+    public List<? extends AnnotationMirror> getAnnotationMirrors() {
         return cache.getAnnotationMirrors();
     }
 }

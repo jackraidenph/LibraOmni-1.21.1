@@ -2,10 +2,12 @@ package dev.jackraidenph.libraomni.common;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.ElementFilter;
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Repeatable;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +19,28 @@ import java.util.function.Supplier;
  * A utility class with hellper methods to work with and ONLY with AnnotationMirrors
  */
 public class AnnotationMirrorUtil {
+
+    public static Annotation tryCovnertToAnnotation(AnnotationMirror mirror) {
+        TypeElement type = AnnotationMirrorUtil.toTypeElement(mirror);
+        String binaryName = ElementUtil.Javac.binaryName(type);
+        Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(binaryName, Annotation.class);
+
+        if (clazz == null || ElementUtil.isUnfoldUnsupported(type)) {
+            return null;
+        }
+
+        Map<String, Object> reflectiveReplacements = new HashMap<>();
+
+        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> kv : mirror.getElementValues().entrySet()) {
+            String attribute = kv.getKey().getSimpleName().toString();
+            Object value = kv.getValue().getValue();
+            value = ElementUtil.tryConvertInternalRepresentation(value);
+
+            reflectiveReplacements.put(attribute, value);
+        }
+
+        return SyntheticAnnotation.create(clazz, reflectiveReplacements);
+    }
 
     public static ExecutableElement getExecutableElementByName(AnnotationMirror mirror, String name) {
         return Javac.getElementValuesWithDefaults(mirror)

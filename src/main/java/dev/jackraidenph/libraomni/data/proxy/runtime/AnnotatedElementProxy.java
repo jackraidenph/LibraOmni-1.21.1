@@ -8,53 +8,60 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 
-public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement> {
+public class AnnotatedElementProxy extends AbstractObjectProxy<AnnotatedElement> implements ProxiedAnnotatedElement {
 
     private final AnnotatedElementCache cache;
-    private ModMetadataReader modMetadataReader;
 
-    public AnnotatedElementProxy(AnnotatedElement proxiedObject, ModMetadataReader modMetadataReader) {
+    public AnnotatedElementProxy(AnnotatedElement proxiedObject) {
         super(proxiedObject);
         this.cache = new AnnotatedElementCache(proxiedObject);
     }
 
+    @Override
     @InterceptorFor("proxiedElement")
-    private AnnotatedElement proxiedElement() {
+    public AnnotatedElement proxiedElement() {
         return proxiedObject;
     }
 
+    @Override
     @InterceptorFor("getAnnotation")
-    private <T extends Annotation> T getAnnotation(@NotNull Class<T> annotationClass) {
-        return cache.getAnnotation(annotationClass);
+    public <T extends Annotation> T getAnnotation(@NotNull Class<T> annotationClass) {
+        return cache.getAnnotation(annotationClass, false);
     }
 
+    @Override
     @InterceptorFor("getDeclaredAnnotation")
-    private <T extends Annotation> T getDeclaredAnnotation(@NotNull Class<T> annotationClass) {
-        return cache.getDeclaredAnnotation(annotationClass);
+    public <T extends Annotation> T getDeclaredAnnotation(@NotNull Class<T> annotationClass) {
+        return cache.getAnnotation(annotationClass, true);
     }
 
+    @Override
     @InterceptorFor("getAnnotations")
-    private Annotation[] getAnnotations() {
-        return cache.getAnnotations();
+    public Annotation[] getAnnotations() {
+        return cache.getAnnotations(false);
     }
 
+    @Override
     @InterceptorFor("getDeclaredAnnotations")
-    private Annotation[] getDeclaredAnnotations() {
-        return cache.getDeclaredAnnotations();
+    public Annotation[] getDeclaredAnnotations() {
+        return cache.getAnnotations(true);
     }
 
+    @Override
     @InterceptorFor("isAnnotationPresent")
-    private boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
-        return cache.isAnnotationPresent(annotationClass);
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
+        return cache.hasAnnotation(annotationClass);
     }
 
+    @Override
     @InterceptorFor("getAnnotationsByType")
-    private <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
-        return cache.getAnnotationsByType(annotationClass);
+    public <T extends Annotation> T[] getAnnotationsByType(Class<T> annotationClass) {
+        return cache.getAnnotationsByType(annotationClass, false);
     }
 
+    @Override
     @InterceptorFor("getDeclaredAnnotationsByType")
-    private <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
-        return cache.getDeclaredAnnotationsByType(annotationClass);
+    public <T extends Annotation> T[] getDeclaredAnnotationsByType(Class<T> annotationClass) {
+        return cache.getAnnotationsByType(annotationClass, true);
     }
 }
