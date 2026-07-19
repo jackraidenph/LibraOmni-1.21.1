@@ -2,22 +2,22 @@ import org.slf4j.event.Level
 import java.text.SimpleDateFormat
 import java.util.*
 
-val modId: String by project
-val modVersion: String by project
-val modGroup: String by project
-val modName: String by project
-val modLicense: String by project
-val modAuthors: String by project
-val modDescription: String by project
-val neoVersion: String by project
-val neoVersionRange: String by project
-val parchmentMappingsVersion: String by project
-val parchmentMinecraftVersion: String by project
-val minecraftVersion: String by project
-val minecraftVersionRange: String by project
-val loaderVersionRange: String by project
-val uuid: String by project
-val username: String by project
+val modId = project.property("modId") as String
+val modVersion = project.property("modVersion") as String
+val modGroup = project.property("modGroup") as String
+val modName = project.property("modName") as String
+val modLicense = project.property("modLicense") as String
+val modAuthors = project.property("modAuthors") as String
+val modDescription = project.property("modDescription") as String
+val neoVersion = project.property("neoVersion") as String
+val neoVersionRange = project.property("neoVersionRange") as String
+val parchmentMappingsVersion = project.property("parchmentMappingsVersion") as String
+val parchmentMinecraftVersion = project.property("parchmentMinecraftVersion") as String
+val minecraftVersion = project.property("minecraftVersion") as String
+val minecraftVersionRange = project.property("minecraftVersionRange") as String
+val loaderVersionRange = project.property("loaderVersionRange") as String
+val uuid = project.property("uuid") as String
+val username = project.property("username") as String
 
 plugins {
     id("idea")
