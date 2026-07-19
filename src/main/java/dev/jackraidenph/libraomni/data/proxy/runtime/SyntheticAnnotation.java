@@ -66,7 +66,7 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
     @Override
     @InterceptorFor("toString")
     public String toString() {
-        return "ValueProxy@" + type.getName() + attributes.toString();
+        return "Synthetic@" + type.getName() + attributes.toString();
     }
 
     @Override
