@@ -2,7 +2,6 @@ package dev.jackraidenph.libraomni.compilation.util;
 
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 
-import dev.jackraidenph.libraomni.annotation.meta.Id;
 import dev.jackraidenph.libraomni.common.StringUtilities;
 
 import javax.annotation.processing.Messager;
@@ -24,10 +23,10 @@ public class ModIdGetter {
     }
 
     public static String getElementId(Element e) {
-        Id id = e.getAnnotation(Id.class);
-        if (id != null && !id.value().isBlank()) {
-            return id.value();
-        }
+//        Id id = e.getAnnotation(Id.class);
+//        if (id != null && !id.value().isBlank()) {
+//            return id.value();
+//        }
 
         return StringUtilities.snakeCase(e.getSimpleName().toString());
     }

@@ -1,16 +1,110 @@
 package dev.jackraidenph.libraomni.common;
 
+import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Attribute.Compound;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.TypeSymbol;
+import com.sun.tools.javac.code.Type;
+
+import javax.annotation.Nonnull;
 import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.ExecutableType;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.*;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import java.lang.annotation.Inherited;
 import java.util.*;
+import java.util.function.Supplier;
+
+import static com.sun.tools.javac.code.TypeTag.CLASS;
 
 public final class ElementUtil {
 
     private static final String OBJECT_STR = Object.class.getName();
+
+    public static ExecutableElement getExecutableElementByName(String name, TypeElement typeElement) {
+        return ElementFilter.methodsIn(typeElement.getEnclosedElements())
+                .stream()
+                .filter(ex -> ex.getSimpleName().contentEquals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Nonnull
+    public static List<? extends TypeMirror> mirrorClassArray(Supplier<Class<?>[]> supplier) {
+        try {
+            supplier.get();
+            throw new IllegalStateException("Method called in inappropriate context");
+        } catch (MirroredTypesException typeException) {
+            return typeException.getTypeMirrors();
+        }
+    }
+
+    @Nonnull
+    public static TypeMirror mirrorClass(Supplier<Class<?>> supplier) {
+        try {
+            supplier.get();
+            throw new IllegalStateException("Method called in inappropriate context");
+        } catch (MirroredTypeException typeException) {
+            return typeException.getTypeMirror();
+        }
+    }
+
+    public static Class<?> fromTypeMirror(TypeMirror typeMirror) {
+        String binaryName = ElementUtil.Javac.binaryName(typeMirror);
+        Class<?> clazz = SafeReflectionUtil.forName(binaryName);
+        if (clazz == null) {
+            throw new IllegalArgumentException("""
+                    Failed to find class [%s] by the corresponding TypeMirror, \
+                    most probably, the class is not loaded
+                    """.formatted(binaryName)
+            );
+        }
+        return clazz;
+    }
+
+    public static <T> Class<T> getOrUnmirrorClass(Supplier<Class<T>> fromAnnotationGetter) {
+        try {
+            return fromAnnotationGetter.get();
+        } catch (MirroredTypeException e) {
+            TypeMirror typeMirror = e.getTypeMirror();
+            //noinspection unchecked
+            return (Class<T>) fromTypeMirror(typeMirror);
+        }
+    }
+
+    public static <T> Class<T>[] getOrUnmirrorClassArray(Supplier<Class<T>[]> fromAnnotationGetter) {
+        Class<T>[] classes;
+        try {
+            classes = fromAnnotationGetter.get();
+            return classes;
+        } catch (MirroredTypesException e) {
+            List<? extends TypeMirror> typeMirrors = e.getTypeMirrors();
+            //noinspection unchecked
+            classes = new Class[typeMirrors.size()];
+
+            int i = 0;
+            for (TypeMirror typeMirror : typeMirrors) {
+                String binaryName = ElementUtil.Javac.binaryName(typeMirror);
+                //noinspection unchecked
+                Class<T> clazz = (Class<T>) SafeReflectionUtil.forName(binaryName);
+                if (clazz == null) {
+                    throw new IllegalArgumentException("""
+                            Failed to find class [%s] by the corresponding TypeMirror, \
+                            most probably, the class is not loaded
+                            """.formatted(binaryName)
+                    );
+                }
+                classes[i++] = clazz;
+            }
+            return classes;
+        }
+    }
+
+    public static TypeElement mirrorToElement(TypeMirror typeMirror) {
+        return (TypeElement) ((DeclaredType) typeMirror).asElement();
+    }
 
     /**
      * @param e Element
@@ -159,5 +253,59 @@ public final class ElementUtil {
                 .filter(enc -> enc.getKind().equals(ElementKind.CONSTRUCTOR))
                 .map(enc -> ((ExecutableElement) enc))
                 .anyMatch((constructor) -> constructorMatches(constructor, elements, types, typeParameters));
+    }
+
+    /**
+     * Contains static reimplementations of JavacElements methods, unreliant on built symbol tables
+     */
+    public static final class Javac {
+
+        //STATIC REIMPL of JavacElements#getBinaryName
+        public static String binaryName(TypeElement element) {
+            return ((TypeSymbol) element).flatName().toString();
+        }
+
+        public static String binaryName(TypeMirror typeMirror) {
+            if (typeMirror instanceof ArrayType arrayType) {
+                return "[L" + binaryName(mirrorToElement(arrayType.getComponentType())) + ";";
+            }
+            return binaryName(mirrorToElement(typeMirror));
+        }
+
+        //STATIC REIMPL of JavacElements#getAllAnnotationMirrors
+        public static List<Compound> getAllAnnotationMirrors(Element e) {
+            Symbol sym = (Symbol) e;
+            List<Compound> annos = new LinkedList<>(sym.getAnnotationMirrors());
+            while (sym.getKind() == ElementKind.CLASS) {
+                Type sup = ((ClassSymbol) sym).getSuperclass();
+
+                if (!sup.hasTag(CLASS) || sup.isErroneous() || sup.tsym.flatName().contentEquals(OBJECT_STR)) {
+                    break;
+                }
+                sym = sup.tsym;
+
+                for (Attribute.Compound anno : sym.getAnnotationMirrors()) {
+                    if (isInherited(anno.type) && !containsAnnoOfType(annos, anno.type)) {
+                        annos.addFirst(anno);
+                    }
+                }
+            }
+            return annos;
+        }
+
+        //STATIC REIMPL of JavacElements#getAllAnnotationMirrors
+        public static boolean isInherited(Type annotype) {
+            return annotype.tsym.getRawAttributes().stream()
+                    .anyMatch(attr -> attr.type.tsym.flatName().contentEquals(Inherited.class.getName()));
+        }
+
+        //STATIC REIMPL of JavacElements#getAllAnnotationMirrors
+        public static boolean containsAnnoOfType(List<Compound> annos, Type type) {
+            for (Attribute.Compound anno : annos) {
+                if (anno.type.tsym == type.tsym)
+                    return true;
+            }
+            return false;
+        }
     }
 }

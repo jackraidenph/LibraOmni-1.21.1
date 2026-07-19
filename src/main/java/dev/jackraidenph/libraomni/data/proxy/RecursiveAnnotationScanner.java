@@ -7,7 +7,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.ElementScanner14;
-import javax.lang.model.util.Elements;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,11 +14,9 @@ class RecursiveAnnotationScanner extends ElementScanner14<Set<Element>, TypeElem
 
     private final Set<Element> elements = new HashSet<>();
     private final Set<String> elementIdentities = new HashSet<>(); //Somehow, Set<Element> allows duplicates?
-    private final Elements elementUtils;
     private final ModIdGetter modIdGetter;
 
-    protected RecursiveAnnotationScanner(Elements elements, ModIdGetter modIdGetter) {
-        elementUtils = elements;
+    protected RecursiveAnnotationScanner(ModIdGetter modIdGetter) {
         this.modIdGetter = modIdGetter;
     }
 
@@ -30,7 +27,7 @@ class RecursiveAnnotationScanner extends ElementScanner14<Set<Element>, TypeElem
     @Override
     public Set<Element> scan(Element e, TypeElement annotation) {
         //Make a proxy of the element that supports composed annotations
-        Element toCheck = (Element) ProxyFactory.tryMakeAnnotatedConstructProxy(e, elementUtils, modIdGetter);
+        Element toCheck = (Element) ProxyFactory.tryMakeAnnotatedConstructProxy(e, modIdGetter);
         //Check if requested annotation's TypeElement is present
         checkViaTypeElement(toCheck, annotation);
         //Accept further down

@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.IsRuntimeTask;
+import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
@@ -111,7 +111,7 @@ final class CreateMetadataTask implements CompilationTask {
                 return true;
             }
 
-            if (annotated.getAnnotation(Composed.class) == null) {
+            if (annotated.getAnnotation(UnfoldsInto.class) == null) {
                 return false;
             }
 

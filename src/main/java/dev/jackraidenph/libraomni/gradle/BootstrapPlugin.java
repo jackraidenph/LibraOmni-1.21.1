@@ -19,7 +19,9 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 import javax.inject.Inject;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,6 +53,18 @@ public class BootstrapPlugin implements Plugin<Project> {
 
 
         JavaCompile javaCompile = (JavaCompile) tasks.getByName(COMPILE_JAVA);
+
+        javaCompile.getOptions().getCompilerArgs().addAll(List.of(
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+        ));
+
+        javaCompile.getOptions().setFork(true);
+        Optional.ofNullable(javaCompile.getOptions().getForkOptions().getJvmArgs()).ifPresent(args -> args.addAll(List.of(
+                "--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+                "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+                "--add-opens=java.base/java.lang=ALL-UNNAMED"
+        )));
 
         String compileTaskName = javaCompile.getName();
 

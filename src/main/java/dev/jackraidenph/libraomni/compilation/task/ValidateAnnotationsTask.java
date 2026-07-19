@@ -4,6 +4,7 @@ import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
+import dev.jackraidenph.libraomni.common.ElementUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
@@ -85,7 +86,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
             return;
         }
 
-        List<? extends TypeMirror> incompatibleList = AnnotationMirrorUtil.mirrorClassArray(incompatibleWith::value);
+        List<? extends TypeMirror> incompatibleList = ElementUtil.mirrorClassArray(incompatibleWith::value);
 
         element.getAnnotationMirrors()
                 .stream().map(AnnotationMirrorUtil::toTypeElement)

@@ -59,6 +59,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         RoundEnvironment proxyEnvironment = ProxyFactory.makeRuntimeEnvironmentProxy(roundEnvironment, processingEnv, modIdGetter);
         ProcessingContext context = new ProcessingContext(modIdGetter, resourceManager, config, proxyEnvironment, processingEnv);
 
+        BlackMagicUtil.compileAndLoad(context);
+
         Messager messager = this.processingEnv.getMessager();
         boolean finishing = roundEnvironment.processingOver();
 

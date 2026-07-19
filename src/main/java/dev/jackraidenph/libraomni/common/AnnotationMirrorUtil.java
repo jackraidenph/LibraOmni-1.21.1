@@ -1,33 +1,35 @@
 package dev.jackraidenph.libraomni.common;
 
-import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import com.sun.tools.javac.code.Attribute;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
 
-import javax.annotation.Nonnull;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.type.MirroredTypesException;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.util.ElementFilter;
 import java.lang.annotation.Repeatable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Supplier;
 
 public class AnnotationMirrorUtil {
 
-    public static Object getElementValue(AnnotationMirror mirror, String name) {
-        AnnotationValue value = mirror.getElementValues()
+    public static ExecutableElement getExecutableElementByName(AnnotationMirror mirror, String name) {
+        return Javac.getElementValuesWithDefaults(mirror)
+                .keySet().stream()
+                .filter(executableElement -> executableElement.getSimpleName().contentEquals(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static AnnotationValue getElementValue(AnnotationMirror mirror, String name) {
+        return AnnotationMirrorUtil.Javac.getElementValuesWithDefaults(mirror)
                 .entrySet().stream()
                 .filter(e -> e.getKey().getSimpleName().contentEquals(name))
                 .map(Entry::getValue)
                 .findFirst()
                 .orElse(null);
-        if (value == null) {
-            return null;
-        }
-        return value.getValue();
     }
 
     public static AnnotationMirror findAnnotationMirror(Supplier<List<? extends AnnotationMirror>> mirrors, String qualifiedName) {
@@ -41,33 +43,17 @@ public class AnnotationMirrorUtil {
         return (TypeElement) mirror.getAnnotationType().asElement();
     }
 
-    @Nonnull
-    public static TypeMirror mirrorClass(Supplier<Class<?>> supplier) {
-        try {
-            supplier.get();
-            throw new IllegalStateException("Method called in inappropriate context");
-        } catch (MirroredTypeException typeException) {
-            return typeException.getTypeMirror();
-        }
-    }
-
-    @Nonnull
-    public static List<? extends TypeMirror> mirrorClassArray(Supplier<Class<?>[]> supplier) {
-        try {
-            supplier.get();
-            throw new IllegalStateException("Method called in inappropriate context");
-        } catch (MirroredTypesException typeException) {
-            return typeException.getTypeMirrors();
-        }
-    }
-
-    public static boolean compareWithClass(AnnotationMirror annotationMirror, Class<?> clazz, Elements elements) {
-        return elements.getBinaryName(toTypeElement(annotationMirror)).contentEquals(clazz.getName());
+    public static boolean compareWithClass(AnnotationMirror annotationMirror, Class<?> clazz) {
+        return ElementUtil.Javac.binaryName(toTypeElement(annotationMirror)).contentEquals(clazz.getName());
     }
 
     //Check if the annotation is a container for @Repeatable annotations specified as in https://docs.oracle.com/javase/tutorial/java/annotations/repeating.html
     public static boolean isRepeatableContainer(AnnotationMirror mirror) {
-        Object attributeValue = AnnotationMirrorUtil.getElementValue(mirror, "value");
+        AnnotationValue annotationValue = AnnotationMirrorUtil.getElementValue(mirror, "value");
+        if (annotationValue == null) {
+            return false;
+        }
+        Object attributeValue = annotationValue.getValue();
         //Must be an array of annotations
         if (!(attributeValue instanceof List<?> list) || list.isEmpty()) {
             return false;
@@ -81,15 +67,12 @@ public class AnnotationMirrorUtil {
         if (repeatableMirror == null) {
             return false;
         }
-        TypeMirror inRepeatableMirror = (TypeMirror) AnnotationMirrorUtil.getElementValue(repeatableMirror, "value");
-        if (inRepeatableMirror == null) {
+        AnnotationValue mirrorAnnotationValue = AnnotationMirrorUtil.getElementValue(repeatableMirror, "value");
+        if (mirrorAnnotationValue == null) {
             return false;
         }
+        Object inRepeatableMirror = mirrorAnnotationValue.getValue();
         return inRepeatableMirror.equals(mirror.getAnnotationType());
-    }
-
-    public static boolean isOnlyDirect(Elements elements, AnnotationMirror mirror) {
-        return ProxyFactory.ONLY_DIRECT.stream().anyMatch(c -> AnnotationMirrorUtil.compareWithClass(mirror, c, elements));
     }
 
     public static List<AnnotationMirror> unwrapRepeatableContainer(AnnotationMirror annotation) {
@@ -114,6 +97,29 @@ public class AnnotationMirrorUtil {
             return (List<AnnotationMirror>) arr;
         } catch (ClassCastException e) {
             throw new IllegalStateException("Not an aray of AnnotationMirrors", e);
+        }
+    }
+
+    public static class Javac {
+        //STATIC REIMPL of JavacElements#getElementValuesWithDefaults
+        public static Map<ExecutableElement, AnnotationValue> getElementValuesWithDefaults(AnnotationMirror a) {
+            DeclaredType annotype = a.getAnnotationType();
+
+            Map<ExecutableElement, AnnotationValue> res = new HashMap<>();
+
+            List<? extends Element> enclosed = annotype.asElement().getEnclosedElements();
+            for (ExecutableElement ex : ElementFilter.methodsIn(enclosed)) {
+                MethodSymbol meth = (MethodSymbol) ex;
+                Attribute defaultValue = meth.getDefaultValue();
+                if (defaultValue != null && !res.containsKey(meth)) {
+                    res.put(meth, defaultValue);
+                }
+            }
+
+            Map<? extends ExecutableElement, ? extends AnnotationValue> existing = a.getElementValues();
+            res.putAll(existing);
+
+            return res;
         }
     }
 }

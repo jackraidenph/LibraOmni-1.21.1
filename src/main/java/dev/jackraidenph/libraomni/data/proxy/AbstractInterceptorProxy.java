@@ -28,7 +28,6 @@ public abstract class AbstractInterceptorProxy implements InvocationHandler {
 
     private Method findInterceptorForArgs(List<Method> methods, Object[] args) {
         Class<?>[] types = SafeReflectionUtil.inferTypes(args);
-        System.out.println(Arrays.toString(types));
 
         for (Method declared : methods) {
             Class<?>[] parameterTypes = declared.getParameterTypes();
@@ -58,9 +57,6 @@ public abstract class AbstractInterceptorProxy implements InvocationHandler {
         Method ownMethod = findInterceptorForArgs(interceptors.get(methodName), args);
 
         if (ownMethod == null) {
-            System.out.println(interceptors);
-            System.out.println(methodName);
-            System.out.println(Arrays.toString(args));
             throw new IllegalArgumentException("No method interceptor found for method [%s] with parameter types [%s]"
                     .formatted(methodName, SafeReflectionUtil.inferTypes(args))
             );

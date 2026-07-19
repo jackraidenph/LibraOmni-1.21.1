@@ -23,7 +23,7 @@ public class RoundEnvironmentProxy extends AbstractObjectProxy<RoundEnvironment>
         this.elementUtils = processingEnvironment.getElementUtils();
         this.modIdGetter = modIdGetter;
         for (Element e : original.getRootElements()) {
-            Element proxy = (Element) ProxyFactory.tryMakeAnnotatedConstructProxy(e, elementUtils, modIdGetter);
+            Element proxy = (Element) ProxyFactory.tryMakeAnnotatedConstructProxy(e, modIdGetter);
             proxiedRootElements.add(proxy);
         }
     }
@@ -36,17 +36,20 @@ public class RoundEnvironmentProxy extends AbstractObjectProxy<RoundEnvironment>
     @InterceptorFor("getElementsAnnotatedWith")
     public Set<? extends Element> getElementsAnnotatedWith(TypeElement annotationTypeElement) {
         String annotationName = annotationTypeElement.getQualifiedName().toString();
+
         if (!scannedElementsCacheByAnnotation.containsKey(annotationName)) {
-            RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner(elementUtils, modIdGetter);
+            RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner(modIdGetter);
             for (Element e : getRootElements()) {
                 scanner.scan(e, annotationTypeElement);
             }
             scannedElementsCacheByAnnotation.put(annotationName, scanner.getElements());
         }
+
         Set<? extends Element> elements = scannedElementsCacheByAnnotation.get(annotationName);
         if (elements == null) {
             throw new IllegalStateException("Elements cache is null");
         }
+
         return elements;
     }
 

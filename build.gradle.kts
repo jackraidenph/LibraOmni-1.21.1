@@ -57,6 +57,15 @@ listOf("jar").forEach { taskName ->
     }
 }
 
+tasks.named<JavaCompile>("compileJava") {
+    options.compilerArgs.addAll(
+        arrayOf(
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+            "--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+        )
+    )
+}
+
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
@@ -75,14 +84,18 @@ neoForge {
         create("client") {
             client()
 
-            programArguments.set(listOf(
-                "--uuid", uuid,
-                "--username", username
-            ))
+            programArguments.set(
+                listOf(
+                    "--uuid", uuid,
+                    "--username", username
+                )
+            )
 
-            systemProperties.set(mapOf(
-                "neoforge.enabledGameTestNamespaces" to modId
-            ))
+            systemProperties.set(
+                mapOf(
+                    "neoforge.enabledGameTestNamespaces" to modId
+                )
+            )
         }
 
         create("server") {

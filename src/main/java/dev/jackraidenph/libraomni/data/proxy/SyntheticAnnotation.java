@@ -6,6 +6,7 @@ import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
@@ -16,18 +17,24 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
 
     public SyntheticAnnotation(Class<T> type, Map<String, Object> attributes) {
         super();
+
+        this.type = type;
+        this.attributes = attributes == null ? Map.of() : attributes;
+
         for (Method m : type.getDeclaredMethods()) {
             int mods = m.getModifiers();
-            if (!Modifier.isAbstract(mods) || m.isDefault()) {
+            if (!Modifier.isAbstract(mods) || m.getDefaultValue() != null) {
                 continue;
             }
             String mName = m.getName();
-            if (!attributes.containsKey(mName)) {
+            if (!this.attributes.containsKey(mName)) {
                 throw new IllegalArgumentException("Failed to create value annotation for type [%s], attribute [%s] is not filled".formatted(type, mName));
             }
         }
-        this.type = type;
-        this.attributes = attributes;
+    }
+
+    private boolean containsNonDefaultMethods() {
+        return Arrays.stream(annotationType().getDeclaredMethods()).map(Method::getDefaultValue).anyMatch(Objects::isNull);
     }
 
     public static <T extends Annotation> T create(Class<? extends T> type, Map<String, Object> attributeValues) {

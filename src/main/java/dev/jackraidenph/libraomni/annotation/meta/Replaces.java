@@ -1,5 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.meta;
 
+import dev.jackraidenph.libraomni.common.TransformerUtil.NoOpTransformer;
+
 import java.lang.annotation.*;
 import java.util.function.Function;
 
@@ -10,12 +12,5 @@ public @interface Replaces {
 
     Class<? extends Annotation> in();
 
-    Class<? extends Function<Object, Object>> transformer() default NoOpTransformer.class;
-
-    class NoOpTransformer implements Function<Object, Object> {
-        @Override
-        public Object apply(Object o) {
-            return o;
-        }
-    }
+    Class<? extends Function<?, ?>> transformer() default NoOpTransformer.class;
 }

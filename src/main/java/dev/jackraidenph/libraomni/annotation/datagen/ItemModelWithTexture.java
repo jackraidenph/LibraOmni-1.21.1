@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.annotation.datagen;
 
 import dev.jackraidenph.libraomni.annotation.info.GeneratesFiles;
-import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
+import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.annotation.value.StringPair;
 import dev.jackraidenph.libraomni.data.proxy.SyntheticAnnotation;
 
@@ -11,11 +11,11 @@ import java.lang.annotation.Target;
 import java.util.Map;
 import java.util.function.Function;
 
-@GeneratesFiles
 
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
-@ArbitraryItemModelData
-@Composed
+
+@GeneratesFiles
+@UnfoldsInto(value = ArbitraryBlockModelData.class, retainSelf = false)
 public @interface ItemModelWithTexture {
 
     @Replaces(in = ArbitraryItemModelData.class, attribute = "value", transformer = StringToLayer0TextureTransformer.class)

@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
-import dev.jackraidenph.libraomni.annotation.meta.Replaces.NoOpTransformer;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.TransformerUtil.NoOpTransformer;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 
 import javax.lang.model.type.MirroredTypeException;
@@ -80,20 +80,20 @@ public class AttributeReplacements {
         return clazz;
     }
 
-    private Class<? extends Function<Object, Object>> getTransformerClass(String attributeName) {
+    private Class<? extends Function<?, ?>> getTransformerClass(String attributeName) {
         Replaces annotation = getReplacementAnnotation(attributeName);
         if (annotation == null) {
             throw new IllegalStateException("@%s annotation not found for attribute [%s]".formatted(Replaces.class.getSimpleName(), attributeName));
         }
 
-        Class<? extends Function<Object, Object>> transformerClazz;
+        Class<? extends Function<?, ?>> transformerClazz;
         try {
             transformerClazz = annotation.transformer();
             return transformerClazz;
         } catch (MirroredTypeException mirroredTypeException) {
             TypeMirror typeMirror = mirroredTypeException.getTypeMirror();
             //noinspection unchecked
-            transformerClazz = (Class<? extends Function<Object, Object>>) tryGetClass(typeMirror);
+            transformerClazz = (Class<? extends Function<?, ?>>) tryGetClass(typeMirror);
             if (transformerClazz == null) {
                 throw new IllegalArgumentException("""
                     Transformer class [%s] not found.
@@ -106,8 +106,8 @@ public class AttributeReplacements {
         }
     }
 
-    private Function<Object, Object> constructTransformerInstance(String attributeName) {
-        Class<? extends Function<Object, Object>> trasnformerClass = getTransformerClass(attributeName);
+    private Function<?, ?> constructTransformerInstance(String attributeName) {
+        Class<? extends Function<?, ?>> trasnformerClass = getTransformerClass(attributeName);
         return UnsafeReflectionUtil.tryConstruct(trasnformerClass);
     }
 
@@ -122,7 +122,7 @@ public class AttributeReplacements {
             return oldVal;
         }
 
-        Function<Object, Object> transformer = constructTransformerInstance(attributeName);
+        @SuppressWarnings("unchecked") Function<Object, Object> transformer = (Function<Object, Object>) constructTransformerInstance(attributeName);
         return transformer.apply(oldVal);
     }
 

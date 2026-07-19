@@ -1,8 +1,5 @@
 package dev.jackraidenph.libraomni.common;
 
-import dev.jackraidenph.libraomni.annotation.meta.Id;
-import dev.jackraidenph.libraomni.data.proxy.ProxiedAnnotatedElement;
-import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.*;
@@ -33,14 +30,15 @@ public class SafeReflectionUtil {
         return typesArray;
     }
 
-    public static Object selfOrSingletonArray(Class<?> destinationClass, Object val) {
+    @SuppressWarnings("unchecked")
+    public static <T> T selfOrSingletonArray(Class<T> destinationClass, Object val) {
         Class<?> type = SafeReflectionUtil.selfOrAnnotationType(val);
         if (destinationClass.isArray() && !type.isArray() && destinationClass.componentType().isAssignableFrom(type)) {
             Object arr = Array.newInstance(type, 1);
             Array.set(arr, 0, val);
-            return arr;
+            return (T) arr;
         } else {
-            return val;
+            return (T) val;
         }
     }
 
@@ -203,10 +201,6 @@ public class SafeReflectionUtil {
         );
     }
 
-    public static String idOrDefault(AnnotatedElement element) {
-        return idOrDefault(ProxyFactory.tryMakeAnnotatedElementProxy(element, null));
-    }
-
     public static DeferredHolder<?, ?> tryCastToDeferredHolder(AnnotatedElement element) {
         if (element instanceof Field field
                 && UnsafeReflectionUtil.getFieldValue(field, null, false) instanceof DeferredHolder<?, ?> deferredHolder) {
@@ -223,32 +217,31 @@ public class SafeReflectionUtil {
         return null;
     }
 
-    public static String id(ProxiedAnnotatedElement e) {
-        AnnotatedElement object = e.proxiedElement();
-        String holderId = holderId(object);
+    public static String id(AnnotatedElement e) {
+        String holderId = holderId(e);
         if (holderId != null && !holderId.isBlank()) {
             return holderId;
         }
 
-        Id id = e.getAnnotation(Id.class);
-        if (id != null && id.value() != null) {
-            //If @Id is actually present, but blank, use object's name
-            if (id.value().isBlank()) {
-                return StringUtilities.snakeCase(objectName(e.proxiedElement()));
-            }
-            return id.value();
-        }
+//        Id id = e.getAnnotation(Id.class);
+//        if (id != null && id.value() != null) {
+//            //If @Id is actually present, but blank, use object's name
+//            if (id.value().isBlank()) {
+//                return StringUtilities.snakeCase(objectName(e));
+//            }
+//            return id.value();
+//        }
 
-        return null;
+        return StringUtilities.snakeCase(objectName(e));
     }
 
-    public static String idOrDefault(ProxiedAnnotatedElement element) {
+    public static String idOrDefault(AnnotatedElement element) {
         String id = id(element);
         if (id != null && !id.isBlank()) {
             return id;
         }
 
-        return StringUtilities.snakeCase(objectName(element.proxiedElement()));
+        return StringUtilities.snakeCase(objectName(element));
     }
 
     public static <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<?> child) {
@@ -263,12 +256,57 @@ public class SafeReflectionUtil {
         return null;
     }
 
+    public static Class<?> forName(String name, boolean init, ClassLoader loader) {
+        try {
+            return Class.forName(name, init, loader);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
     public static Class<?> forName(String name) {
+        //Primtives
+        if (name.indexOf('.') < 0) {
+            if (name.startsWith("[")) {
+                return getPrimitiveArray(name);
+            }
+            return getPrimitive(name);
+        }
+
         try {
             return Class.forName(name);
         } catch (ClassNotFoundException e) {
             return null;
         }
+    }
+
+    private static Class<?> getPrimitive(String name) {
+        return switch (name) {
+            case "boolean" -> boolean.class;
+            case "byte" -> byte.class;
+            case "short" -> short.class;
+            case "int" -> int.class;
+            case "long" -> long.class;
+            case "float" -> float.class;
+            case "double" -> double.class;
+            case "char" -> char.class;
+            case "void" -> void.class;
+            default -> null;
+        };
+    }
+
+    private static Class<?> getPrimitiveArray(String name) {
+        return switch (name) {
+            case "[Z" -> boolean[].class;
+            case "[B" -> byte[].class;
+            case "[S" -> short[].class;
+            case "[I" -> int[].class;
+            case "[J" -> long[].class;
+            case "[F" -> float[].class;
+            case "[D" -> double[].class;
+            case "[C" -> char[].class;
+            default -> null;
+        };
     }
 
     public static <T> Class<? extends T> forNameSubclass(String name, Class<T> clazz) {

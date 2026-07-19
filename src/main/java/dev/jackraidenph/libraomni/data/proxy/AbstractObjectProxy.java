@@ -13,6 +13,9 @@ public abstract class AbstractObjectProxy<T> extends AbstractInterceptorProxy {
         this.proxiedObject = proxiedObject;
     }
 
+    public T getProxiedObject() {
+        return proxiedObject;
+    }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {

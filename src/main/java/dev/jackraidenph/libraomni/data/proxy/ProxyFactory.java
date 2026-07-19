@@ -1,9 +1,6 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.annotation.meta.Composed;
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
-import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
-import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
@@ -24,26 +21,13 @@ import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 public abstract class ProxyFactory {
 
     private static final ClassLoader CLASSLOADER = ProxyFactory.class.getClassLoader();
 
-    //A special-case set of meta-annotations that must not be considered transitively
-    public static final Set<Class<? extends Annotation>> ONLY_DIRECT = Set.of(
-            Target.class,
-            Retention.class,
-            Inherited.class,
-            Repeatable.class,
-            Documented.class,
-            Composed.class,
-            NeedsRuntimeProcessing.class,
-            Validated.class
-    );
-
     public static Annotation makeAnnotationProxy(Annotation annotation, AttributeReplacements delegates, Object annotatedElement, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
-        if (annotation instanceof Composed || annotation.annotationType().getPackageName().startsWith("java.lang.annotation")) {
+        if (annotation.annotationType().getPackageName().startsWith("java.lang.annotation")) {
             return annotation;
         }
         if (delegates == null || delegates.isEmpty()) {
@@ -147,16 +131,16 @@ public abstract class ProxyFactory {
         );
     }
 
-    public static AnnotatedConstruct makeAnnotatedConstructProxy(AnnotatedConstruct construct, Elements elements, ModIdGetter modIdGetter) {
+    public static AnnotatedConstruct makeAnnotatedConstructProxy(AnnotatedConstruct construct, ModIdGetter modIdGetter) {
         return (AnnotatedConstruct) Proxy.newProxyInstance(
                 CLASSLOADER,
                 construct.getClass().getInterfaces(),
-                new AnnotatedConstructProxy(construct, elements, modIdGetter)
+                new AnnotatedConstructProxy(construct, modIdGetter)
         );
     }
 
-    public static AnnotatedConstruct tryMakeAnnotatedConstructProxy(AnnotatedConstruct e, Elements elements, ModIdGetter modIdGetter) {
-        return e instanceof Proxy ? e : (Element) ProxyFactory.makeAnnotatedConstructProxy(e, elements, modIdGetter);
+    public static AnnotatedConstruct tryMakeAnnotatedConstructProxy(AnnotatedConstruct e, ModIdGetter modIdGetter) {
+        return e instanceof Proxy ? e : (Element) ProxyFactory.makeAnnotatedConstructProxy(e, modIdGetter);
     }
 
 

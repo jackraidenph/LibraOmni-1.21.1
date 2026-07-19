@@ -22,7 +22,12 @@ public class AnnotationProxy extends AbstractObjectProxy<Annotation> {
     private final ModIdGetter modIdGetter;
     private final ModMetadataReader modMetadataReader;
 
-    public AnnotationProxy(Annotation proxiedObject, AttributeReplacements attributeReplacements, Object annotated, @Nullable ModIdGetter modIdGetter, @Nullable ModMetadataReader modMetadataReader) {
+    public AnnotationProxy(Annotation proxiedObject,
+                           AttributeReplacements attributeReplacements,
+                           Object annotated,
+                           @Nullable ModIdGetter modIdGetter,
+                           @Nullable ModMetadataReader modMetadataReader
+    ) {
         super(proxiedObject);
         Set<String> nonExistent = attributeReplacements.getNonCommonMethods(proxiedObject);
         if (!nonExistent.isEmpty()) {

@@ -140,15 +140,16 @@ public class UnsafeReflectionUtil {
     }
 
     public static <T> T getConstructorValue(Constructor<T> constructor, Object... args) {
+        String owningClass = constructor.getDeclaringClass().getName();
         try {
             constructor.setAccessible(true);
             return constructor.newInstance(args);
         } catch (InvocationTargetException e) {
-            throw new RuntimeException("There was an exception inside the empty constructor", e);
+            throw new RuntimeException("There was an exception inside the empty constructor for class [%s]".formatted(owningClass), e);
         } catch (InstantiationException e) {
-            throw new RuntimeException("Failed to instantiate the class, InstantiationException was thrown. Check that your class is not abstract or interface");
+            throw new RuntimeException("Failed to instantiate the [%s], InstantiationException was thrown. Check that your class is not abstract or interface".formatted(owningClass), e);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to get access to the empty constructor");
+            throw new RuntimeException("Failed to get access to the constructor for class [%s]".formatted(owningClass), e);
         }
     }
 

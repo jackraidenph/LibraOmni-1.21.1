@@ -1,8 +1,26 @@
 package dev.jackraidenph.libraomni.compilation;
 
+import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
+import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
+import dev.jackraidenph.libraomni.annotation.meta.Validated;
+
+import java.lang.annotation.*;
 import java.util.*;
 
 public abstract class AnnotationProcessorConstants {
+
+    //A special-case set of meta-annotations that must not be considered transitively
+    public static final Set<Class<? extends Annotation>> UNFOLD_UNSUPPORTED = Set.of(
+            UnfoldsInto.class,
+            Target.class,
+            Retention.class,
+            Inherited.class,
+            Repeatable.class,
+            Documented.class,
+            NeedsRuntimeProcessing.class,
+            Validated.class
+    );
+
     public static final Set<String> PROCESSED_RESOURCES = Set.of(
             "data/*/tags/**",
             "data/*/loot_table/**",

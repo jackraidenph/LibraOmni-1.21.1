@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.experimental;
 
 import dev.jackraidenph.libraomni.LibraOmni;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
@@ -100,6 +101,12 @@ public class BlackMagicUtil {
     }
 
     public static Class<?> defineClass(ClassLoader loader, String name, byte[] bytes) {
+        Class<?> clazz;
+        //Already defined
+        if ((clazz = SafeReflectionUtil.forName(name, false, loader)) != null) {
+            return clazz;
+        }
+
         try {
             Method define = ClassLoader.class.getDeclaredMethod("defineClass", String.class, byte[].class, int.class, int.class);
             define.setAccessible(true);
