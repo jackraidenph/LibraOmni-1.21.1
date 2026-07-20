@@ -35,11 +35,14 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
                 .setPngExtension();
 
         ResourceIdentifier textureLocation = builder.build();
-        ResourceIdentifier saveOverride = fileSuffix.isBlank() ? null : builder.withSuffix(fileSuffix).build();
+        ResourceBuilder saveLocationBuilder = builder.setNameRoot(elementId);
+        if(fileSuffix != null && !fileSuffix.isBlank()) {
+            builder.withSuffix(fileSuffix);
+        }
 
         ImageHelper.transformAndSavePng(
                 textureLocation,
-                saveOverride,
+                saveLocationBuilder.build(),
                 image -> ImageHelper.recolor(image, annotation.palette(), annotation.usePaletteInterpolation()),
                 processingContext
         );
