@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class CompilationTaskProcessor extends AbstractProcessor {
 
-    public static ModIdGetter MOD_ID_GETTER = null;
+    private static ModIdGetter MOD_ID_GETTER = null;
 
     private final List<CompilationTask> tasks = new ArrayList<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
@@ -56,7 +56,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         MOD_ID_GETTER = modIdGetter;
     }
 
-    public static ObjectOriginGetter modIdGetter() {
+    public static ObjectOriginGetter getModIdGetter() {
         return MOD_ID_GETTER;
     }
 

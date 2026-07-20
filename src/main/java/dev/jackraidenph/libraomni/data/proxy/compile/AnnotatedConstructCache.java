@@ -21,10 +21,14 @@ public class AnnotatedConstructCache implements UnfoldingCache<AnnotationMirror>
     protected final Map<TypeElement, List<AnnotationMirror>> annotationMirrorsMap = new HashMap<>();
     protected final Map<Class<? extends Annotation>, List<Annotation>> annotationsMap = new HashMap<>();
 
-    public AnnotatedConstructCache(AnnotatedConstruct construct) {
-        List<? extends AnnotationMirror> mirrors = construct instanceof Element e
+    private final AnnotatedConstruct annotatedConstruct;
+
+    public AnnotatedConstructCache(AnnotatedConstruct annotatedConstruct) {
+        this.annotatedConstruct = annotatedConstruct;
+
+        List<? extends AnnotationMirror> mirrors = annotatedConstruct instanceof Element e
                 ? ElementUtil.Javac.getAllAnnotationMirrors(e)
-                : construct.getAnnotationMirrors();
+                : annotatedConstruct.getAnnotationMirrors();
 
         cache(mirrors);
     }
@@ -33,7 +37,7 @@ public class AnnotatedConstructCache implements UnfoldingCache<AnnotationMirror>
     public List<? extends AnnotationMirror> unfold(AnnotationMirror toUnfold, UnfoldsInto unfoldInfo) {
         List<AnnotationMirror> res = new ArrayList<>();
 
-        Map<String, Map<ExecutableElement, AnnotationValue>> replacements = CacheUtil.getReplacementValues(toUnfold);
+        Map<String, Map<ExecutableElement, AnnotationValue>> replacements = CacheUtil.getReplacementValues(annotatedConstruct, toUnfold);
 
         List<? extends TypeMirror> mirrors = ElementUtil.mirrorClassArray(unfoldInfo::value);
 

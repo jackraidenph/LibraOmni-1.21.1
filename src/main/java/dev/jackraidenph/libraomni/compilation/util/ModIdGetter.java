@@ -1,10 +1,12 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
 import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 
 import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
+import org.jspecify.annotations.NonNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
@@ -35,8 +37,20 @@ public class ModIdGetter implements ObjectOriginGetter {
     }
 
     @Override
+    public @NonNull String getObjectName(Object object) {
+        if (!(object instanceof Element element)) {
+            return SafeReflectionUtil.objectName(object);
+        }
+        return getElementId(element);
+    }
+
+    @Override
     public @Nullable String getOriginModId(Object object) {
-        return modIdByPackage(object.getClass().getPackageName());
+        if (!(object instanceof Element element)) {
+            return modIdByPackage(object.getClass().getPackageName());
+        }
+
+        return modIdByElement(element);
     }
 
     private static String getModId(Element e, TypeElement annotationToSearch, String valueName) {

@@ -3,8 +3,11 @@ package dev.jackraidenph.libraomni.data;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.CommonGson;
 import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
+import org.jspecify.annotations.NonNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
@@ -13,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.AnnotatedElement;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,6 +45,11 @@ public class ModMetadataReader implements ObjectOriginGetter {
                 .findAny();
 
         return optional.map(Entry::getKey).orElse(null);
+    }
+
+    @Override
+    public @NonNull String getObjectName(Object object) {
+        return SafeReflectionUtil.id(object);
     }
 
     public boolean initialized() {

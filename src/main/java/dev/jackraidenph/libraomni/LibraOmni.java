@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
 import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
+import dev.jackraidenph.libraomni.compilation.task.CompilationTaskProcessor;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.experimental.ForwardingLoggerWrapper;
 import dev.jackraidenph.libraomni.runtime.*;
@@ -49,5 +50,13 @@ public class LibraOmni {
 
     public static ObjectOriginGetter getModMetadataReader() {
         return READER;
+    }
+
+    public static ObjectOriginGetter getCurrentOriginGetter() {
+        if (READER == null) {
+            return CompilationTaskProcessor.getModIdGetter();
+        } else {
+            return getModMetadataReader();
+        }
     }
 }

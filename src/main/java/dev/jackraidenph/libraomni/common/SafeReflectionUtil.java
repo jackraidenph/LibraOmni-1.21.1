@@ -204,7 +204,7 @@ public class SafeReflectionUtil {
         };
     }
 
-    public static String objectName(AnnotatedElement element) {
+    public static String objectName(Object element) {
         return StringUtilities.snakeCase(
                 switch (element) {
                     case Class<?> clazz -> clazz.getSimpleName();
@@ -216,7 +216,7 @@ public class SafeReflectionUtil {
         );
     }
 
-    public static DeferredHolder<?, ?> tryCastToDeferredHolder(AnnotatedElement element) {
+    public static DeferredHolder<?, ?> tryCastToDeferredHolder(Object element) {
         if (element instanceof Field field
                 && UnsafeReflectionUtil.getFieldValue(field, null, false) instanceof DeferredHolder<?, ?> deferredHolder) {
             return deferredHolder;
@@ -224,7 +224,7 @@ public class SafeReflectionUtil {
         return null;
     }
 
-    public static String holderId(AnnotatedElement e) {
+    public static String holderId(Object e) {
         DeferredHolder<?, ?> holder = SafeReflectionUtil.tryCastToDeferredHolder(e);
         if (holder != null) {
             return holder.getId().getPath();
@@ -232,7 +232,7 @@ public class SafeReflectionUtil {
         return null;
     }
 
-    public static String id(AnnotatedElement e) {
+    public static String id(Object e) {
         String holderId = holderId(e);
         if (holderId != null && !holderId.isBlank()) {
             return holderId;

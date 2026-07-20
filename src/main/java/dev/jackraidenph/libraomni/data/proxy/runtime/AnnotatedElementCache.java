@@ -17,9 +17,13 @@ public class AnnotatedElementCache implements UnfoldingCache<Annotation> {
     private final Map<Class<? extends Annotation>, List<Annotation>> annotations = new HashMap<>();
     private final Map<Class<? extends Annotation>, List<Annotation>> declaredAnnotations = new HashMap<>();
 
+    private final AnnotatedElement annotatedElement;
+
     private boolean processingDeclared;
 
     public AnnotatedElementCache(AnnotatedElement annotatedElement) {
+        this.annotatedElement = annotatedElement;
+
         processingDeclared = false;
         cache(List.of(annotatedElement.getAnnotations()));
 
@@ -33,7 +37,7 @@ public class AnnotatedElementCache implements UnfoldingCache<Annotation> {
 
     @Override
     public List<? extends Annotation> unfold(Annotation toUnfold, UnfoldsInto unfoldInfo) {
-        Map<Class<?>, Map<String, Object>> replacements = CacheUtil.getReplacementValues(toUnfold);
+        Map<Class<?>, Map<String, Object>> replacements = CacheUtil.getReplacementValues(annotatedElement, toUnfold);
 
         List<Annotation> res = new ArrayList<>();
 
