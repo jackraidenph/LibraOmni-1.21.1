@@ -31,7 +31,7 @@ public abstract class SequentialCompilationTask implements CompilationTask {
 //                );
 //                continue;
 //            }
-            processElement(processingContext.modIdGetter().forElement(e), ModIdGetter.getElementId(e), e, processingContext);
+            processElement(processingContext.modIdGetter().modIdByElement(e), ModIdGetter.getElementId(e), e, processingContext);
         }
     }
 

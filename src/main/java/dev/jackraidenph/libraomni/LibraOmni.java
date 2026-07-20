@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
+import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.experimental.ForwardingLoggerWrapper;
 import dev.jackraidenph.libraomni.runtime.*;
@@ -15,11 +16,15 @@ public class LibraOmni {
     public static final String MOD_ID = "libraomni";
     public static final Logger LOGGER = ForwardingLoggerWrapper.make(LogUtils.getLogger());
     private static ModContextManager CONTEXT_MANAGER = null;
+    private static ModMetadataReader READER = null;
 
     public LibraOmni(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("Reading metadata files");
         ModMetadataReader modMetadataReader = new ModMetadataReader();
         modMetadataReader.readMetadataFile();
+        if (modMetadataReader.initialized()) {
+            READER = modMetadataReader;
+        }
         LOGGER.info("Read metadata files, mods: {}", modMetadataReader.getAllModsWithMetadata());
 
         LOGGER.info("Creating ModContextManager");
@@ -40,5 +45,9 @@ public class LibraOmni {
 
     public static ModContextManager getModContextManager() {
         return CONTEXT_MANAGER;
+    }
+
+    public static ObjectOriginGetter getModMetadataReader() {
+        return READER;
     }
 }

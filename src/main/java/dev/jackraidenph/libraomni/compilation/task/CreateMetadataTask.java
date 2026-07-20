@@ -43,7 +43,7 @@ final class CreateMetadataTask implements CompilationTask {
                 continue;
             }
 
-            String modId = processingContext.modIdGetter().forElement(e);
+            String modId = processingContext.modIdGetter().modIdByElement(e);
             if (modId == null) {
                 continue;
             }
@@ -57,7 +57,7 @@ final class CreateMetadataTask implements CompilationTask {
         //Process user-defined runtime tasks
         for (Element e : roundEnvironment.getElementsAnnotatedWith(IsRuntimeTask.class)) {
             String name = ((TypeElement) e).getQualifiedName().toString();
-            String modId = processingContext.modIdGetter().forElement(e);
+            String modId = processingContext.modIdGetter().modIdByElement(e);
             if (modId == null) {
                 messager.printWarning("Got runtime task [" + name + "], but failed to compute the owning mod");
                 continue;

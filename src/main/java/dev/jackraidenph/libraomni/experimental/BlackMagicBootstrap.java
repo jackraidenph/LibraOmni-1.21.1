@@ -58,7 +58,7 @@ public class BlackMagicBootstrap {
 
         SharedConstants.tryDetectVersion();
 
-        List<String> mods = new ArrayList<>(modLocator.mods());
+        List<String> mods = new ArrayList<>(modLocator.discoveredMods());
         List<ModContainer> fakeContainers = new ArrayList<>();
 
         for (String modId : mods) {

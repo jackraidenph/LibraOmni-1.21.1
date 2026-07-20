@@ -1,16 +1,19 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
+import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 
 import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class ModIdGetter {
+public class ModIdGetter implements ObjectOriginGetter {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
     private final Map<String, List<String>> modClasses = new HashMap<>();
 
@@ -29,6 +32,11 @@ public class ModIdGetter {
 //        }
 
         return StringUtilities.snakeCase(e.getSimpleName().toString());
+    }
+
+    @Override
+    public @Nullable String getOriginModId(Object object) {
+        return modIdByPackage(object.getClass().getPackageName());
     }
 
     private static String getModId(Element e, TypeElement annotationToSearch, String valueName) {
@@ -55,7 +63,17 @@ public class ModIdGetter {
         return String.valueOf(foundMirror.getElementValues().get(executableElement).getValue());
     }
 
-    public void findMods(TypeElement modAnnotationType, String annotationValue, RoundEnvironment roundEnvironment, Messager messager) {
+    private boolean init = false;
+
+    public void setInitialized(boolean value) {
+        init = value;
+    }
+
+    public void discoverMods(TypeElement modAnnotationType, String annotationValue, RoundEnvironment roundEnvironment, Messager messager) {
+        if (init) {
+            throw new AlreadyInitializedException();
+        }
+
         roundEnvironment.getElementsAnnotatedWith(modAnnotationType)
                 .forEach(e -> {
                     String modId = getModId(e, modAnnotationType, annotationValue);
@@ -67,7 +85,7 @@ public class ModIdGetter {
                         modClasses.computeIfAbsent(modId, i -> new ArrayList<>()).add(className);
                     }
                     String pkg = getPackageOf(e);
-                    String existing = forPackage(pkg);
+                    String existing = modIdByPackage(pkg);
                     if (existing == null) {
                         messager.printNote("Found mod [" + modId + "] at [" + pkg + "]");
                         packageToModId.put(pkg, modId);
@@ -92,16 +110,16 @@ public class ModIdGetter {
         return ((PackageElement) enclosing).getQualifiedName().toString();
     }
 
-    public String forPackage(String pkg) {
+    public String modIdByPackage(String pkg) {
         Entry<String, String> entry = packageToModId.floorEntry(pkg);
         return entry == null ? null : entry.getValue();
     }
 
-    public String forElement(Element element) {
-        return forPackage(getPackageOf(element));
+    public String modIdByElement(Element element) {
+        return modIdByPackage(getPackageOf(element));
     }
 
-    public Collection<String> mods() {
+    public Collection<String> discoveredMods() {
         return this.packageToModId.values();
     }
 }

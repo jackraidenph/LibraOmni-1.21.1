@@ -2,15 +2,17 @@ package dev.jackraidenph.libraomni.data;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.common.CommonGson;
+import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.tools.FileObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.AnnotatedElement;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,14 +20,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-public class ModMetadataReader {
+public class ModMetadataReader implements ObjectOriginGetter {
 
     @SuppressWarnings("FieldMayBeFinal")
     private static Filer COMPILATION_FILER = null;
     private ProjectMetadata projectMetadata = null;
     private boolean init = false;
 
-    public String modIdOfElement(AnnotatedElement annotatedElement) {
+    @Override
+    public @Nullable String getOriginModId(Object object) {
         if (projectMetadata == null) {
             throw new IllegalStateException("Metadata file not read yet");
         }
@@ -34,14 +37,21 @@ public class ModMetadataReader {
         Optional<Entry<String, ModMetadata>> optional = metadataMap.
                 entrySet()
                 .stream()
-                .filter(e -> e.getValue().getAnnotatedData().getElements().contains(annotatedElement))
+                .filter(e -> e.getValue().getAnnotatedData().contains(object))
                 .findAny();
 
         return optional.map(Entry::getKey).orElse(null);
+    }
 
+    public boolean initialized() {
+        return init;
     }
 
     public void readMetadataFile() {
+        if (initialized()) {
+            throw new AlreadyInitializedException();
+        }
+
         try (InputStream inputStream = getProjectMetadataInputStream(COMPILATION_FILER)) {
             if (inputStream != null) {
                 Reader nativeMetadataJson = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
@@ -73,7 +83,7 @@ public class ModMetadataReader {
     }
 
     private Map<String, ModMetadata> modMetadataMap() {
-        if (!init) {
+        if (!initialized()) {
             throw new IllegalStateException("Reader was not initialized");
         }
 

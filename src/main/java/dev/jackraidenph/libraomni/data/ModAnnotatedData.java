@@ -32,4 +32,12 @@ public class ModAnnotatedData {
     public Set<AnnotatedElement> getElements() {
         return annotatedReflectionData.stream().map(AnnotatedReflectionData::construct).collect(Collectors.toSet());
     }
+
+    public boolean contains(Object object) {
+        if (!(object instanceof AnnotatedElement annotatedElement)) {
+            return false;
+        }
+
+        return getElements().contains(annotatedElement);
+    }
 }

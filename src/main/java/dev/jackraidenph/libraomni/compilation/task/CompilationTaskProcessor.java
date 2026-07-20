@@ -2,6 +2,8 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import com.google.common.base.Stopwatch;
 import dev.jackraidenph.libraomni.annotation.meta.ModPackage;
+import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
+import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
@@ -17,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class CompilationTaskProcessor extends AbstractProcessor {
+
+    public static ModIdGetter MOD_ID_GETTER = null;
 
     private final List<CompilationTask> tasks = new ArrayList<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
@@ -43,18 +47,24 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         }
     }
 
-    private void findMods(RoundEnvironment roundEnvironment) {
+    private void discoverMods(RoundEnvironment roundEnvironment) {
         TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME);
         TypeElement modRootAnnotation = this.processingEnv.getElementUtils().getTypeElement(ModPackage.class.getName());
-        this.modIdGetter.findMods(modAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
-        this.modIdGetter.findMods(modRootAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
+        this.modIdGetter.discoverMods(modAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
+        this.modIdGetter.discoverMods(modRootAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
+        SafeReflectionUtil.invoke(ModIdGetter.class, modIdGetter, "setInitialized", true);
+        MOD_ID_GETTER = modIdGetter;
+    }
+
+    public static ObjectOriginGetter modIdGetter() {
+        return MOD_ID_GETTER;
     }
 
     private long elapsedTotal = 0;
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        findMods(roundEnvironment);
+        discoverMods(roundEnvironment);
 
         RoundEnvironment proxyEnvironment = ProxyFactory.makeRuntimeEnvironmentProxy(roundEnvironment, processingEnv, modIdGetter);
         ProcessingContext context = new ProcessingContext(modIdGetter, resourceManager, config, proxyEnvironment, processingEnv);

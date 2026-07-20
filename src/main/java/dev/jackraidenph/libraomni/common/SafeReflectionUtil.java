@@ -2,6 +2,8 @@ package dev.jackraidenph.libraomni.common;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
@@ -15,6 +17,19 @@ public class SafeReflectionUtil {
     @SuppressWarnings("unchecked")
     public static <T> T[] genericArray(Class<T> clazz, int... dimensions) {
         return (T[]) Array.newInstance(clazz, dimensions);
+    }
+
+    public static boolean invoke(@Nonnull Class<?> clazz, @Nullable Object obj, String name, Object... values) {
+        try {
+            Method method = clazz.getDeclaredMethod(name, inferTypes(values));
+            method.setAccessible(true);
+            method.invoke(obj, values);
+            return true;
+        } catch (IllegalAccessException | NoSuchMethodException e) {
+            return false;
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static Class<?>[] inferTypes(Object... objects) {
