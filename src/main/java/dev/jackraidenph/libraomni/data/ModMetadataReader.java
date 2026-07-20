@@ -47,7 +47,7 @@ public class ModMetadataReader implements ObjectOriginGetter {
 
     @Override
     public @NonNull String getObjectName(Object object) {
-        return SafeReflectionUtil.id(object);
+        return SafeReflectionUtil.resolveObjectName(object);
     }
 
     public boolean initialized() {

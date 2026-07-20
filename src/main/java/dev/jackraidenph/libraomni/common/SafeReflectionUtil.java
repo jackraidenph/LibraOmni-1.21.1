@@ -1,9 +1,11 @@
 package dev.jackraidenph.libraomni.common;
 
+import dev.jackraidenph.libraomni.annotation.datagen.WithName;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.lang.model.AnnotatedConstruct;
 import java.lang.annotation.*;
 import java.lang.reflect.*;
 import java.util.*;
@@ -204,7 +206,7 @@ public class SafeReflectionUtil {
         };
     }
 
-    public static String objectName(Object element) {
+    public static String simpleObjectName(Object element) {
         return StringUtilities.snakeCase(
                 switch (element) {
                     case Class<?> clazz -> clazz.getSimpleName();
@@ -232,31 +234,20 @@ public class SafeReflectionUtil {
         return null;
     }
 
-    public static String id(Object e) {
-        String holderId = holderId(e);
+    public static String resolveObjectName(Object obj) {
+        String holderId = holderId(obj);
         if (holderId != null && !holderId.isBlank()) {
             return holderId;
         }
 
-//        Id id = e.getAnnotation(Id.class);
-//        if (id != null && id.value() != null) {
-//            //If @Id is actually present, but blank, use object's name
-//            if (id.value().isBlank()) {
-//                return StringUtilities.snakeCase(objectName(e));
-//            }
-//            return id.value();
-//        }
-
-        return StringUtilities.snakeCase(objectName(e));
-    }
-
-    public static String idOrDefault(AnnotatedElement element) {
-        String id = id(element);
-        if (id != null && !id.isBlank()) {
-            return id;
+        if (obj instanceof AnnotatedElement e) {
+            WithName nameInfo = e.getAnnotation(WithName.class);
+            if (nameInfo != null && nameInfo.value() != null) {
+                return nameInfo.value();
+            }
         }
 
-        return StringUtilities.snakeCase(objectName(element));
+        return simpleObjectName(obj);
     }
 
     public static <T> Class<T> tryFindSuperclass(Set<Class<?>> classes, Class<?> child) {

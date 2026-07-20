@@ -23,23 +23,12 @@ public abstract class SequentialCompilationTask implements CompilationTask {
             if (skipAnnotations() && e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
                 continue;
             }
-//            Id id = e.getAnnotation(Id.class);
-//            if (requireIdAnnotation() && id == null) {
-//                processingContext.processingEnvironment().getMessager().printWarning(
-//                        "Annotations %s require @Id annotation to be present, but it was not found on element [%s], skipping!"
-//                                .formatted(supportedAnnotations().stream().map(a -> '@' + a.getSimpleName()).toList(), e.getSimpleName())
-//                );
-//                continue;
-//            }
-            processElement(processingContext.modIdGetter().modIdByElement(e), ModIdGetter.getElementId(e), e, processingContext);
+            ModIdGetter modIdGetter = processingContext.modIdGetter();
+            processElement(modIdGetter.getOriginModId(e), modIdGetter.getObjectName(e), e, processingContext);
         }
     }
 
     abstract void processElement(String modId, String elementId, Element element, ProcessingContext processingContext);
-
-    public boolean requireIdAnnotation() {
-        return false;
-    }
 
     public boolean skipAnnotations() {
         return true;

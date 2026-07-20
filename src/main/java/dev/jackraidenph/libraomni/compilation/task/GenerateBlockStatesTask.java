@@ -52,11 +52,6 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
     }
 
     @Override
-    public boolean requireIdAnnotation() {
-        return true;
-    }
-
-    @Override
     public Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of(BlockStateModel.class);
     }

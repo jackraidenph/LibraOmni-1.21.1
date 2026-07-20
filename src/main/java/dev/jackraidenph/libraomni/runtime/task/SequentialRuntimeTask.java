@@ -16,7 +16,7 @@ public abstract class SequentialRuntimeTask implements RuntimeTask {
             if (skipAnnotations() && e.proxiedElement() instanceof Annotation) {
                 continue;
             }
-            String id = SafeReflectionUtil.id(e.proxiedElement());
+            String id = SafeReflectionUtil.resolveObjectName(e.proxiedElement());
             if (requireId() && (id == null || id.isBlank())) {
                 LibraOmni.LOGGER.warn(
                         " Task [{}] requires elements to either have @Id annotation present, or DeferredHolder to be populated. Not the case for [{}] ",

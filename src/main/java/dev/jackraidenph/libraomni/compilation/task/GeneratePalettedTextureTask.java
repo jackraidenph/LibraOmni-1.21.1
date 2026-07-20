@@ -46,11 +46,6 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
     }
 
     @Override
-    public boolean requireIdAnnotation() {
-        return true;
-    }
-
-    @Override
     public Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of(TextureWithPalete.class);
     }

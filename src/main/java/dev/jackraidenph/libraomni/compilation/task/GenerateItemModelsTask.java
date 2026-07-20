@@ -53,11 +53,6 @@ class GenerateItemModelsTask extends SequentialCompilationTask {
     }
 
     @Override
-    public boolean requireIdAnnotation() {
-        return true;
-    }
-
-    @Override
     public final Set<Class<? extends Annotation>> supportedAnnotations() {
         return Set.of(ArbitraryItemModelData.class);
     }

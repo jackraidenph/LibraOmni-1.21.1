@@ -1,10 +1,11 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
+import dev.jackraidenph.libraomni.annotation.datagen.WithName;
 import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 
-import dev.jackraidenph.libraomni.common.StringUtilities;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import org.jspecify.annotations.NonNull;
 
@@ -27,21 +28,18 @@ public class ModIdGetter implements ObjectOriginGetter {
         return Collections.unmodifiableMap(modClasses);
     }
 
-    public static String getElementId(Element e) {
-//        Id id = e.getAnnotation(Id.class);
-//        if (id != null && !id.value().isBlank()) {
-//            return id.value();
-//        }
-
-        return StringUtilities.snakeCase(e.getSimpleName().toString());
-    }
-
     @Override
     public @NonNull String getObjectName(Object object) {
         if (!(object instanceof Element element)) {
-            return SafeReflectionUtil.objectName(object);
+            return SafeReflectionUtil.simpleObjectName(object);
         }
-        return getElementId(element);
+
+        WithName nameInfo = element.getAnnotation(WithName.class);
+        if (nameInfo != null) {
+            return nameInfo.value();
+        }
+
+        return StringUtilities.snakeCase(element.getSimpleName().toString());
     }
 
     @Override

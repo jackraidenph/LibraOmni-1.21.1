@@ -63,10 +63,10 @@ public class AutoRegisters extends AbstractModContextExtension {
     }
 
     public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<T> element) {
-        String id = SafeReflectionUtil.idOrDefault(element);
+        String name = SafeReflectionUtil.resolveObjectName(element);
         //Supertype for child type T is later scanned for, so R will be at least T upon cast, or actual supertype
         //noinspection unchecked
-        return (DeferredHolder<R, T>) entry(modId, element, id);
+        return (DeferredHolder<R, T>) entry(modId, element, name);
     }
 
     public static <R, T extends R> DeferredHolder<R, T> entry(String modId, Class<R> entryType, String id) {
@@ -111,7 +111,7 @@ public class AutoRegisters extends AbstractModContextExtension {
             holder = AutoRegisters.entry(
                     modContext.modId(),
                     SafeReflectionUtil.selfOrReturnType(element, true),
-                    SafeReflectionUtil.idOrDefault(element)
+                    SafeReflectionUtil.resolveObjectName(element)
             );
         }
         //noinspection unchecked
