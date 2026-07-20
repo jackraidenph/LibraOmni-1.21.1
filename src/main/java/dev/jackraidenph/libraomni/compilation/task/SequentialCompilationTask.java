@@ -23,8 +23,13 @@ public abstract class SequentialCompilationTask implements CompilationTask {
             if (skipAnnotations() && e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
                 continue;
             }
+
             ModIdGetter modIdGetter = processingContext.modIdGetter();
-            processElement(modIdGetter.getOriginModId(e), modIdGetter.getObjectName(e), e, processingContext);
+            try {
+                processElement(modIdGetter.getOriginModId(e), modIdGetter.getObjectName(e), e, processingContext);
+            } catch (Exception ex) {
+                throw new RuntimeException("Exception processing element [%s]".formatted(e), ex);
+            }
         }
     }
 
