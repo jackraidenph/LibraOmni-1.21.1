@@ -15,15 +15,15 @@ import java.util.function.Function;
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 
 @GeneratesFiles
-@UnfoldsInto(value = ArbitraryBlockModelData.class, retainSelf = false)
+@UnfoldsInto(value = ArbitraryItemModelData.class, retainSelf = false)
 public @interface ItemModelWithTexture {
 
     @Replaces(in = ArbitraryItemModelData.class, attribute = "value", transformer = StringToLayer0TextureTransformer.class)
     String value();
 
-    class StringToLayer0TextureTransformer implements Function<Object, Object> {
+    class StringToLayer0TextureTransformer implements Function<String, StringPair> {
         @Override
-        public StringPair apply(Object string) {
+        public StringPair apply(String string) {
             return SyntheticAnnotation.create(StringPair.class, Map.of("key", "layer0", "value", string));
         }
     }
