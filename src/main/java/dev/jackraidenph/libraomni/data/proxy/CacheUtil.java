@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
 import dev.jackraidenph.libraomni.common.*;
-import org.jetbrains.annotations.NotNull;
+import dev.jackraidenph.libraomni.data.proxy.compile.AnnotationValueWrapper;
 
 import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.*;
@@ -11,13 +11,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public class CacheUtil {
 
     public static Map<Class<?>, Map<String, Object>> getReplacementValues(AnnotatedElement origin, Annotation annotation) {
-        Map<Class<?>, Map<String, Object>> replacements = new HashMap<>();
+        Map<Class<?>, Map<String, Object>> replacements = new LinkedHashMap<>();
 
         for (Method method : annotation.annotationType().getDeclaredMethods()) {
             Replaces replacementInfo = method.getAnnotation(Replaces.class);
@@ -53,7 +54,7 @@ public class CacheUtil {
 
     //Keys are TypeElements' binary names, because, unlike classes, TypeElements somehow don't work as Map keys
     public static Map<String, Map<ExecutableElement, AnnotationValue>> getReplacementValues(AnnotatedConstruct origin, AnnotationMirror annotationMirror) {
-        Map<String, Map<ExecutableElement, AnnotationValue>> replacements = new HashMap<>();
+        Map<String, Map<ExecutableElement, AnnotationValue>> replacements = new LinkedHashMap<>();
 
         Map<? extends ExecutableElement, ? extends AnnotationValue> annotationValues = AnnotationMirrorUtil.Javac.getElementValuesWithDefaults(annotationMirror);
 
@@ -93,21 +94,4 @@ public class CacheUtil {
         return replacements;
     }
 
-    private record AnnotationValueWrapper(Object value, AnnotationValue parent) implements AnnotationValue {
-
-        @Override
-        public Object getValue() {
-            return value;
-        }
-
-        @Override
-        public <R, P> R accept(AnnotationValueVisitor<R, P> v, P p) {
-            return parent.accept(v, p);
-        }
-
-        @Override
-        public @NotNull String toString() {
-            return String.valueOf(value);
-        }
-    }
 }
