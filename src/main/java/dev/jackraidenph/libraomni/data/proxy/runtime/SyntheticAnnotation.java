@@ -10,7 +10,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 public class SyntheticAnnotation<T extends Annotation> extends AbstractInterceptorProxy {
 
@@ -66,7 +68,17 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
     @Override
     @InterceptorFor("toString")
     public String toString() {
-        return "Synthetic@" + type.getName() + attributes.toString();
+        return "Synthetic@" + type.getName() + attributesToString(attributes);
+    }
+
+    private static String attributesToString(Map<String, Object> attributes) {
+        StringJoiner builder = new StringJoiner(",", "(", ")");
+        for (Entry<String, Object> e : attributes.entrySet()) {
+            Object v = e.getValue();
+            String vStr = v.getClass().isArray() ? Arrays.toString((Object[]) e.getValue()) : String.valueOf(v);
+            builder.add(e.getKey() + "(" + vStr + ")");
+        }
+        return builder.toString();
     }
 
     @Override
