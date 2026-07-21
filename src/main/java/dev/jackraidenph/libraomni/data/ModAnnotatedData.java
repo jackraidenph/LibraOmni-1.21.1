@@ -5,13 +5,14 @@ import dev.jackraidenph.libraomni.data.reflect.*;
 import javax.lang.model.element.*;
 import javax.lang.model.util.Elements;
 import java.lang.reflect.AnnotatedElement;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ModAnnotatedData {
 
     private final Set<AnnotatedReflectionData<?>> annotatedReflectionData = new HashSet<>();
+    private final Set<AnnotatedElement> dataCache = new HashSet<>();
 
     public void addElement(Element element, Elements elementUtils) {
         AnnotatedReflectionData<?> dataObject =
@@ -27,10 +28,19 @@ public class ModAnnotatedData {
                 };
 
         this.annotatedReflectionData.add(dataObject);
+        cacheDirty = true;
     }
 
+    private boolean cacheDirty = true;
+
     public Set<AnnotatedElement> getElements() {
-        return annotatedReflectionData.stream().map(AnnotatedReflectionData::construct).collect(Collectors.toSet());
+        if (cacheDirty) {
+            dataCache.clear();
+            annotatedReflectionData.stream().map(AnnotatedReflectionData::construct).forEach(dataCache::add);
+            cacheDirty = false;
+        }
+
+        return Collections.unmodifiableSet(dataCache);
     }
 
     public boolean contains(Object object) {
