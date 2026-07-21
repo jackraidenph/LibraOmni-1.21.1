@@ -21,9 +21,9 @@ public class StringUtilities {
                 .toLowerCase();
     }
 
-    private static String[] splitNamespaceAndPath(String string, String defaultNamespace, String defaultPath) {
+    private static String[] splitNamespaceAndPath(String string, String defaultNamespace) {
         if (string.isBlank()) {
-            return new String[]{defaultNamespace, defaultPath};
+            return new String[0];
         } else {
             if (string.indexOf(':') < 0) {
                 return new String[]{defaultNamespace, string};
@@ -44,8 +44,8 @@ public class StringUtilities {
         return new String[]{root, string};
     }
 
-    public static NamespaceDirectoryFile splitToNamespaceDirFilename(String str, String defaultNamespace, String dirRoot, String defaultFile) {
-        String[] namespacePath = splitNamespaceAndPath(str, defaultNamespace, defaultFile);
+    public static NamespaceDirectoryFile splitToNamespaceDirFilename(String str, String defaultNamespace, String dirRoot) {
+        String[] namespacePath = splitNamespaceAndPath(str, defaultNamespace);
         String namespace = namespacePath[0];
         String[] dirFile = splitDirectoryAndFile(dirRoot, namespacePath[1]);
         String dir = dirFile[0];
