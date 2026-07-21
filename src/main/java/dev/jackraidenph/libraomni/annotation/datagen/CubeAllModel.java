@@ -19,7 +19,7 @@ import java.util.function.Function;
 public @interface CubeAllModel {
 
     @Replaces(in = ArbitraryBlockModelData.class, attribute = "value", transformer = StringToAllTextureTransformer.class)
-    String value() default "";
+    String value() default "{mod_id}:block/{element_id}";
 
     @Replaces(in = ArbitraryBlockModelData.class, attribute = "parentModel")
     String parentModel() default "block/cube_all";

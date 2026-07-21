@@ -27,15 +27,13 @@ public class GenerateDropsTask extends SequentialCompilationTask {
     private void processDropsItself(String modId, String elementId, Drops annotation, ProcessingContext processingContext) {
         ResourceManager resourceManager = processingContext.resourceManager();
 
-        String dropsId = annotation.value();
+        String drops = annotation.value();
         boolean mustSurviveExplosion = annotation.mustSurviveExplosion();
         boolean limitToMinMax = (annotation.minLimit() >= 0) && (annotation.maxLimit() >= 0);
         int min = annotation.min();
         int max = annotation.max();
         int fortuneBonus = annotation.fortuneBonus();
         String silkTouchDrop = annotation.silkTouchAlternative();
-
-        String drops = dropsId.isBlank() ? StringUtilities.makeNamespacedId(modId, elementId) : dropsId;
 
         LootTableData lootTableData = new LootTableData("minecraft:block", StringUtilities.makeNamespacedId(modId, "blocks/" + elementId));
         PoolData poolData = new PoolData();

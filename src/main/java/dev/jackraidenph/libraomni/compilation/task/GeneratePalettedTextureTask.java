@@ -21,28 +21,20 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
 
         String parentTexture = annotation.originalTexture();
 
-        NamespaceDirectoryFile parts = StringUtilities.splitToNamespaceDirFilename(
-                parentTexture,
-                "minecraft",
-                "textures",
-                elementId
-        );
+        NamespaceDirectoryFile parts = StringUtilities.splitToNamespaceDirFilename(parentTexture, "minecraft", "textures");
 
-        String fileSuffix = annotation.newTexturesuffix();
         ResourceBuilder builder = ResourceIdentifier.builder()
                 .setAssetDirectory(parts.namespace(), parts.directory())
                 .setNameRoot(parts.file())
                 .setPngExtension();
 
         ResourceIdentifier textureLocation = builder.build();
-        ResourceBuilder saveLocationBuilder = builder.setNameRoot(elementId);
-        if(fileSuffix != null && !fileSuffix.isBlank()) {
-            builder.withSuffix(fileSuffix);
-        }
+        ResourceIdentifier saveLocation = builder.setNameRoot(elementId).build();
+
 
         ImageHelper.transformAndSavePng(
                 textureLocation,
-                saveLocationBuilder.build(),
+                saveLocation,
                 image -> ImageHelper.recolor(image, annotation.palette(), annotation.usePaletteInterpolation()),
                 processingContext
         );

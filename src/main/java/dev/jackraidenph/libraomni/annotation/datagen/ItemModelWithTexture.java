@@ -19,7 +19,7 @@ import java.util.function.Function;
 public @interface ItemModelWithTexture {
 
     @Replaces(in = ArbitraryItemModelData.class, attribute = "value", transformer = StringToLayer0TextureTransformer.class)
-    String value();
+    String value() default "{mod_id}:item/{element_id}";
 
     class StringToLayer0TextureTransformer implements Function<String, StringPair> {
         @Override

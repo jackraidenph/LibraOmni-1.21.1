@@ -22,12 +22,9 @@ import java.lang.annotation.Target;
         }
 )
 public @interface Drops {
-    /**
-     * If not filled - drops itself
-     */
-    String value() default "";
+    String value() default "{mod_id}:{element_id}";
 
-    String silkTouchAlternative() default "";
+    String silkTouchAlternative() default ""; //NOTHING
 
     boolean mustSurviveExplosion() default true;
 

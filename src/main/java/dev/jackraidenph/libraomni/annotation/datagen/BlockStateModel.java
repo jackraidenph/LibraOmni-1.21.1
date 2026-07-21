@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface BlockStateModel {
-    String model() default "";
+    String model() default "{mod_id}:block/{element_id}";
 }

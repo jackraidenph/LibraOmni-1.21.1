@@ -10,16 +10,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface TextureWithColorsSwapped {
     /**
-     * If left blank - assumes the texture with the name of the element the annotation is applied to
-     *
      * @return An existing texture used for generating a new one
      */
-    String originalTexture() default "";
-
-    /**
-     * @return A suffix appended to the generated texture's file name
-     */
-    String newTexturesuffix() default "";
+    String originalTexture();
 
     /**
      * @return A palette of ARGB colors to be exchanged to the new palette. Must be the same size as the #newPalette()

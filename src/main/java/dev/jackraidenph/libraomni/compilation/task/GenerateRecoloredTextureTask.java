@@ -23,12 +23,7 @@ public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
         }
 
         String parentTexture = annotation.originalTexture();
-        NamespaceDirectoryFile parts = StringUtilities.splitToNamespaceDirFilename(
-                parentTexture,
-                "minecraft",
-                "textures",
-                elementId
-        );
+        NamespaceDirectoryFile parts = StringUtilities.splitToNamespaceDirFilename(parentTexture, "minecraft", "textures");
 
         Map<Integer, Integer> paletteSwap = new HashMap<>();
         if (annotation.oldColors().length != annotation.newColors().length) {
@@ -39,22 +34,18 @@ public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
             paletteSwap.put(annotation.oldColors()[i], annotation.newColors()[i]);
         }
 
-        String fileSuffix = annotation.newTexturesuffix();
         ResourceBuilder builder = ResourceIdentifier.builder()
                 .setAssetDirectory(parts.namespace(), parts.directory())
                 .setNameRoot(parts.file())
                 .setPngExtension();
 
         ResourceIdentifier textureLocation = builder.build();
-        ResourceBuilder saveLocationBuilder = builder.setNameRoot(elementId);
-        if(fileSuffix != null && !fileSuffix.isBlank()) {
-            builder.withSuffix(fileSuffix);
-        }
+        ResourceIdentifier saveLocation = builder.setNameRoot(elementId).build();
 
 
         ImageHelper.transformAndSavePng(
                 textureLocation,
-                saveLocationBuilder.build(),
+                saveLocation,
                 image -> ImageHelper.remapColors(image, paletteSwap),
                 processingContext
         );

@@ -18,9 +18,6 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
         }
 
         String model = generatesBlockStateModelData.model();
-        if (model.isBlank()) {
-            model = modId + ":" + elementId;
-        }
         ResourceLocation resourceLocation = ResourceLocation.tryParse(model);
         if (resourceLocation == null) {
             throw new IllegalStateException("[%s] is not a valid resource location!".formatted(model));
@@ -36,7 +33,7 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
         var json = Map.of(
                 "variants", Map.of(
                         "", Map.of(
-                                "model", StringUtilities.makeNamespacedId(modelNamespace, modId, "block/" + modelName)
+                                "model", StringUtilities.makeNamespacedId(modelNamespace, modId, modelName)
                         )
                 )
         );
