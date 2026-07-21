@@ -1,6 +1,5 @@
 package dev.jackraidenph.libraomni.data.proxy.compile;
 
-import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -15,10 +14,8 @@ class RecursiveAnnotationScanner extends ElementScanner14<Set<Element>, TypeElem
 
     private final Set<Element> elements = new HashSet<>();
     private final Set<String> elementIdentities = new HashSet<>(); //Somehow, Set<Element> allows duplicates?
-    private final ModIdGetter modIdGetter;
 
-    protected RecursiveAnnotationScanner(ModIdGetter modIdGetter) {
-        this.modIdGetter = modIdGetter;
+    protected RecursiveAnnotationScanner() {
     }
 
     public Set<Element> getElements() {
@@ -28,7 +25,7 @@ class RecursiveAnnotationScanner extends ElementScanner14<Set<Element>, TypeElem
     @Override
     public Set<Element> scan(Element e, TypeElement annotation) {
         //Make a proxy of the element that supports composed annotations
-        Element toCheck = (Element) ProxyFactory.makeAnnotatedConstructProxy(e, modIdGetter);
+        Element toCheck = (Element) ProxyFactory.makeAnnotatedConstructProxy(e);
         //Check if requested annotation's TypeElement is present
         checkViaTypeElement(toCheck, annotation);
         //Accept further down

@@ -1,11 +1,9 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
-import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.data.proxy.compile.AnnotatedConstructProxy;
-import dev.jackraidenph.libraomni.data.proxy.compile.RoundEnvironmentProxy;
-import dev.jackraidenph.libraomni.data.proxy.runtime.AnnotatedElementProxy;
+import dev.jackraidenph.libraomni.data.proxy.compile.RoundEnvironmentWrapper;
+import dev.jackraidenph.libraomni.data.proxy.runtime.AnnotatedElementWrapper;
 import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
-import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -13,26 +11,21 @@ import javax.lang.model.AnnotatedConstruct;
 import java.lang.annotation.*;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Proxy;
-import java.util.Map;
 
 public abstract class ProxyFactory {
 
     private static final ClassLoader CLASSLOADER = ProxyFactory.class.getClassLoader();
 
     public static ProxiedAnnotatedElement makeAnnotatedElementProxy(AnnotatedElement element) {
-        if (element instanceof Proxy) {
+        if (element instanceof AnnotatedElementWrapper) {
             return (ProxiedAnnotatedElement) element;
         }
 
-        return (ProxiedAnnotatedElement) Proxy.newProxyInstance(
-                CLASSLOADER,
-                new Class[]{ProxiedAnnotatedElement.class},
-                new AnnotatedElementProxy(element)
-        );
+        return new AnnotatedElementWrapper(element);
     }
 
-    public static AnnotatedConstruct makeAnnotatedConstructProxy(AnnotatedConstruct construct, ModIdGetter modIdGetter) {
-        if (construct instanceof Proxy) {
+    public static AnnotatedConstruct makeAnnotatedConstructProxy(AnnotatedConstruct construct) {
+        if (Proxy.isProxyClass(construct.getClass())) {
             return construct;
         }
 
@@ -52,11 +45,7 @@ public abstract class ProxyFactory {
         );
     }
 
-    public static RoundEnvironment makeRuntimeEnvironmentProxy(RoundEnvironment environment, ProcessingEnvironment processingEnvironment, ModIdGetter modIdGetter) {
-        return (RoundEnvironment) Proxy.newProxyInstance(
-                CLASSLOADER,
-                new Class[]{RoundEnvironment.class},
-                new RoundEnvironmentProxy(environment, processingEnvironment, modIdGetter)
-        );
+    public static RoundEnvironment makeRuntimeEnvironmentProxy(RoundEnvironment environment, ProcessingEnvironment processingEnvironment) {
+        return new RoundEnvironmentWrapper(environment, processingEnvironment);
     }
 }

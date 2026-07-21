@@ -18,7 +18,7 @@ public class AnnotatedElementCache implements UnfoldingCache<Annotation> {
     private final Map<Class<? extends Annotation>, List<Annotation>> annotations = new HashMap<>();
     private final Map<Class<? extends Annotation>, List<Annotation>> declaredAnnotations = new HashMap<>();
 
-    private final AnnotatedElement annotatedElement;
+    public final AnnotatedElement annotatedElement;
 
     private boolean processingDeclared;
 

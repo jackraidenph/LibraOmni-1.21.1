@@ -66,7 +66,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         discoverMods(roundEnvironment);
 
-        RoundEnvironment proxyEnvironment = ProxyFactory.makeRuntimeEnvironmentProxy(roundEnvironment, processingEnv, modIdGetter);
+        RoundEnvironment proxyEnvironment = ProxyFactory.makeRuntimeEnvironmentProxy(roundEnvironment, processingEnv);
         ProcessingContext context = new ProcessingContext(modIdGetter, resourceManager, config, proxyEnvironment, processingEnv);
 
         BlackMagicUtil.compileAndLoad(context);
