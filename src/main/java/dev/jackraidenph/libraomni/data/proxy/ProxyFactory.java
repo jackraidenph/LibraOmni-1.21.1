@@ -4,6 +4,7 @@ import dev.jackraidenph.libraomni.data.proxy.compile.AnnotatedConstructProxy;
 import dev.jackraidenph.libraomni.data.proxy.compile.RoundEnvironmentWrapper;
 import dev.jackraidenph.libraomni.data.proxy.runtime.AnnotatedElementWrapper;
 import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
+import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -11,6 +12,7 @@ import javax.lang.model.AnnotatedConstruct;
 import java.lang.annotation.*;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Proxy;
+import java.util.Map;
 
 public abstract class ProxyFactory {
 
