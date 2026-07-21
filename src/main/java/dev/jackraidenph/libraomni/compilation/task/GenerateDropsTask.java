@@ -6,7 +6,7 @@ import dev.jackraidenph.libraomni.common.LootTableData.CompositeEntry;
 import dev.jackraidenph.libraomni.common.LootTableData.EntryData;
 import dev.jackraidenph.libraomni.common.LootTableData.PoolData;
 import dev.jackraidenph.libraomni.common.LootTableData.SingletonEntry;
-import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.common.StringUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
@@ -35,7 +35,7 @@ public class GenerateDropsTask extends SequentialCompilationTask {
         int fortuneBonus = annotation.fortuneBonus();
         String silkTouchDrop = annotation.silkTouchAlternative();
 
-        LootTableData lootTableData = new LootTableData("minecraft:block", StringUtilities.makeNamespacedId(modId, "blocks/" + elementId));
+        LootTableData lootTableData = new LootTableData("minecraft:block", StringUtil.makeNamespacedId(modId, "blocks/" + elementId));
         PoolData poolData = new PoolData();
         EntryData entryData;
         lootTableData.addPool(poolData);

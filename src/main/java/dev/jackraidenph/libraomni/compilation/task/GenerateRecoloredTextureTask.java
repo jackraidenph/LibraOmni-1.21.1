@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.TextureWithColorsSwapped;
-import dev.jackraidenph.libraomni.common.StringUtilities;
-import dev.jackraidenph.libraomni.common.StringUtilities.NamespaceDirectoryFile;
+import dev.jackraidenph.libraomni.common.StringUtil;
+import dev.jackraidenph.libraomni.common.StringUtil.NamespaceDirectoryFile;
 import dev.jackraidenph.libraomni.common.ImageHelper;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
@@ -23,7 +23,7 @@ public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
         }
 
         String parentTexture = annotation.originalTexture();
-        NamespaceDirectoryFile parts = StringUtilities.splitToNamespaceDirFilename(parentTexture, "minecraft", "textures");
+        NamespaceDirectoryFile parts = StringUtil.splitToNamespaceDirFilename(parentTexture, "minecraft", "textures");
 
         Map<Integer, Integer> paletteSwap = new HashMap<>();
         if (annotation.oldColors().length != annotation.newColors().length) {

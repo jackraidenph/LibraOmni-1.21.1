@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.value.StringPair;
 import dev.jackraidenph.libraomni.annotation.datagen.ArbitraryBlockModelData;
-import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.common.StringUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ class GenerateBlockModelsTask extends SequentialCompilationTask {
         }
 
         if (textures.isEmpty()) {
-            return Map.of("all", StringUtilities.makeNamespacedId(modId, elementId));
+            return Map.of("all", StringUtil.makeNamespacedId(modId, elementId));
         }
 
         return textures;

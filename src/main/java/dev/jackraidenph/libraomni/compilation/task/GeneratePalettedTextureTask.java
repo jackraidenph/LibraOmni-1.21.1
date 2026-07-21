@@ -2,8 +2,8 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.TextureWithPalete;
 import dev.jackraidenph.libraomni.common.ImageHelper;
-import dev.jackraidenph.libraomni.common.StringUtilities;
-import dev.jackraidenph.libraomni.common.StringUtilities.NamespaceDirectoryFile;
+import dev.jackraidenph.libraomni.common.StringUtil;
+import dev.jackraidenph.libraomni.common.StringUtil.NamespaceDirectoryFile;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier.ResourceBuilder;
 
@@ -21,7 +21,7 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
 
         String parentTexture = annotation.originalTexture();
 
-        NamespaceDirectoryFile parts = StringUtilities.splitToNamespaceDirFilename(parentTexture, "minecraft", "textures");
+        NamespaceDirectoryFile parts = StringUtil.splitToNamespaceDirFilename(parentTexture, "minecraft", "textures");
 
         ResourceBuilder builder = ResourceIdentifier.builder()
                 .setAssetDirectory(parts.namespace(), parts.directory())

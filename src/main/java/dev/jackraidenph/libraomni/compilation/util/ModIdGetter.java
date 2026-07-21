@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.compilation.util;
 import dev.jackraidenph.libraomni.annotation.datagen.WithName;
 import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.common.StringUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
@@ -39,7 +39,7 @@ public class ModIdGetter implements ObjectOriginGetter {
             return nameInfo.value();
         }
 
-        return StringUtilities.snakeCase(element.getSimpleName().toString());
+        return StringUtil.snakeCase(element.getSimpleName().toString());
     }
 
     @Override

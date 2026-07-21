@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.InTags;
-import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.common.StringUtil;
 import dev.jackraidenph.libraomni.compilation.util.*;
 
 import javax.lang.model.element.Element;
@@ -21,7 +21,7 @@ public class GenerateTagsTask extends SequentialCompilationTask {
         }
 
         for (String tag : inTags.value()) {
-            tagToEntries.computeIfAbsent(tag, k -> new ArrayList<>()).add(StringUtilities.makeNamespacedId(modId, elementId));
+            tagToEntries.computeIfAbsent(tag, k -> new ArrayList<>()).add(StringUtil.makeNamespacedId(modId, elementId));
         }
     }
 

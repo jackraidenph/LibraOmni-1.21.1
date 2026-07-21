@@ -209,7 +209,7 @@ public class SafeReflectionUtil {
     }
 
     public static String simpleObjectName(Object element) {
-        return StringUtilities.snakeCase(
+        return StringUtil.snakeCase(
                 switch (element) {
                     case Class<?> clazz -> clazz.getSimpleName();
                     case Member otherMember -> otherMember.getName();

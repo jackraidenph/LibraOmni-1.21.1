@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.BlockStateModel;
-import dev.jackraidenph.libraomni.common.StringUtilities;
+import dev.jackraidenph.libraomni.common.StringUtil;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import net.minecraft.resources.ResourceLocation;
 
@@ -33,7 +33,7 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
         var json = Map.of(
                 "variants", Map.of(
                         "", Map.of(
-                                "model", StringUtilities.makeNamespacedId(modelNamespace, modId, modelName)
+                                "model", StringUtil.makeNamespacedId(modelNamespace, modId, modelName)
                         )
                 )
         );

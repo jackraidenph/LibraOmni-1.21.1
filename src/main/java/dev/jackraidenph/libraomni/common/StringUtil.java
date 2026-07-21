@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-public class StringUtilities {
+public class StringUtil {
     public static String snakeCase(String string) {
         if (string == null) {
             return null;
