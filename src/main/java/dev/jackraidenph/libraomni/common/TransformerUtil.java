@@ -2,12 +2,22 @@ package dev.jackraidenph.libraomni.common;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
+import dev.jackraidenph.libraomni.data.proxy.compile.AnnotationValueWrapper;
+import dev.jackraidenph.libraomni.data.proxy.compile.SyntheticAnnotationMirror;
+import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
+import io.netty.channel.Channel.Unsafe;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Function;
 
 public class TransformerUtil {
@@ -72,6 +82,44 @@ public class TransformerUtil {
         str = str.replace("{element_id}", elementId);
 
         return str;
+    }
+
+    public static Annotation processAnnotation(Object annotated, Annotation annotation) {
+        Map<String, Object> transformed = new HashMap<>();
+        for (Method m : SafeReflectionUtil.getAnnotationAttributes(annotation)) {
+            String attributeName = m.getName();
+            Object oldAttributeValue = UnsafeReflectionUtil.getMethodValue(m, annotation);
+            if (oldAttributeValue == null) { //??? Not sure if possible for annotations
+                oldAttributeValue = m.getDefaultValue();
+            }
+
+            Object processed = processValue(annotated, oldAttributeValue);
+            transformed.put(attributeName, processed);
+        }
+
+        return SyntheticAnnotation.create(annotation.annotationType(), transformed);
+    }
+
+    public static AnnotationMirror processAnnotationMirror(Object annotated, AnnotationMirror annotationMirror) {
+        Map<ExecutableElement, AnnotationValue> transformed = new LinkedHashMap<>();
+        Map<ExecutableElement, AnnotationValue> existing = AnnotationMirrorUtil.Javac.getElementValuesWithDefaults(annotationMirror);
+        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : existing.entrySet()) {
+            ExecutableElement attribute = e.getKey();
+            Object oldAttributeValue = e.getValue().getValue();
+            Object processed = processValue(annotated, oldAttributeValue);
+            AnnotationValueWrapper wrapper = new AnnotationValueWrapper(processed, e.getValue());
+            transformed.put(attribute, wrapper);
+        }
+
+        return new SyntheticAnnotationMirror(annotationMirror.getAnnotationType(), transformed);
+    }
+
+    private static Object processValue(Object annotated, Object value) {
+        if (value instanceof String str) {
+            value = replacePlaceholders(annotated, str);
+        }
+
+        return value;
     }
 
     public static final class NoOpTransformer implements Function<Object, Object> {

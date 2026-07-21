@@ -4,6 +4,7 @@ import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.common.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.common.ElementUtil;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.TransformerUtil;
 import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
 import dev.jackraidenph.libraomni.data.proxy.UnfoldingCache;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +70,8 @@ public class AnnotatedConstructCache implements UnfoldingCache<AnnotationMirror>
 
     @Override
     public void save(AnnotationMirror toSave) {
+        toSave = TransformerUtil.processAnnotationMirror(annotatedConstruct, toSave);
+
         TypeElement type = AnnotationMirrorUtil.toTypeElement(toSave);
 
         annotationMirrorsMap.computeIfAbsent(type, v -> new ArrayList<>()).add(toSave);

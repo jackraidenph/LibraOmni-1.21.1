@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.common.TransformerUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
 import dev.jackraidenph.libraomni.data.proxy.UnfoldingCache;
@@ -66,6 +67,7 @@ public class AnnotatedElementCache implements UnfoldingCache<Annotation> {
 
     @Override
     public void save(Annotation toSave) {
+        toSave = TransformerUtil.processAnnotation(annotatedElement, toSave);
         Class<? extends Annotation> type = toSave.annotationType();
         getStorage(processingDeclared).computeIfAbsent(type, v -> new ArrayList<>()).add(toSave);
     }
