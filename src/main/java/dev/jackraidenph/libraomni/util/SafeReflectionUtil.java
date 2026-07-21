@@ -163,11 +163,15 @@ public final class SafeReflectionUtil {
         return Arrays.stream(clazz.getMethods()).filter(m -> Modifier.isAbstract(m.getModifiers())).toList();
     }
 
-    public static List<Method> getAnnotationAttributes(Annotation annotation) {
-        return Arrays.stream(annotation.annotationType().getMethods())
+    public static List<Method> getAnnotationAttributes(Class<? extends Annotation> type) {
+        return Arrays.stream(type.getDeclaredMethods())
                 .filter(m -> Modifier.isAbstract(m.getModifiers()) || m.getDefaultValue() != null)
                 .filter(m -> m.getParameterCount() == 0)
                 .toList();
+    }
+
+    public static List<Method> getAnnotationAttributes(Annotation annotation) {
+        return getAnnotationAttributes(annotation.annotationType());
     }
 
     public static boolean isFunctionalInterface(AnnotatedElement element) {
