@@ -5,7 +5,6 @@ import dev.jackraidenph.libraomni.annotation.meta.Replaces;
 import dev.jackraidenph.libraomni.data.proxy.compile.AnnotationValueWrapper;
 import dev.jackraidenph.libraomni.data.proxy.compile.SyntheticAnnotationMirror;
 import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
-import io.netty.channel.Channel.Unsafe;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -13,7 +12,6 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
