@@ -54,6 +54,10 @@ public final class ElementUtil {
             }
         }
 
+        if(internal instanceof DeclaredType declaredType) {
+            return fromTypeMirror(declaredType);
+        }
+
         return internal;
     }
 
