@@ -155,12 +155,15 @@ public class SafeReflectionUtil {
         return (Class<?>) mapTypeParametersToArguments(parameterizedType, clazz).get(returnType.getTypeName());
     }
 
-    public static List<Method> getAbstractMethods(AnnotatedElement e) {
-        if (!(e instanceof Class<?> clazz)) {
-            throw new IllegalArgumentException();
-        }
-
+    public static List<Method> getAbstractMethods(Class<?> clazz) {
         return Arrays.stream(clazz.getMethods()).filter(m -> Modifier.isAbstract(m.getModifiers())).toList();
+    }
+
+    public static List<Method> getAnnotationAttributes(Annotation annotation) {
+        return Arrays.stream(annotation.annotationType().getMethods())
+                .filter(m -> Modifier.isAbstract(m.getModifiers()) || m.getDefaultValue() != null)
+                .filter(m -> m.getParameterCount() == 0)
+                .toList();
     }
 
     public static boolean isFunctionalInterface(AnnotatedElement element) {
@@ -172,7 +175,7 @@ public class SafeReflectionUtil {
             return false;
         }
 
-        return getAbstractMethods(element).size() == 1;
+        return getAbstractMethods(clazz).size() == 1;
     }
 
     public static Class<?> selfOrReturnType(AnnotatedElement element) {
