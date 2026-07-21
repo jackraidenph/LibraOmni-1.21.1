@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.value.StringPair;
 import dev.jackraidenph.libraomni.annotation.datagen.ArbitraryBlockModelData;
-import dev.jackraidenph.libraomni.common.StringUtil;
+import dev.jackraidenph.libraomni.util.StringUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import org.jetbrains.annotations.Nullable;

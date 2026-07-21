@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common;
+package dev.jackraidenph.libraomni.util;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.*;

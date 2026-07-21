@@ -2,8 +2,8 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import com.google.common.base.Stopwatch;
 import dev.jackraidenph.libraomni.annotation.meta.ModPackage;
-import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
-import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common;
+package dev.jackraidenph.libraomni.util;
 
 import dev.jackraidenph.libraomni.annotation.datagen.WithName;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -16,7 +16,7 @@ import java.util.*;
 public final class SafeReflectionUtil {
 
     private SafeReflectionUtil() {
-        
+
     }
 
     @SuppressWarnings("unchecked")

@@ -1,4 +1,4 @@
-import dev.jackraidenph.libraomni.common.ColorUtil;
+import dev.jackraidenph.libraomni.util.ColorUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

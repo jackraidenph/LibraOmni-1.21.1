@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.InTags;
-import dev.jackraidenph.libraomni.common.StringUtil;
+import dev.jackraidenph.libraomni.util.StringUtil;
 import dev.jackraidenph.libraomni.compilation.util.*;
 
 import javax.lang.model.element.Element;

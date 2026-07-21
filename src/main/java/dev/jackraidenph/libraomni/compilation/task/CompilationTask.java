@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
 import java.lang.annotation.Annotation;

@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.gradle;
 
-import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;

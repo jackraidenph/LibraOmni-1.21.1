@@ -1,12 +1,12 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.Drops;
-import dev.jackraidenph.libraomni.common.LootTableData;
-import dev.jackraidenph.libraomni.common.LootTableData.CompositeEntry;
-import dev.jackraidenph.libraomni.common.LootTableData.EntryData;
-import dev.jackraidenph.libraomni.common.LootTableData.PoolData;
-import dev.jackraidenph.libraomni.common.LootTableData.SingletonEntry;
-import dev.jackraidenph.libraomni.common.StringUtil;
+import dev.jackraidenph.libraomni.util.LootTableData;
+import dev.jackraidenph.libraomni.util.LootTableData.CompositeEntry;
+import dev.jackraidenph.libraomni.util.LootTableData.EntryData;
+import dev.jackraidenph.libraomni.util.LootTableData.PoolData;
+import dev.jackraidenph.libraomni.util.LootTableData.SingletonEntry;
+import dev.jackraidenph.libraomni.util.StringUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import dev.jackraidenph.libraomni.compilation.util.ResourceManager;

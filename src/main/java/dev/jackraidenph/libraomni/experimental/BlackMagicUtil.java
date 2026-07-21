@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.experimental;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;

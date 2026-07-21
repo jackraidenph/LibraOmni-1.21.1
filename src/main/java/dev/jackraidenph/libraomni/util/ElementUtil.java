@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common;
+package dev.jackraidenph.libraomni.util;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Attribute.Compound;

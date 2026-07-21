@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
-import dev.jackraidenph.libraomni.common.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.AbstractInterceptorProxy;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 

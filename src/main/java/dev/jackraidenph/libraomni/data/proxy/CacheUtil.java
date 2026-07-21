@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
-import dev.jackraidenph.libraomni.common.*;
+import dev.jackraidenph.libraomni.util.*;
 import dev.jackraidenph.libraomni.data.proxy.compile.AnnotationValueWrapper;
 
 import javax.lang.model.AnnotatedConstruct;

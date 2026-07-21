@@ -1,7 +1,7 @@
-package dev.jackraidenph.libraomni.common;
+package dev.jackraidenph.libraomni.util;
 
 import com.google.gson.*;
-import dev.jackraidenph.libraomni.common.LootTableData.ArbitraryOptions;
+import dev.jackraidenph.libraomni.util.LootTableData.ArbitraryOptions;
 import dev.jackraidenph.libraomni.data.reflect.AnnotatedReflectionData;
 import dev.jackraidenph.libraomni.data.reflect.ReflectionDataTypeAdapters.AnnotatedReflectionDataDeserializer;
 import dev.jackraidenph.libraomni.data.reflect.ReflectionDataTypeAdapters.AnnotatedReflectionDataSerializer;

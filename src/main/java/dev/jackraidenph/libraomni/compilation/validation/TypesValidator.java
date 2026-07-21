@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.validation;
 
-import dev.jackraidenph.libraomni.common.ElementUtil;
+import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 import org.jetbrains.annotations.Nullable;

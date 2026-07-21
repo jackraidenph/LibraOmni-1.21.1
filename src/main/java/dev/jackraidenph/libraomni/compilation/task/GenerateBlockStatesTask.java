@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.BlockStateModel;
-import dev.jackraidenph.libraomni.common.StringUtil;
+import dev.jackraidenph.libraomni.util.StringUtil;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import net.minecraft.resources.ResourceLocation;
 

@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
-import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.common.TransformerUtil;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.TransformerUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
 import dev.jackraidenph.libraomni.data.proxy.UnfoldingCache;

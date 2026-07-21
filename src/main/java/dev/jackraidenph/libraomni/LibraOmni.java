@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
+import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.compilation.task.CompilationTaskProcessor;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.experimental.ForwardingLoggerWrapper;

@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.compilation.util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import dev.jackraidenph.libraomni.common.CommonGson;
+import dev.jackraidenph.libraomni.util.CommonGson;
 
 import java.util.Map.Entry;
 

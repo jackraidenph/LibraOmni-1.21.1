@@ -1,6 +1,6 @@
-package dev.jackraidenph.libraomni.common;
+package dev.jackraidenph.libraomni.util;
 
-import dev.jackraidenph.libraomni.common.ColorUtil.InterpolationMode;
+import dev.jackraidenph.libraomni.util.ColorUtil.InterpolationMode;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
@@ -20,7 +20,7 @@ import java.util.stream.IntStream;
 public final class ImageHelper {
 
     private ImageHelper() {
-        
+
     }
 
     public static BufferedImage recolor(BufferedImage originalImage, int[] newPalette, InterpolationMode interpolationMode) {

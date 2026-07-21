@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
-import dev.jackraidenph.libraomni.common.CommonGson;
+import dev.jackraidenph.libraomni.util.CommonGson;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.Charset;

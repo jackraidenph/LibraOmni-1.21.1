@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.runtime.extension;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
-import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import dev.jackraidenph.libraomni.runtime.VanillaRegistriesAccess;
 import net.minecraft.core.Registry;

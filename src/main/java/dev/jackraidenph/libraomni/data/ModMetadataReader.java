@@ -1,9 +1,9 @@
 package dev.jackraidenph.libraomni.data;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.common.CommonGson;
-import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
-import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.CommonGson;
+import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import org.jspecify.annotations.NonNull;

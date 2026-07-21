@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.annotation.meta;
 
-import dev.jackraidenph.libraomni.common.TransformerUtil.NoOpTransformer;
+import dev.jackraidenph.libraomni.util.TransformerUtil.NoOpTransformer;
 
 import java.lang.annotation.*;
 import java.util.function.Function;

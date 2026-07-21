@@ -1,9 +1,9 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.TextureWithPalete;
-import dev.jackraidenph.libraomni.common.ImageHelper;
-import dev.jackraidenph.libraomni.common.StringUtil;
-import dev.jackraidenph.libraomni.common.StringUtil.NamespaceDirectoryFile;
+import dev.jackraidenph.libraomni.util.ImageHelper;
+import dev.jackraidenph.libraomni.util.StringUtil;
+import dev.jackraidenph.libraomni.util.StringUtil.NamespaceDirectoryFile;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier.ResourceBuilder;
 

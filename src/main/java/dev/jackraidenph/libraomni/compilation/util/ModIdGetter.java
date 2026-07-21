@@ -1,9 +1,9 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
 import dev.jackraidenph.libraomni.annotation.datagen.WithName;
-import dev.jackraidenph.libraomni.common.ObjectOriginGetter;
-import dev.jackraidenph.libraomni.common.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.common.StringUtil;
+import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.StringUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;

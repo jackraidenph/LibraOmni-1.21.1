@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.datagen;
 
 import dev.jackraidenph.libraomni.annotation.info.GeneratesFiles;
-import dev.jackraidenph.libraomni.common.ColorUtil.InterpolationMode;
+import dev.jackraidenph.libraomni.util.ColorUtil.InterpolationMode;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

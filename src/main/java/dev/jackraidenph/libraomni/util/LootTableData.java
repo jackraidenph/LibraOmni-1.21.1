@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common;
+package dev.jackraidenph.libraomni.util;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;

@@ -1,4 +1,4 @@
-package dev.jackraidenph.libraomni.common;
+package dev.jackraidenph.libraomni.util;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -7,7 +7,7 @@ import java.util.Arrays;
 public final class StringUtil {
 
     private StringUtil() {
-        
+
     }
 
     public static String snakeCase(String string) {
