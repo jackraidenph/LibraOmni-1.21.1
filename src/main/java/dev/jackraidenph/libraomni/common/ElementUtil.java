@@ -37,9 +37,9 @@ public final class ElementUtil {
                 .anyMatch(c -> ElementUtil.Javac.binaryName(type).equals(c.getName()));
     }
 
-    public static Object tryConvertInternalRepresentation(Object internal) {
+    public static Object tryConvertInternalRepresentation(TypeMirror type, Object internal) {
         if (internal instanceof com.sun.tools.javac.util.List<?> sunList) {
-            return sunListToArray(sunList);
+            return sunListToArray(type, sunList);
         }
 
         if (internal instanceof Symbol.VarSymbol varSymbol) {
@@ -63,23 +63,17 @@ public final class ElementUtil {
         return Enum.valueOf(clazz, varSymbol.name.toString());
     }
 
-    public static Object sunListToArray(com.sun.tools.javac.util.List<?> sunList) {
-        if (sunList.isEmpty()) {
-            return new Object[0];
+    public static Object sunListToArray(TypeMirror type, com.sun.tools.javac.util.List<?> sunList) {
+        Class<?> clazz = ElementUtil.fromTypeMirror(type);
+
+        if (clazz.isArray()) {
+            clazz = clazz.getComponentType();
         }
 
-        Object firstAttr = sunList.getFirst();
-        if (!(firstAttr instanceof Attribute attr)) {
-            throw new UnsupportedOperationException("[%s] is not an Attribute".formatted(firstAttr));
-        }
-
-        Class<?> clazz = fromTypeMirror(attr.type);
         Object arr = Array.newInstance(clazz, sunList.size());
-
         for (int i = 0; i < sunList.size(); i++) {
             Array.set(arr, i, attributeToObject((Attribute) sunList.get(i)));
         }
-
         return arr;
     }
 
@@ -351,6 +345,20 @@ public final class ElementUtil {
                 .anyMatch((constructor) -> constructorMatches(constructor, elements, types, typeParameters));
     }
 
+    public static String descriptor(String primitiveName) {
+        return switch (primitiveName) {
+            case "boolean" -> "Z";
+            case "byte" -> "B";
+            case "short" -> "S";
+            case "int" -> "I";
+            case "long" -> "J";
+            case "float" -> "F";
+            case "double" -> "D";
+            case "char" -> "C";
+            default -> throw new UnsupportedOperationException();
+        };
+    }
+
     /**
      * Contains static reimplementations of JavacElements methods, unreliant on built symbol tables
      */
@@ -365,10 +373,21 @@ public final class ElementUtil {
             if (typeMirror instanceof PrimitiveType primitiveType) {
                 return primitiveType.toString();
             }
+
             if (typeMirror instanceof ArrayType arrayType) {
-                return "[L" + binaryName(mirrorToElement(arrayType.getComponentType())) + ";";
+                TypeMirror component = arrayType.getComponentType();
+                if (component instanceof PrimitiveType primitiveType) {
+                    return "[" + descriptor(primitiveType.toString());
+                } else {
+                    return "[L" + binaryName(component) + ";";
+                }
             }
-            return binaryName(mirrorToElement(typeMirror));
+
+            if (typeMirror instanceof DeclaredType declaredType) {
+                return binaryName(mirrorToElement(declaredType));
+            }
+
+            throw new UnsupportedOperationException("Can't get [%s]'s binary name".formatted(typeMirror));
         }
 
         //STATIC REIMPL of JavacElements#getAllAnnotationMirrors

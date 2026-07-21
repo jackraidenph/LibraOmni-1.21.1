@@ -34,7 +34,7 @@ public class AnnotationMirrorUtil {
         for (Entry<? extends ExecutableElement, ? extends AnnotationValue> kv : mirror.getElementValues().entrySet()) {
             String attribute = kv.getKey().getSimpleName().toString();
             Object value = kv.getValue().getValue();
-            value = ElementUtil.tryConvertInternalRepresentation(value);
+            value = ElementUtil.tryConvertInternalRepresentation(kv.getKey().getReturnType(), value);
 
             reflectiveReplacements.put(attribute, value);
         }
