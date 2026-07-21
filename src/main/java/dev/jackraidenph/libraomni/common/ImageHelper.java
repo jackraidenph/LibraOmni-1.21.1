@@ -17,7 +17,11 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-public class ImageHelper {
+public final class ImageHelper {
+
+    private ImageHelper() {
+        
+    }
 
     public static BufferedImage recolor(BufferedImage originalImage, int[] newPalette, InterpolationMode interpolationMode) {
         int w = originalImage.getWidth();

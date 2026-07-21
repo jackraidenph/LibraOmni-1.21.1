@@ -18,8 +18,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
-public class TransformerUtil {
-    private static final Map<Class<? extends Function<?, ?>>, Function<?, ?>> transformers = new HashMap<>();
+public final class TransformerUtil {
+
+    private TransformerUtil() {
+
+    }
+
+    private static final Map<Class<? extends Function<?, ?>>, Function<?, ?>> TRANSFORMERS_CACHE = new HashMap<>();
 
     public static Class<? extends Function<?, ?>> getTransformerClass(Replaces declaringAnnotation) {
         return ElementUtil.getOrUnmirrorClass(declaringAnnotation::transformer);
@@ -59,7 +64,7 @@ public class TransformerUtil {
 
     private static <IN, OUT> OUT applyTransformation(IN oldValue, Class<OUT> destinationClass, Class<? extends Function<IN, OUT>> transformerClass) {
         //noinspection unchecked
-        Function<IN, OUT> transformer = (Function<IN, OUT>) transformers.computeIfAbsent(transformerClass, UnsafeReflectionUtil::tryConstruct);
+        Function<IN, OUT> transformer = (Function<IN, OUT>) TRANSFORMERS_CACHE.computeIfAbsent(transformerClass, UnsafeReflectionUtil::tryConstruct);
         OUT newObj = transformer.apply(oldValue);
         return SafeReflectionUtil.selfOrSingletonArray(destinationClass, newObj);
     }

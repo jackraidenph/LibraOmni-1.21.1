@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.common;
 
 public final class MathUtil {
+
     private MathUtil() {
 
     }

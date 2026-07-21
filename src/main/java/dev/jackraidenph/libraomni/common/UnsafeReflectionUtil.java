@@ -4,7 +4,11 @@ import javax.annotation.Nonnull;
 import java.lang.reflect.*;
 import java.util.Arrays;
 
-public class UnsafeReflectionUtil {
+public final class UnsafeReflectionUtil {
+
+    private UnsafeReflectionUtil() {
+
+    }
 
     public static boolean isIntefaceMethodOverriden(Class<?> clazz, String methodName, Class<?>... paramTypes) {
         if (clazz == null) {

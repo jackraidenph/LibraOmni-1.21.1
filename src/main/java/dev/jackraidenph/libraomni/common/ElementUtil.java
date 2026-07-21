@@ -30,6 +30,10 @@ import static com.sun.tools.javac.code.TypeTag.CLASS;
  */
 public final class ElementUtil {
 
+    private ElementUtil() {
+
+    }
+
     private static final String OBJECT_STR = Object.class.getName();
 
     public static boolean isUnfoldUnsupported(TypeElement type) {

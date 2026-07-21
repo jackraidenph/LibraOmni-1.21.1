@@ -13,7 +13,11 @@ import java.util.*;
  * Instead of throwing, methods return null.
  * If throwing an exception is actually needed - null check should be used on the calling side
  */
-public class SafeReflectionUtil {
+public final class SafeReflectionUtil {
+
+    private SafeReflectionUtil() {
+        
+    }
 
     @SuppressWarnings("unchecked")
     public static <T> T[] genericArray(Class<T> clazz, int... dimensions) {

@@ -18,7 +18,11 @@ import java.util.function.Supplier;
 /**
  * A utility class with hellper methods to work with and ONLY with AnnotationMirrors
  */
-public class AnnotationMirrorUtil {
+public final class AnnotationMirrorUtil {
+
+    private AnnotationMirrorUtil() {
+
+    }
 
     public static Annotation tryCovnertToAnnotation(AnnotationMirror mirror) {
         TypeElement type = AnnotationMirrorUtil.toTypeElement(mirror);
