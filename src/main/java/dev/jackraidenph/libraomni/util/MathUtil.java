@@ -49,10 +49,10 @@ public final class MathUtil {
     }
 
     public static int clamp(int v, int min, int max) {
-        return Math.max(min, Math.min(max, v));
+        return Math.clamp(v, min, max);
     }
 
     public static float clamp(float v, float min, float max) {
-        return Math.max(min, Math.min(max, v));
+        return Math.clamp(v, min, max);
     }
 }
