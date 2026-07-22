@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.AbstractInterceptorProxy;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
@@ -8,11 +9,8 @@ import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.StringJoiner;
 
 public class SyntheticAnnotation<T extends Annotation> extends AbstractInterceptorProxy {
 
@@ -68,17 +66,32 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
     @Override
     @InterceptorFor("toString")
     public String toString() {
-        return "Synthetic@" + type.getName() + attributesToString(attributes);
+        return "Synthetic@" + stringIdentity(annotationType().getName(), attributes, true);
     }
 
-    private static String attributesToString(Map<String, Object> attributes) {
-        StringJoiner builder = new StringJoiner(",", "(", ")");
-        for (Entry<String, Object> e : attributes.entrySet()) {
-            Object v = e.getValue();
-            String vStr = v.getClass().isArray() ? Arrays.toString((Object[]) e.getValue()) : String.valueOf(v);
-            builder.add(e.getKey() + "(" + vStr + ")");
+    public static String stringIdentity(String typeName, Map<String, Object> attributes, boolean sort) {
+        StringJoiner argsJoiner = new StringJoiner(",", "(", ")");
+
+        List<Entry<String, Object>> l = new ArrayList<>(attributes.entrySet());
+
+        if (sort) {
+            l.sort(Comparator.comparingInt(e -> e.getKey().charAt(0)));
         }
-        return builder.toString();
+
+        for (Entry<String, Object> e : l) {
+            String name = e.getKey();
+            Object value = e.getValue();
+
+            if (value == null) {
+                continue;
+            }
+
+            String valueStr = value.getClass().isArray() ? SafeReflectionUtil.arrayToString(value) : value.toString();
+
+            argsJoiner.add(name + "=" + valueStr);
+        }
+
+        return typeName + argsJoiner;
     }
 
     @Override

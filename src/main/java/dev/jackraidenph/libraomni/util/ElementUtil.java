@@ -9,6 +9,8 @@ import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.Pair;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
+import dev.jackraidenph.libraomni.data.proxy.compile.AnnotatedConstructProxy;
 import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.annotation.Nonnull;
@@ -20,6 +22,7 @@ import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.reflect.Array;
+import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -35,6 +38,21 @@ public final class ElementUtil {
     }
 
     private static final String OBJECT_STR = Object.class.getName();
+
+    public static String stringIdentity(Element e) {
+        if (Proxy.isProxyClass(e.getClass())
+                && Proxy.getInvocationHandler(e) instanceof AbstractObjectProxy<?> obj
+                && obj.getProxiedObject() instanceof TypeElement typeElement
+        ) {
+            return Javac.binaryName(typeElement);
+        }
+
+        if (e instanceof TypeElement t) {
+            return Javac.binaryName(t);
+        }
+
+        return StringUtil.snakeCase(e.getSimpleName().toString());
+    }
 
     public static boolean isUnfoldUnsupported(TypeElement type) {
         return AnnotationProcessorConstants.UNFOLD_UNSUPPORTED.stream()
@@ -54,7 +72,7 @@ public final class ElementUtil {
             }
         }
 
-        if(internal instanceof DeclaredType declaredType) {
+        if (internal instanceof DeclaredType declaredType) {
             return fromTypeMirror(declaredType);
         }
 

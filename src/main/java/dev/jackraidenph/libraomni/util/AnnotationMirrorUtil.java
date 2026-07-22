@@ -10,6 +10,7 @@ import javax.lang.model.util.ElementFilter;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Repeatable;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -136,7 +137,7 @@ public final class AnnotationMirrorUtil {
         public static Map<ExecutableElement, AnnotationValue> getElementValuesWithDefaults(AnnotationMirror a) {
             DeclaredType annotype = a.getAnnotationType();
 
-            Map<ExecutableElement, AnnotationValue> res = new HashMap<>();
+            Map<ExecutableElement, AnnotationValue> res = new LinkedHashMap<>();
 
             List<? extends Element> enclosed = annotype.asElement().getEnclosedElements();
             for (ExecutableElement ex : ElementFilter.methodsIn(enclosed)) {
