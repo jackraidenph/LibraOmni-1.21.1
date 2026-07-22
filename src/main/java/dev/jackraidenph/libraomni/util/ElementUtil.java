@@ -10,7 +10,6 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.Pair;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
 import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
-import dev.jackraidenph.libraomni.data.proxy.compile.AnnotatedConstructProxy;
 import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.annotation.Nonnull;

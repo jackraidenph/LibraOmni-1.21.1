@@ -8,6 +8,7 @@ public record ProcessingContext(
         ResourceManager resourceManager,
         AnnotationProcessorConfig config,
         RoundEnvironment roundEnvironment,
-        ProcessingEnvironment processingEnvironment
+        ProcessingEnvironment processingEnvironment,
+        int round
 ) {
 }
