@@ -24,6 +24,28 @@ public final class SafeReflectionUtil {
         return (T[]) Array.newInstance(clazz, dimensions);
     }
 
+    public static String arrayToString(@Nonnull Object obj) {
+        if (!obj.getClass().isArray()) {
+            throw new IllegalArgumentException("Not an array");
+        }
+
+        // Handle Object arrays
+        return switch (obj) {
+            case Object[] objects -> Arrays.deepToString(objects);
+            // Handle primitive arrays individually
+            case int[] ints -> Arrays.toString(ints);
+            case long[] longs -> Arrays.toString(longs);
+            case double[] doubles -> Arrays.toString(doubles);
+            case float[] floats -> Arrays.toString(floats);
+            case boolean[] booleans -> Arrays.toString(booleans);
+            case char[] chars -> Arrays.toString(chars);
+            case byte[] bytes -> Arrays.toString(bytes);
+            case short[] shorts -> Arrays.toString(shorts);
+            default -> obj.toString();
+        };
+
+    }
+
     public static boolean invoke(@Nonnull Class<?> clazz, @Nullable Object obj, String name, Object... values) {
         try {
             Method method = clazz.getDeclaredMethod(name, inferTypes(values));
