@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.data.proxy.compile;
 
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -9,6 +10,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RoundEnvironmentWrapper implements RoundEnvironment {
 
@@ -24,6 +26,16 @@ public class RoundEnvironmentWrapper implements RoundEnvironment {
             Element proxy = (Element) ProxyFactory.makeAnnotatedConstructProxy(e);
             proxiedRootElements.add(proxy);
         }
+    }
+
+    public static Set<TypeElement> getAllAnnotationsAsTypeElements(RoundEnvironment roundEnvironment) {
+        return roundEnvironment
+                .getRootElements()
+                .stream()
+                .map(Element::getAnnotationMirrors)
+                .flatMap(List::stream)
+                .map(AnnotationMirrorUtil::toTypeElement)
+                .collect(Collectors.toSet());
     }
 
     @Override

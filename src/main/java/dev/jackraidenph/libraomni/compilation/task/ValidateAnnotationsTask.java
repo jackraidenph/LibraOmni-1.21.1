@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
+import dev.jackraidenph.libraomni.data.proxy.compile.RoundEnvironmentWrapper;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
@@ -30,7 +31,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
         messager.printNote("---VALIDATING ANNOTATIONS---");
 
-        Set<TypeElement> annotations = getAllAnnotationsAsTypeElements(processingContext.roundEnvironment());
+        Set<TypeElement> annotations = RoundEnvironmentWrapper.getAllAnnotationsAsTypeElements(processingContext.roundEnvironment());
 
         Set<TypeElement> requiringIncompatibleCheck = getRequiringIncompatibleCheck(annotations);
         for (TypeElement typeElement : requiringIncompatibleCheck) {
@@ -204,16 +205,6 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 .getElementsAnnotatedWith(typeElement)
                 .stream()
                 .filter(e -> !(e.getKind().equals(ElementKind.ANNOTATION_TYPE)))
-                .collect(Collectors.toSet());
-    }
-
-    private static Set<TypeElement> getAllAnnotationsAsTypeElements(RoundEnvironment roundEnvironment) {
-        return roundEnvironment
-                .getRootElements()
-                .stream()
-                .map(Element::getAnnotationMirrors)
-                .flatMap(List::stream)
-                .map(AnnotationMirrorUtil::toTypeElement)
                 .collect(Collectors.toSet());
     }
 
