@@ -21,6 +21,11 @@ public class BlackMagicUtil {
     private static final String LOG4J_CONFIG_PROPERTY = "log4j2.configurationFile";
 
     private static String oldLog4JConfig = null;
+    private static boolean compileHappened = false;
+
+    public static boolean didCompileHappen() {
+        return compileHappened;
+    }
 
     public static void shutOffLog4j() {
         String oldLocation = System.getProperty(LOG4J_CONFIG_PROPERTY);
@@ -97,6 +102,7 @@ public class BlackMagicUtil {
             classes.put(qualifiedName, clazz);
         }
 
+        compileHappened = true;
         return classes;
     }
 
