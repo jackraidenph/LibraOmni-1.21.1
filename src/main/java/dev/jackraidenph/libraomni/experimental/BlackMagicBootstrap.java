@@ -44,15 +44,15 @@ import java.util.stream.Collectors;
 
 public class BlackMagicBootstrap {
 
-    private static boolean BLACK_MAGIC_MODE = false;
+    private static boolean blackMagicActive = false;
 
     public static boolean isBlackMagicActive() {
-        return BLACK_MAGIC_MODE;
+        return blackMagicActive;
     }
 
     @SuppressWarnings("UnstableApiUsage")
     public static void bootstrapBlackMagic(ModIdGetter modLocator, ProcessingContext processingContext) {
-        BLACK_MAGIC_MODE = true;
+        blackMagicActive = true;
 
         Map<String, Class<?>> classes = BlackMagicUtil.compileAndLoad(processingContext);
 
