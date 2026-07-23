@@ -66,7 +66,7 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
     @Override
     @InterceptorFor("toString")
     public String toString() {
-        return "Synthetic@" + stringIdentity(annotationType().getName(), attributes, true);
+        return "Synthetic@" + stringIdentity(annotationType().getName(), attributes, false);
     }
 
     public static String stringIdentity(String typeName, Map<String, Object> attributes, boolean sort) {
