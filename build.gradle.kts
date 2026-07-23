@@ -23,7 +23,7 @@ plugins {
     id("idea")
     id("java-library")
     id("maven-publish")
-    id("net.neoforged.moddev") version "2.0.141"
+    id("net.neoforged.moddev") version "2.0.142"
     id("java-gradle-plugin")
 }
 
@@ -37,6 +37,10 @@ tasks.named<Wrapper>("wrapper") {
 
 repositories {
     mavenLocal()
+    //Required by compileOnly#ModDevGradle to resolve idea-ext plugin
+    maven {
+        url = uri("https://plugins.gradle.org/m2/")
+    }
 }
 
 fun date(): String {
@@ -158,6 +162,7 @@ configurations.named("runtimeClasspath") {
 
 dependencies {
     compileOnly(gradleApi())
+    compileOnly("net.neoforged:moddev-gradle:2.0.142")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
 }
 
@@ -212,6 +217,13 @@ gradlePlugin {
             displayName = "LibraOmni Bootstrap Plugin"
             implementationClass = "dev.jackraidenph.libraomni.gradle.BootstrapPlugin"
         }
+    }
+}
+
+idea {
+    module {
+        isDownloadSources = true
+        isDownloadJavadoc = true
     }
 }
 
