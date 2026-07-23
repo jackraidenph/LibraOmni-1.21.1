@@ -122,21 +122,14 @@ public final class AnnotationProcessorConfig {
             throw new RuntimeException("Not a path [%s]".formatted(resourcePath));
         }
 
-        Set<String> matches = new HashSet<>();
-        JsonMergeConflictPolicy policy = null;
         for (Entry<PathMatcher, JsonMergeConflictPolicy> e : conf.entrySet()) {
             PathMatcher globMatcher = e.getKey();
             if (globMatcher.matches(path)) {
-                matches.add(e.getValue().name());
-                policy = e.getValue();
+                return e.getValue();
             }
         }
 
-        if (matches.size() > 1) {
-            throw new IllegalStateException("Multiple pattern matches for [" + resourcePath + "]: " + matches);
-        }
-
-        return policy;
+        return null;
     }
 
 }
