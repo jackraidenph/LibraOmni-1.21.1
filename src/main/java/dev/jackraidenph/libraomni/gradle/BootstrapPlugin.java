@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.gradle;
 
-import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import net.neoforged.moddevgradle.dsl.ModDevExtension;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -18,7 +18,6 @@ import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -121,14 +120,11 @@ public class BootstrapPlugin implements Plugin<Project> {
         SourceSet libraOmniSourceSet = libraOmniSourceSetProvider.get();
 
         try {
-            Object neoForgeExtension = extensions.getByName("neoForge");
-            Method method = neoForgeExtension.getClass().getMethod("addModdingDependenciesTo", SourceSet.class);
-
-            project.afterEvaluate(proj -> UnsafeReflectionUtil.getMethodValue(method, neoForgeExtension, libraOmniSourceSet));
+            if (extensions.getByName("neoForge") instanceof ModDevExtension modDevExtension) {
+                project.afterEvaluate(p -> modDevExtension.addModdingDependenciesTo(libraOmniSourceSet));
+            }
         } catch (UnknownDomainObjectException e) {
             throw new IllegalStateException("NeoForge extension is not found, probably, LibraOmni plugin is defined before NeoForge's ModDev, change this");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
 
         ConfigurationContainer configurations = project.getConfigurations();
