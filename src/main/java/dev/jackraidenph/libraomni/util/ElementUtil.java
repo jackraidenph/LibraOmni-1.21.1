@@ -13,6 +13,7 @@ import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
 import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import javax.lang.model.util.ElementFilter;
@@ -37,6 +38,42 @@ public final class ElementUtil {
     }
 
     private static final String OBJECT_STR = Object.class.getName();
+
+    /**
+     * Is not cached and is expensive
+     */
+    public static List<Element> getAllElements(RoundEnvironment roundEnvironment) {
+        List<Element> elements = new ArrayList<>();
+        for (Element e : roundEnvironment.getRootElements()) {
+            addElementAndRecurse(e, elements);
+        }
+
+        return elements;
+    }
+
+    private static void addElementAndRecurse(Element e, Collection<Element> toAddTo) {
+        toAddTo.add(e);
+
+        for (AnnotationMirror mirror : e.getAnnotationMirrors()) {
+            TypeElement typeElement = AnnotationMirrorUtil.toTypeElement(mirror);
+            toAddTo.add(typeElement);
+        }
+
+        for (Element enclosed : e.getEnclosedElements()) {
+            addElementAndRecurse(enclosed, toAddTo);
+        }
+    }
+
+    /**
+     * Is not cached and is expensive
+     */
+    public static List<TypeElement> getAllAnnotationTypes(RoundEnvironment roundEnvironment) {
+        return getAllElements(roundEnvironment).stream()
+                .filter(e -> e.getKind().equals(ElementKind.ANNOTATION_TYPE))
+                .map(e -> (TypeElement) e)
+                .peek(System.out::println)
+                .toList();
+    }
 
     public static String stringIdentity(Element e) {
         if (Proxy.isProxyClass(e.getClass())
@@ -117,7 +154,7 @@ public final class ElementUtil {
     }
 
     public static Object attributeArrayToArray(Attribute.Array array) {
-        Class<?> clazz = fromTypeMirror(array.type);
+        Class<?> clazz = fromTypeMirror(array.type).getComponentType();
         Attribute[] vals = array.values;
         Object arr = Array.newInstance(clazz, vals.length);
         for (int i = 0; i < vals.length; i++) {
