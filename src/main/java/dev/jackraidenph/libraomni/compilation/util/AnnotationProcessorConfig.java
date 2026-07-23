@@ -91,6 +91,11 @@ public final class AnnotationProcessorConfig {
 
     private static Map<String, String> parseConfigString(String str) {
         str = str.replaceAll("[{}\\s]", "");
+
+        if (str.isBlank()) {
+            return Map.of();
+        }
+
         String[] pairs = str.split(",");
         Map<String, String> map = new HashMap<>();
         for (String pair : pairs) {
