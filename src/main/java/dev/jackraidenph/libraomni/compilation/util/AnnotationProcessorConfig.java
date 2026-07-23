@@ -17,12 +17,12 @@ import java.util.stream.Collectors;
 public final class AnnotationProcessorConfig {
 
     private static final Map<String, String> DEFAULT_CONFIG_OPTIONS = Map.of(
-            "data/**", JsonMergeConflictPolicy.PREFER_NEW.name(),
-            "assets/**", JsonMergeConflictPolicy.OVERWRITE.name()
+            "**.json", JsonMergeConflictPolicy.PREFER_NEW.name(),
+            "regex:.*(?<!\\.json)$", JsonMergeConflictPolicy.OVERWRITE.name()
     );
 
     private static final Map<PathMatcher, JsonMergeConflictPolicy> DEFAULT_CONFIG = parseOptionsMapToConfig(DEFAULT_CONFIG_OPTIONS);
-    private final Map<PathMatcher, JsonMergeConflictPolicy> CONFIG = new HashMap<>();
+    private final Map<PathMatcher, JsonMergeConflictPolicy> CONFIG = new LinkedHashMap<>();
 
     private final Set<Path> RESOURCE_SET_DIRS = new HashSet<>();
 
@@ -77,8 +77,16 @@ public final class AnnotationProcessorConfig {
         }
     }
 
+    private static PathMatcher getMatcher(String pattern) {
+        if (pattern.startsWith("regex:")) {
+            return FileSystems.getDefault().getPathMatcher(pattern);
+        } else {
+            return globMatcher(pattern);
+        }
+    }
+
     private static Map<PathMatcher, JsonMergeConflictPolicy> parseOptionsMapToConfig(Map<String, String> map) {
-        return map.entrySet().stream().collect(Collectors.toMap(e -> globMatcher(e.getKey()), e -> parsePolicy(e.getValue())));
+        return map.entrySet().stream().collect(Collectors.toMap(e -> getMatcher(e.getKey()), e -> parsePolicy(e.getValue())));
     }
 
     private static JsonMergeConflictPolicy parsePolicy(String policy) {
@@ -107,9 +115,9 @@ public final class AnnotationProcessorConfig {
 
     public JsonMergeConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier) {
         JsonMergeConflictPolicy policy = getConflictPolicy(resourceIdentifier, this.getConfig());
-        policy = policy == null
-                ? getConflictPolicy(resourceIdentifier, this.getDefaultConfig())
-                : policy;
+        if (policy == null) {
+            policy = getConflictPolicy(resourceIdentifier, this.getDefaultConfig());
+        }
         return policy;
     }
 
