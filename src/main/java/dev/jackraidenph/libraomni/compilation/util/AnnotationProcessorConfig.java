@@ -63,9 +63,9 @@ public final class AnnotationProcessorConfig {
         Map<String, String> userConfig = parseConfigString(config);
         if (!userConfig.isEmpty()) {
             CONFIG.putAll(parseOptionsMapToConfig(userConfig));
-            processingEnv.getMessager().printNote("Annotation Processor config found: %s, backup values: %s".formatted(userConfig, DEFAULT_CONFIG_OPTIONS));
+            processingEnv.getMessager().printNote("Found resource config: %s, backup values: %s".formatted(userConfig, DEFAULT_CONFIG_OPTIONS));
         } else {
-            processingEnv.getMessager().printNote("Annotation Processor config not found, assuming default values %s".formatted(DEFAULT_CONFIG_OPTIONS));
+            processingEnv.getMessager().printNote("Resource config not found, assuming default values %s".formatted(DEFAULT_CONFIG_OPTIONS));
         }
     }
 
