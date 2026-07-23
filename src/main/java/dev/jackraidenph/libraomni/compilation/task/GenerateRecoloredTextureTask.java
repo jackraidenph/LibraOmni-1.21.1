@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.TextureWithColorsSwapped;
+import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.util.StringUtil;
 import dev.jackraidenph.libraomni.util.StringUtil.NamespaceDirectoryFile;
 import dev.jackraidenph.libraomni.util.ImageHelper;
@@ -18,7 +19,7 @@ public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
         TextureWithColorsSwapped annotation = element.getAnnotation(TextureWithColorsSwapped.class);
-        if(annotation == null) {
+        if (annotation == null) {
             throw new IllegalStateException();
         }
 
@@ -42,13 +43,14 @@ public class GenerateRecoloredTextureTask extends SequentialCompilationTask {
         ResourceIdentifier textureLocation = builder.build();
         ResourceIdentifier saveLocation = builder.setNameRoot(elementId).build();
 
-
-        ImageHelper.transformAndSavePng(
+        InMemoryResource newPng = ImageHelper.transformPng(
                 textureLocation,
                 saveLocation,
                 image -> ImageHelper.remapColors(image, paletteSwap),
                 processingContext
         );
+
+        processingContext.resourceManager().saveAndCache(newPng, this.className());
     }
 
     @Override

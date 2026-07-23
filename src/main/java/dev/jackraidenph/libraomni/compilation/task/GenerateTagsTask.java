@@ -31,7 +31,7 @@ public class GenerateTagsTask extends SequentialCompilationTask {
         for (Entry<String, List<String>> entry : tagToEntries.entrySet()) {
             String tag = entry.getKey();
             List<String> tagEntries = entry.getValue();
-            resourceManager.save(makeFile(tag, tagEntries));
+            resourceManager.saveAndCache(makeFile(tag, tagEntries), this.className());
         }
     }
 

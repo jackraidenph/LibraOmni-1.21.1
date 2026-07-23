@@ -1,7 +1,10 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
+import dev.jackraidenph.libraomni.compilation.task.cache.ProcessingCache;
+import dev.jackraidenph.libraomni.compilation.task.cache.TaskCache;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -12,53 +15,84 @@ import java.util.Optional;
 
 public final class ResourceManager {
 
-    private final ProcessingEnvironment pEnv;
-    private final AnnotationProcessorConfig config;
+    private final ProcessingContext context;
+    private final ProcessingCache cache;
 
-    public ResourceManager(AnnotationProcessorConfig config, ProcessingEnvironment pEnv) {
-        this.config = config;
-        this.pEnv = pEnv;
-    }
-
-    public void save(ResourceIdentifier identifier, Object toSerialize) {
-        save(new InMemoryResource(identifier, toSerialize));
-    }
-
-    public void save(ResourceIdentifier identifier, Object toSerialize, JsonMergeConflictPolicy forcedPolicy) {
-        save(new InMemoryResource(identifier, toSerialize), forcedPolicy);
-    }
-
-    public void save(ResourceIdentifier identifier, byte[] bytes) {
-        save(new InMemoryResource(identifier, bytes));
-    }
-
-    public void save(ResourceIdentifier identifier, byte[] bytes, JsonMergeConflictPolicy forcedPolicy) {
-        save(new InMemoryResource(identifier, bytes), forcedPolicy);
+    public ResourceManager(ProcessingContext context, ProcessingCache cache) {
+        this.context = context;
+        this.cache = cache;
     }
 
     public void save(InMemoryResource inMemoryResource) {
-        save(inMemoryResource, null);
+        saveAndCache(inMemoryResource, null);
     }
 
-    public void save(InMemoryResource inMemoryResource, JsonMergeConflictPolicy forcedPolicy) {
-        Filer filer = pEnv.getFiler();
-        Messager messager = pEnv.getMessager();
+    public void saveAndCache(InMemoryResource inMemoryResource, @Nullable String cacheOrigin) {
+        save(inMemoryResource, null, cacheOrigin);
+    }
 
-        messager.printNote("Saving resource [%s]".formatted(inMemoryResource));
+    //---
+
+    public void save(ResourceIdentifier identifier, Object toSerialize) {
+        saveAndCache(identifier, toSerialize, null);
+    }
+
+    public void saveAndCache(ResourceIdentifier identifier, Object toSerialize, @Nullable String cacheOrigin) {
+        saveAndCache(identifier, toSerialize, null, cacheOrigin);
+    }
+
+    public void save(ResourceIdentifier identifier, Object toSerialize, JsonMergeConflictPolicy forcedPolicy) {
+        saveAndCache(identifier, toSerialize, forcedPolicy, null);
+    }
+
+    public void saveAndCache(ResourceIdentifier identifier, Object toSerialize, JsonMergeConflictPolicy forcedPolicy, @Nullable String cacheOrigin) {
+        save(new InMemoryResource(identifier, toSerialize), forcedPolicy, cacheOrigin);
+    }
+
+    //---
+
+    public void save(ResourceIdentifier identifier, byte[] bytes) {
+        save(identifier, bytes, null);
+    }
+
+    public void save(ResourceIdentifier identifier, byte[] bytes, JsonMergeConflictPolicy forcedPolicy) {
+        saveAndCache(identifier, bytes, forcedPolicy, null);
+    }
+
+    public void saveAndCache(ResourceIdentifier identifier, byte[] bytes, @Nullable String cacheOrigin) {
+        saveAndCache(identifier, bytes, null, cacheOrigin);
+    }
+
+    public void saveAndCache(ResourceIdentifier identifier, byte[] bytes, JsonMergeConflictPolicy forcedPolicy, @Nullable String cacheOrigin) {
+        save(new InMemoryResource(identifier, bytes), forcedPolicy, cacheOrigin);
+    }
+
+    //---
+
+    public void save(InMemoryResource inMemoryResource, @Nullable JsonMergeConflictPolicy forcedPolicy, @Nullable String cacheOrigin) {
+        Filer filer = context.processingEnvironment().getFiler();
 
         ResourceIdentifier resourceIdentifier = inMemoryResource.identifier();
+        byte[] toWrite = inMemoryResource.data();
+
+        if (cacheOrigin != null && cacheOrigin.equals(TaskCache.REGENERATED_ORIGIN)) {
+            writeBytesToResourceLocation(resourceIdentifier, toWrite, null);
+            return;
+        }
+
+        Messager messager = context.processingEnvironment().getMessager();
+
+        messager.printNote("Saving resource [%s]".formatted(inMemoryResource));
 
         String origin = "Previously Generated";
         Optional<Path> pathToExisting = resourceIdentifier.atLocation(filer);
         if (pathToExisting.isEmpty()) {
             origin = "User Files";
-            pathToExisting = resourceIdentifier.atLocation(config.getResourceSetDirs());
+            pathToExisting = resourceIdentifier.atLocation(context.config().getResourceSetDirs());
         }
 
-        byte[] toWrite = inMemoryResource.data();
-
         if (pathToExisting.isEmpty()) {
-            writeBytesToResourceLocation(resourceIdentifier, toWrite);
+            writeBytesToResourceLocation(resourceIdentifier, toWrite, cacheOrigin);
             return;
         }
 
@@ -66,6 +100,7 @@ public final class ResourceManager {
                 ? forcedPolicy
                 : getConflictPolicyFromConfig(inMemoryResource);
 
+        ProcessingEnvironment pEnv = context.processingEnvironment();
         switch (policy) {
             case THROW -> throw new IllegalStateException("Resource [%s] already exists".formatted(inMemoryResource));
             case OVERWRITE ->
@@ -82,24 +117,35 @@ public final class ResourceManager {
             }
         }
 
-        writeBytesToResourceLocation(resourceIdentifier, toWrite);
+        writeBytesToResourceLocation(resourceIdentifier, toWrite, cacheOrigin);
     }
 
     private JsonMergeConflictPolicy getConflictPolicyFromConfig(InMemoryResource inMemoryResource) {
-        JsonMergeConflictPolicy conflictPolicy = config.getConflictPolicy(inMemoryResource.identifier());
+        JsonMergeConflictPolicy conflictPolicy = context.config().getConflictPolicy(inMemoryResource.identifier());
         if (conflictPolicy == null) {
-            pEnv.getMessager().printWarning("Conflict resolution policy for [%s] not found, assuming [%s]".formatted(inMemoryResource.identifier(), conflictPolicy));
-            return JsonMergeConflictPolicy.OVERWRITE;
+            conflictPolicy = JsonMergeConflictPolicy.OVERWRITE;
+            context.processingEnvironment()
+                    .getMessager()
+                    .printWarning("Conflict resolution policy for [%s] not found, assuming [%s]".formatted(inMemoryResource.identifier(), conflictPolicy));
+            return conflictPolicy;
         }
         return conflictPolicy;
     }
 
-    private void writeBytesToResourceLocation(ResourceIdentifier resourceIdentifier, byte[] bytes) {
-        try (OutputStream outputStream = resourceIdentifier.outputStream(pEnv.getFiler())) {
+    private void writeBytesToResourceLocation(ResourceIdentifier resourceIdentifier, byte[] bytes, @Nullable String cacheOrigin) {
+        try (OutputStream outputStream = resourceIdentifier.outputStream(context.processingEnvironment().getFiler())) {
             outputStream.write(bytes);
+
+            if (cacheOrigin != null) {
+                cacheBytes(cacheOrigin, resourceIdentifier, bytes);
+            }
         } catch (IOException ioException) {
             throw new RuntimeException("Exception writing resource [" + resourceIdentifier + "]", ioException);
         }
+    }
+
+    private void cacheBytes(String taskName, ResourceIdentifier resourceIdentifier, byte[] bytes) {
+        cache.getOrCreateRoundCache(context.round()).cacheFile(taskName, resourceIdentifier, bytes);
     }
 
     private String handleMergeJson(InMemoryResource resource, JsonMergeConflictPolicy policy, Path systemPathToExistingFile) {
@@ -111,7 +157,9 @@ public final class ResourceManager {
         }
 
         if (!identifier.getExtension().equals(ResourceIdentifier.JSON_EXT)) {
-            pEnv.getMessager().printWarning("Can't process not-JSON resource [%s] with [%s] policy, overwriting");
+            context.processingEnvironment()
+                    .getMessager()
+                    .printWarning("Can't process not-JSON resource [%s] with [%s] policy, overwriting");
             return newData;
         }
 

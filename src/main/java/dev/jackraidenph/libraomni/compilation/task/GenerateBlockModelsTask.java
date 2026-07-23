@@ -18,9 +18,10 @@ class GenerateBlockModelsTask extends SequentialCompilationTask {
         ArbitraryBlockModelData[] annotations = element.getAnnotationsByType(ArbitraryBlockModelData.class);
         for (ArbitraryBlockModelData annotation : annotations) {
             Map<String, String> textures = mapTextures(modId, elementId, annotation);
-            processingContext.resourceManager().save(
+            processingContext.resourceManager().saveAndCache(
                     ResourceIdentifier.jsonAsset(modId, "models/block", elementId),
-                    Map.of("parent", annotation.parentModel(), "textures", textures)
+                    Map.of("parent", annotation.parentModel(), "textures", textures),
+                    this.className()
             );
         }
     }

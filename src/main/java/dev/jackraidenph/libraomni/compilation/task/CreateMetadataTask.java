@@ -70,14 +70,15 @@ final class CreateMetadataTask implements CompilationTask {
     }
 
     private void saveMetadataFile(ProcessingContext processingContext) {
-        processingContext.resourceManager().save(
+        processingContext.resourceManager().saveAndCache(
                 ResourceIdentifier.builder()
                         .setDirectory(ProjectMetadata.DIRECTORY)
                         .setNameRoot(ProjectMetadata.FILE_ROOT)
                         .setJsonExtension()
                         .build(),
                 projectMetadata,
-                JsonMergeConflictPolicy.PREFER_NEW
+                JsonMergeConflictPolicy.PREFER_NEW,
+                this.className()
         );
     }
 

@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.util;
 
+import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.util.ColorUtil.InterpolationMode;
-import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
@@ -70,25 +70,25 @@ public final class ImageHelper {
         return newImage;
     }
 
-    public static void transformAndSavePng(
+    public static InMemoryResource transformPng(
             String namespace,
             String directory,
             String file,
             Function<BufferedImage, BufferedImage> transform,
             ProcessingContext processingContext
     ) {
-        transformAndSavePng(namespace, directory, file, null, transform, processingContext);
+        return transformPng(namespace, directory, file, null, transform, processingContext);
     }
 
-    public static void transformAndSavePng(
+    public static InMemoryResource transformPng(
             ResourceIdentifier textureLocation,
             Function<BufferedImage, BufferedImage> transform,
             ProcessingContext processingContext
     ) {
-        transformAndSavePng(textureLocation, null, transform, processingContext);
+        return transformPng(textureLocation, null, transform, processingContext);
     }
 
-    public static void transformAndSavePng(
+    public static InMemoryResource transformPng(
             String namespace,
             String directory,
             String file,
@@ -96,7 +96,7 @@ public final class ImageHelper {
             Function<BufferedImage, BufferedImage> transform,
             ProcessingContext processingContext
     ) {
-        transformAndSavePng(
+        return transformPng(
                 ResourceIdentifier.pngAsset(namespace, directory, file),
                 saveLocationOverride,
                 transform,
@@ -104,7 +104,7 @@ public final class ImageHelper {
         );
     }
 
-    public static void transformAndSavePng(
+    public static InMemoryResource transformPng(
             ResourceIdentifier textureLocation,
             @Nullable ResourceIdentifier saveLocationOverride,
             Function<BufferedImage, BufferedImage> transform,
@@ -124,8 +124,10 @@ public final class ImageHelper {
             BufferedImage image = ImageIO.read(existingTexture.get().toFile());
             BufferedImage newImage = transform.apply(image);
             ImageIO.write(newImage, "png", outputStream);
+
             byte[] bytes = outputStream.toByteArray();
-            resourceManager.save(saveLocationOverride == null ? textureLocation : saveLocationOverride, bytes, JsonMergeConflictPolicy.OVERWRITE);
+            ResourceIdentifier identifier = saveLocationOverride == null ? textureLocation : saveLocationOverride;
+            return new InMemoryResource(identifier, bytes);
         } catch (IOException ioException) {
             throw new RuntimeException(ioException);
         }

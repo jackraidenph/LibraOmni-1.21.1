@@ -31,13 +31,14 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
         ResourceIdentifier textureLocation = builder.build();
         ResourceIdentifier saveLocation = builder.setNameRoot(elementId).build();
 
-
-        ImageHelper.transformAndSavePng(
+        InMemoryResource newPng = ImageHelper.transformPng(
                 textureLocation,
                 saveLocation,
                 image -> ImageHelper.recolor(image, annotation.palette(), annotation.usePaletteInterpolation()),
                 processingContext
         );
+
+        processingContext.resourceManager().saveAndCache(newPng, this.className());
     }
 
     @Override

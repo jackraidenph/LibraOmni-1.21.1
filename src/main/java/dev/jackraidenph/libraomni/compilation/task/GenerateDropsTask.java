@@ -120,9 +120,10 @@ public class GenerateDropsTask extends SequentialCompilationTask {
         }
         poolData.addEntry(entryData);
 
-        resourceManager.save(
+        resourceManager.saveAndCache(
                 ResourceIdentifier.data(modId, "loot_table/blocks", elementId),
-                lootTableData
+                lootTableData,
+                this.className()
         );
     }
 

@@ -28,13 +28,14 @@ class GenerateItemModelsTask extends SequentialCompilationTask {
             modelMap.put("textures", textures);
         }
 
-        processingContext.resourceManager().save(
+        processingContext.resourceManager().saveAndCache(
                 ResourceIdentifier.builder()
                         .setAssetDirectory(modId, "models/item")
                         .setNameRoot(elementId)
                         .setJsonExtension()
                         .build(),
-                modelMap
+                modelMap,
+                this.className()
         );
     }
 

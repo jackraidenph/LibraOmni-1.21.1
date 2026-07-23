@@ -1,12 +1,16 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
+import dev.jackraidenph.libraomni.data.proxy.compile.SyntheticAnnotationMirror;
+import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-interface CompilationTask {
+public interface CompilationTask {
 
     default boolean processStage(ProcessingContext context) {
         boolean finish = context.roundEnvironment().processingOver();
@@ -44,5 +48,15 @@ interface CompilationTask {
 
     default boolean requiresBlackMagicEnabled() {
         return false;
+    }
+
+    default int hashStructure(Element element, AnnotationMirror annotation) {
+        String e = ElementUtil.stringIdentity(element);
+        String a = SyntheticAnnotationMirror.stringIdentity(annotation, true);
+        return e.hashCode() + a.hashCode();
+    }
+
+    default String className() {
+        return this.getClass().getName();
     }
 }

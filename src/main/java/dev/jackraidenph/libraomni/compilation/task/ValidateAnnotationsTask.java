@@ -3,7 +3,6 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
-import dev.jackraidenph.libraomni.data.proxy.compile.RoundEnvironmentWrapper;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
@@ -31,7 +30,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
         messager.printNote("---VALIDATING ANNOTATIONS---");
 
-        Set<TypeElement> annotations = RoundEnvironmentWrapper.getAllAnnotationsAsTypeElements(processingContext.roundEnvironment());
+        Collection<TypeElement> annotations = ElementUtil.getAllAnnotationTypes(processingContext.roundEnvironment());
 
         Set<TypeElement> requiringIncompatibleCheck = getRequiringIncompatibleCheck(annotations);
         for (TypeElement typeElement : requiringIncompatibleCheck) {
@@ -208,7 +207,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 .collect(Collectors.toSet());
     }
 
-    private static Set<TypeElement> getAnnotationsRequiringValidation(Set<TypeElement> annotations) {
+    private static Set<TypeElement> getAnnotationsRequiringValidation(Collection<TypeElement> annotations) {
         return annotations.stream()
                 .filter(e -> e.getAnnotation(Validated.class) != null
                         || e.getAnnotation(ValidatedExpression.class) != null
@@ -216,7 +215,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
                 .collect(Collectors.toSet());
     }
 
-    private static Set<TypeElement> getRequiringIncompatibleCheck(Set<TypeElement> annotations) {
+    private static Set<TypeElement> getRequiringIncompatibleCheck(Collection<TypeElement> annotations) {
         return annotations.stream().filter(e -> e.getAnnotation(IncompatibleWith.class) != null).collect(Collectors.toSet());
     }
 

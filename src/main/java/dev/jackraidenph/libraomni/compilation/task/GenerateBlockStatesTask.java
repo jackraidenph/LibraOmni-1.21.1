@@ -23,8 +23,9 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
             throw new IllegalStateException("[%s] is not a valid resource location!".formatted(model));
         }
 
-        processingContext.resourceManager().save(
-                defaultBlockState(elementId, modId, resourceLocation.getNamespace(), resourceLocation.getPath())
+        processingContext.resourceManager().saveAndCache(
+                defaultBlockState(elementId, modId, resourceLocation.getNamespace(), resourceLocation.getPath()),
+                this.className()
         );
     }
 
