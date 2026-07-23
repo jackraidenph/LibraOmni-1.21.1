@@ -2,6 +2,7 @@ package dev.jackraidenph.libraomni.util;
 
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import dev.jackraidenph.libraomni.compilation.task.CompilationTask;
 import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.lang.model.element.*;
@@ -23,6 +24,13 @@ public final class AnnotationMirrorUtil {
 
     private AnnotationMirrorUtil() {
 
+    }
+
+    public static boolean taskSupportsAnnotationMirror(CompilationTask task, AnnotationMirror mirror) {
+        if (task.supportedAnnotations().isEmpty()) {
+            return true;
+        }
+        return task.supportedAnnotations().stream().anyMatch(c -> AnnotationMirrorUtil.compareWithClass(mirror, c));
     }
 
     public static Annotation tryCovnertToAnnotation(AnnotationMirror mirror) {
