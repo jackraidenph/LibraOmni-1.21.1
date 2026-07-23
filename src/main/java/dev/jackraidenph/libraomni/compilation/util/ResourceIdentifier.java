@@ -15,6 +15,28 @@ public record ResourceIdentifier(String directory, String nameRoot, String exten
 
     private static final Location STANDARD_LOCATION = StandardLocation.CLASS_OUTPUT;
 
+    public static ResourceIdentifier parse(String str) {
+        ResourceBuilder builder = new ResourceBuilder();
+
+        if (str.indexOf('/') > 0) {
+            int lastSlash = str.lastIndexOf('/');
+            String dir = str.substring(0, lastSlash);
+            builder.setDirectory(dir);
+            str = str.substring(lastSlash + 1);
+        }
+
+        if (str.indexOf('.') > 0) {
+            int lastDot = str.lastIndexOf('.');
+            String ext = str.substring(lastDot + 1);
+            builder.setExtension(ext);
+            str = str.substring(0, lastDot);
+        }
+
+        builder.setNameRoot(str);
+
+        return builder.build();
+    }
+
     public FileObject asFileObject(Filer filer) {
         return asFileObject(STANDARD_LOCATION, filer);
     }
