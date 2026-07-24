@@ -12,25 +12,24 @@ import java.util.Set;
 
 public interface CompilationTask {
 
-    default boolean processStage(ProcessingContext context) {
+    default void processStage(ProcessingContext context) {
         boolean finish = context.roundEnvironment().processingOver();
-
-        //Means that the called method is empty, no need to call it at all
-        if (!UnsafeReflectionUtil.isIntefaceMethodOverriden(
-                this.getClass(),
-                finish ? "finish" : "processRound",
-                ProcessingContext.class
-        )) {
-            return false;
-        }
 
         if (finish) {
             finish(context);
         } else {
             processRound(context);
         }
+    }
 
-        return true;
+    default boolean shouldExecute(ProcessingContext context) {
+        boolean finish = context.roundEnvironment().processingOver();
+
+        return UnsafeReflectionUtil.isIntefaceMethodOverriden(
+                this.getClass(),
+                finish ? "finish" : "processRound",
+                ProcessingContext.class
+        );
     }
 
     default void processRound(ProcessingContext processingContext) {
@@ -47,6 +46,10 @@ public interface CompilationTask {
     }
 
     default boolean requiresBlackMagicEnabled() {
+        return false;
+    }
+
+    default boolean requiresCompiledClasspath() {
         return false;
     }
 
