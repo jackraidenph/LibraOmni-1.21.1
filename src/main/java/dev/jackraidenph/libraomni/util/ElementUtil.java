@@ -71,7 +71,6 @@ public final class ElementUtil {
         return getAllElements(roundEnvironment).stream()
                 .filter(e -> e.getKind().equals(ElementKind.ANNOTATION_TYPE))
                 .map(e -> (TypeElement) e)
-                .peek(System.out::println)
                 .toList();
     }
 
