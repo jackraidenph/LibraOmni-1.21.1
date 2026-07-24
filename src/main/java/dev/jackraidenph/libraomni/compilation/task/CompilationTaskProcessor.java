@@ -109,6 +109,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
                 continue;
             }
 
+            dirtyTasks.add(compilationTask.className());
+
             String simpleTaskName = compilationTask.getClass().getSimpleName();
 
             String op = processignOver ? "Finishing" : "Processing";
@@ -172,6 +174,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         return true;
     }
 
+    private final Set<String> dirtyTasks = new HashSet<>();
+
     private boolean isTaskUpToDate(CompilationTask task, RoundCache oldCache, RoundCache newCache, ProcessingContext processingContext) {
         Messager messager = processingContext.processingEnvironment().getMessager();
         ResourceManager resourceManager = processingContext.resourceManager();
@@ -181,11 +185,16 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             return false;
         }
 
-        TaskCache newTaskCahe = newCache.getOrCreateTaskCache(task.className());
         TaskCache oldTaskCache = oldCache.getTaskCache(task.className());
+        if (oldTaskCache == null) {
+            return false;
+        }
+
+        TaskCache newTaskCahe = newCache.getOrCreateTaskCache(task.className());
+        boolean processingOverAndUpToDate = processingOver && !dirtyTasks.contains(task.className());
 
         //No need to compare type cache if processing over - no elements are retained at this point
-        if (oldTaskCache != null && (processingOver || newTaskCahe.elementsUpToDate(oldTaskCache))) {
+        if (processingOverAndUpToDate || (!processingOver && newTaskCahe.elementsUpToDate(oldTaskCache))) {
             oldTaskCache.outputResourceCache(resourceManager);
             newTaskCahe.copyOutputs(oldTaskCache);
 

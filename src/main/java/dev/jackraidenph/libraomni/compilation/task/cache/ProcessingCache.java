@@ -6,6 +6,8 @@ import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.ElementUtil;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -18,8 +20,17 @@ public class ProcessingCache {
 
     private final Map<Integer, RoundCache> roundCaches = new HashMap<>();
 
-    public RoundCache getOrCreateRoundCache(int round) {
-        return roundCaches.computeIfAbsent(round, i -> new RoundCache());
+    public @Nonnull RoundCache getOrCreateRoundCache(int round) {
+        RoundCache roundCache = getRoundCache(round);
+        if (roundCache == null) {
+            roundCache = new RoundCache();
+            roundCaches.put(round, roundCache);
+        }
+        return roundCache;
+    }
+
+    public @Nullable RoundCache getRoundCache(int round) {
+        return roundCaches.get(round);
     }
 
     private void cacheElement(RoundCache cache, CompilationTask task, Element element) {
