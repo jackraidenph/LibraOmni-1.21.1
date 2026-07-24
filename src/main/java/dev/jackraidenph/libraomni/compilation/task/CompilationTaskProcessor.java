@@ -31,6 +31,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     private final ModIdGetter modIdGetter = new ModIdGetter();
     private final AnnotationProcessorConfig config = new AnnotationProcessorConfig();
     private final ProcessingCache cache = new ProcessingCache();
+    private final Set<String> dirtyTasks = new HashSet<>();
 
     private final Stopwatch processingStopwatch = Stopwatch.createUnstarted();
 
@@ -103,22 +104,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             String simpleTaskName = compilationTask.getClass().getSimpleName();
             String op = processignOver ? "Finishing" : "Processing";
 
-            if (!tryEnableBlackMagic(compilationTask, context, op)) {
-                continue;
-            }
-
-            timed(() -> {
-                        try {
-                            return compilationTask.processStage(context);
-                        } catch (Exception e) {
-                            RoundCache.removeFromTempDir(round);
-                            printStackTrace(e);
-                            throw new RuntimeException("Exception thrown while processing [%s]".formatted(compilationTask.getClass().getSimpleName()), e);
-                        }
-                    },
-                    "%s [%s]".formatted(op, simpleTaskName),
-                    messager
-            );
+            timed(() -> tryExecuteTask(compilationTask, context), "%s [%s]".formatted(op, simpleTaskName), messager);
         }
 
         newCache.setBuilt(true);
@@ -135,33 +121,53 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         return false;
     }
 
-    private void timed(Runnable action, String actionComment, @Nullable Messager messager) {
-        timed(() -> {
-            action.run();
+    private boolean tryExecuteTask(CompilationTask task, ProcessingContext context) {
+        try {
+            if (!task.shouldExecute(context)) {
+                return false;
+            }
+
+            if (!tryEnableBlackMagic(task, context) || !tryCompileClasspath(task, context)) {
+                return false;
+            }
+
+            task.processStage(context);
             return true;
-        }, actionComment, messager);
-    }
-
-    private void timed(Supplier<Boolean> action, String actionComment, @Nullable Messager messager) {
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        boolean result = action.get();
-        long nanos = stopwatch.elapsed(TimeUnit.NANOSECONDS);
-        double seconds = nanos / 1_000_000_000.;
-        if (result && messager != null) {
-            messager.printNote("%s | %.4f seconds".formatted(actionComment, seconds));
+        } catch (Exception e) {
+            RoundCache.removeFromTempDir(round);
+            printStackTrace(e);
+            throw new RuntimeException("Exception thrown while processing [%s]".formatted(task.getClass().getSimpleName()), e);
         }
-        stopwatch.stop();
     }
 
-    private boolean tryEnableBlackMagic(CompilationTask task, ProcessingContext context, String op) {
+    private boolean tryCompileClasspath(CompilationTask task, ProcessingContext context) {
+        Messager messager = context.processingEnvironment().getMessager();
+
+        if (task.requiresCompiledClasspath() && !isBlackMagicAllowed(context)) {
+            messager.printNote("""
+                    Execution of [%s] denied due to the task requiring compiled classpath, \
+                    but black magic is disabled. If you want it to work, \
+                    enable it in the Gradle plugin.
+                    """.formatted(task.getClass().getSimpleName()));
+            return false;
+        }
+
+        if (task.requiresCompiledClasspath() && !BlackMagicUtil.didCompileHappen()) {
+            timed(() -> BlackMagicUtil.compileAndLoad(context), "Compiling Classpath", messager);
+        }
+
+        return true;
+    }
+
+    private boolean tryEnableBlackMagic(CompilationTask task, ProcessingContext context) {
         Messager messager = context.processingEnvironment().getMessager();
 
         if (task.requiresBlackMagicEnabled() && !isBlackMagicAllowed(context)) {
             messager.printNote("""
-                    %s [%s] denied due to the task requiring black magic, \
+                    Execution of [%s] denied due to the task requiring black magic, \
                     but it's disabled. If you want it to work, \
                     enable it in the Gradle plugin.
-                    """.formatted(op, task.getClass().getSimpleName()));
+                    """.formatted(task.getClass().getSimpleName()));
             return false;
         }
 
@@ -171,8 +177,6 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
         return true;
     }
-
-    private final Set<String> dirtyTasks = new HashSet<>();
 
     private boolean isTaskUpToDate(CompilationTask task, RoundCache oldCache, RoundCache newCache, ProcessingContext processingContext) {
         Messager messager = processingContext.processingEnvironment().getMessager();
@@ -226,6 +230,24 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         } catch (IOException ioException) {
             throw new IllegalStateException(ioException);
         }
+    }
+
+    private static void timed(Runnable action, String actionComment, @Nullable Messager messager) {
+        timed(() -> {
+            action.run();
+            return true;
+        }, actionComment, messager);
+    }
+
+    private static void timed(Supplier<Boolean> action, String actionComment, @Nullable Messager messager) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        boolean result = action.get();
+        long nanos = stopwatch.elapsed(TimeUnit.NANOSECONDS);
+        double seconds = nanos / 1_000_000_000.;
+        if (result && messager != null) {
+            messager.printNote("%s | %.4f seconds".formatted(actionComment, seconds));
+        }
+        stopwatch.stop();
     }
 
     @Override
