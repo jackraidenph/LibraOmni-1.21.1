@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.IsRuntimeTask;
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
-import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
+import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.ConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
@@ -77,7 +77,7 @@ final class CreateMetadataTask implements CompilationTask {
                         .setJsonExtension()
                         .build(),
                 projectMetadata,
-                JsonMergeConflictPolicy.PREFER_NEW,
+                ConflictPolicy.MERGE_KEYS_PREFER_NEW,
                 this.className()
         );
     }

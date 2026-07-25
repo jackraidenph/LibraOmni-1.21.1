@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
 import dev.jackraidenph.libraomni.compilation.CompileConstants;
-import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
+import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.ConflictPolicy;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -17,22 +17,22 @@ import java.util.stream.Collectors;
 public final class ResourceConfig {
 
     private static final Map<String, String> DEFAULT_CONFIG_OPTIONS = Map.of(
-            "**.json", JsonMergeConflictPolicy.PREFER_NEW.name(),
-            "regex:.*(?<!\\.json)$", JsonMergeConflictPolicy.OVERWRITE.name()
+            "**.json", ConflictPolicy.MERGE_KEYS_PREFER_NEW.name(),
+            "regex:.*(?<!\\.json)$", ConflictPolicy.OVERWRITE_FILE.name()
     );
 
-    private static final Map<PathMatcher, JsonMergeConflictPolicy> DEFAULT_CONFIG = parseOptionsMapToConfig(DEFAULT_CONFIG_OPTIONS);
-    private final Map<PathMatcher, JsonMergeConflictPolicy> CONFIG = new LinkedHashMap<>();
+    private static final Map<PathMatcher, ConflictPolicy> DEFAULT_CONFIG = parseOptionsMapToConfig(DEFAULT_CONFIG_OPTIONS);
+    private final Map<PathMatcher, ConflictPolicy> CONFIG = new LinkedHashMap<>();
 
     private final Set<Path> RESOURCE_SET_DIRS = new HashSet<>();
 
     private boolean INITIALIZED = false;
 
-    public Map<PathMatcher, JsonMergeConflictPolicy> getConfig() {
+    public Map<PathMatcher, ConflictPolicy> getConfig() {
         return Collections.unmodifiableMap(CONFIG);
     }
 
-    public Map<PathMatcher, JsonMergeConflictPolicy> getDefaultConfig() {
+    public Map<PathMatcher, ConflictPolicy> getDefaultConfig() {
         return Collections.unmodifiableMap(DEFAULT_CONFIG);
     }
 
@@ -85,15 +85,15 @@ public final class ResourceConfig {
         }
     }
 
-    private static Map<PathMatcher, JsonMergeConflictPolicy> parseOptionsMapToConfig(Map<String, String> map) {
+    private static Map<PathMatcher, ConflictPolicy> parseOptionsMapToConfig(Map<String, String> map) {
         return map.entrySet().stream().collect(Collectors.toMap(e -> getMatcher(e.getKey()), e -> parsePolicy(e.getValue())));
     }
 
-    private static JsonMergeConflictPolicy parsePolicy(String policy) {
+    private static ConflictPolicy parsePolicy(String policy) {
         try {
-            return JsonMergeConflictPolicy.valueOf(policy);
+            return ConflictPolicy.valueOf(policy);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("[%s] policy is unknown, use any of [%s]".formatted(policy, Arrays.asList(JsonMergeConflictPolicy.values())), e);
+            throw new RuntimeException("[%s] policy is unknown, use any of [%s]".formatted(policy, Arrays.asList(ConflictPolicy.values())), e);
         }
     }
 
@@ -113,15 +113,15 @@ public final class ResourceConfig {
         return map;
     }
 
-    public JsonMergeConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier) {
-        JsonMergeConflictPolicy policy = getConflictPolicy(resourceIdentifier, this.getConfig());
+    public ConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier) {
+        ConflictPolicy policy = getConflictPolicy(resourceIdentifier, this.getConfig());
         if (policy == null) {
             policy = getConflictPolicy(resourceIdentifier, this.getDefaultConfig());
         }
         return policy;
     }
 
-    private JsonMergeConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier, Map<PathMatcher, JsonMergeConflictPolicy> conf) {
+    private ConflictPolicy getConflictPolicy(ResourceIdentifier resourceIdentifier, Map<PathMatcher, ConflictPolicy> conf) {
         Path path;
         String resourcePath = resourceIdentifier.getFilePath();
         try {
@@ -130,7 +130,7 @@ public final class ResourceConfig {
             throw new RuntimeException("Not a path [%s]".formatted(resourcePath));
         }
 
-        for (Entry<PathMatcher, JsonMergeConflictPolicy> e : conf.entrySet()) {
+        for (Entry<PathMatcher, ConflictPolicy> e : conf.entrySet()) {
             PathMatcher globMatcher = e.getKey();
             if (globMatcher.matches(path)) {
                 return e.getValue();

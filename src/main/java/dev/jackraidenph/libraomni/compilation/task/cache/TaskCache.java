@@ -1,7 +1,7 @@
 package dev.jackraidenph.libraomni.compilation.task.cache;
 
 import com.google.gson.annotations.SerializedName;
-import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
+import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.ConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
@@ -83,7 +83,7 @@ public class TaskCache {
             File file = tempDir.resolve(identifier.getFilePath()).toFile();
             byte[] bytes = readBytes(file);
 
-            resourceManager.saveAndCache(identifier, bytes, JsonMergeConflictPolicy.OVERWRITE, REGENERATED_ORIGIN);
+            resourceManager.saveAndCache(identifier, bytes, ConflictPolicy.OVERWRITE_FILE, REGENERATED_ORIGIN);
         }
     }
 
