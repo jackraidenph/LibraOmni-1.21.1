@@ -43,6 +43,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
         BlackMagicUtil.shutOffLog4j();
         config.init(processingEnv);
         CompilationTasksInit.init(this);
+        ResourceManager.clearGradleExclusionListFile();
     }
 
     void registerTask(CompilationTask task) {

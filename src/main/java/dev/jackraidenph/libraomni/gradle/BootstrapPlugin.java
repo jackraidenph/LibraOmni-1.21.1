@@ -2,14 +2,13 @@ package dev.jackraidenph.libraomni.gradle;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.compilation.CompileConstants;
+import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
 import net.neoforged.moddevgradle.dsl.ModDevExtension;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.*;
@@ -18,8 +17,9 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,13 +33,6 @@ public class BootstrapPlugin implements Plugin<Project> {
             "jdk.compiler/com.sun.tools.javac.util",
             "java.base/java.lang"
     );
-
-    private final FileSystemOperations fs;
-
-    @Inject
-    public BootstrapPlugin(FileSystemOperations fileSystemOperations) {
-        this.fs = fileSystemOperations;
-    }
 
     @Override
     public void apply(Project project) {
@@ -65,43 +58,41 @@ public class BootstrapPlugin implements Plugin<Project> {
                 .filter(s -> s.getCompileJavaTaskName().equals(COMPILE_JAVA_TASK))
                 .flatMap(s -> s.getResources().getSrcDirs().stream())
                 .collect(Collectors.toSet());
-
         String resourceDirsArg = resourceDirs.toString().replaceAll("[\\[\\]\\s]", "");
         addAPCompilerArg(javaCompile, CompileConstants.RESOURCE_LOCATIONS_OPTION, resourceDirsArg);
 
-        ProcessResources processResources = taskByNameChecked(project, PROCESS_RESOURCES_TASK);
-        //TODO: WRITE PROCESSED RESOURCES AND READ THEM HERE
-        processResources.exclude(CompileConstants.PROCESSED_RESOURCES);
-        javaCompile.doLast("copyResources", task -> fs.copy(copy -> {
-                    File destination = ((JavaCompile) task).getDestinationDirectory().get().getAsFile();
-                    copy
-                            .from(resourceDirs)
-                            .into(destination)
-                            .eachFile(file -> {
-                                if (file.getRelativePath().getFile(destination).exists()) {
-                                    file.exclude();
-                                }
-                            })
-                            .filesNotMatching(CompileConstants.PROCESSED_RESOURCES, FileCopyDetails::exclude);
-                    copy.setIncludeEmptyDirs(false);
-                })
-        );
-        //---
+        excludeGeneratedResources(project);
 
         NamedDomainObjectProvider<SourceSet> libraOmniSourceSetProvider = javaExt.getSourceSets().register(LIBRAOMNI_SOURCESET);
         SourceSet libraOmniSourceSet = libraOmniSourceSetProvider.get();
-
         ConfigurationContainer configurations = project.getConfigurations();
-
         Configuration apConfig = configurations.getByName("annotationProcessor");
         Configuration sourceSetCompileClassPath = configurations.getByName(libraOmniSourceSet.getCompileClasspathConfigurationName());
-
         apConfig.extendsFrom(sourceSetCompileClassPath);
         apConfig.exclude(Map.of("group", "net.fabricmc"));
 
         project.afterEvaluate(BootstrapPlugin::doAfterEvaluate);
     }
 
+    private static void excludeGeneratedResources(Project project) {
+        JavaCompile javaCompile = taskByNameChecked(project, COMPILE_JAVA_TASK);
+        ProcessResources processResources = taskByNameChecked(project, PROCESS_RESOURCES_TASK);
+
+        processResources.dependsOn(javaCompile);
+
+        processResources.doFirst("excludeGenerated", t -> {
+            try {
+                byte[] data = Files.readAllBytes(ResourceManager.GRADLE_EXCLUSION_LIST_FILE.toPath());
+                String str = new String(data, StandardCharsets.UTF_8);
+                String[] resources = str.split(";");
+                ((ProcessResources) t).exclude(resources);
+            } catch (IOException e) {
+                t.getLogger().warn("Failed to read exclusion list from file [{}]", ResourceManager.GRADLE_EXCLUSION_LIST_FILE);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     private static void doAfterEvaluate(Project project) {
         JavaPluginExtension javaExt = extensionByTypeChecked(project, JavaPluginExtension.class);

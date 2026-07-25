@@ -8,8 +8,7 @@ import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -139,8 +138,44 @@ public final class ResourceManager {
             if (cacheOrigin != null) {
                 cacheBytes(cacheOrigin, resourceIdentifier, bytes);
             }
+
+            writeToGradleExclusionList(resourceIdentifier);
         } catch (IOException ioException) {
             throw new RuntimeException("Exception writing resource [" + resourceIdentifier + "]", ioException);
+        }
+    }
+
+    public static final File GRADLE_EXCLUSION_LIST_FILE = ProcessingCache.getTempFolder().resolve("gradleExclusionList").toFile();
+
+    public static void clearGradleExclusionListFile() {
+        if (!GRADLE_EXCLUSION_LIST_FILE.exists()) {
+            return;
+        }
+
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(GRADLE_EXCLUSION_LIST_FILE, "rw")) {
+            randomAccessFile.setLength(0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void writeToGradleExclusionList(ResourceIdentifier resourceIdentifier) throws IOException {
+        File exclusionList = GRADLE_EXCLUSION_LIST_FILE;
+        if (!exclusionList.getParentFile().exists()) {
+            exclusionList.getParentFile().mkdirs();
+        }
+
+        if (!exclusionList.exists()) {
+            exclusionList.createNewFile();
+            exclusionList.setWritable(true);
+            exclusionList.setReadable(true);
+        }
+
+        try (FileWriter fileWriter = new FileWriter(exclusionList, true)) {
+            fileWriter.write(resourceIdentifier.toString());
+            fileWriter.write(';');
         }
     }
 
