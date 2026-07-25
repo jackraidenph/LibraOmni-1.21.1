@@ -8,7 +8,7 @@ import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.Pair;
-import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
 import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
@@ -90,7 +90,7 @@ public final class ElementUtil {
     }
 
     public static boolean isUnfoldUnsupported(TypeElement type) {
-        return AnnotationProcessorConstants.UNFOLD_UNSUPPORTED.stream()
+        return CompileConstants.UNFOLD_UNSUPPORTED.stream()
                 .anyMatch(c -> ElementUtil.Javac.binaryName(type).equals(c.getName()));
     }
 

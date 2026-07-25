@@ -10,7 +10,7 @@ import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.compilation.util.*;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
-import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import dev.jackraidenph.libraomni.experimental.BlackMagicBootstrap;
 import dev.jackraidenph.libraomni.experimental.BlackMagicUtil;
 
@@ -53,7 +53,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     }
 
     private void discoverMods(RoundEnvironment roundEnvironment) {
-        TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME);
+        TypeElement modAnnotation = this.processingEnv.getElementUtils().getTypeElement(CompileConstants.NF_MOD_ANNOTATION_CLASS_NAME);
         TypeElement modRootAnnotation = this.processingEnv.getElementUtils().getTypeElement(ModPackage.class.getName());
         this.modIdGetter.discoverMods(modAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
         this.modIdGetter.discoverMods(modRootAnnotation, "value", roundEnvironment, this.processingEnv.getMessager());
@@ -211,7 +211,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     private static boolean isBlackMagicAllowed(ProcessingContext processingContext) {
         ProcessingEnvironment environment = processingContext.processingEnvironment();
         Map<String, String> options = environment.getOptions();
-        String blackMagicAllowedStr = options.get(AnnotationProcessorConstants.ENABLE_BLACK_MAGIC_OPTION);
+        String blackMagicAllowedStr = options.get(CompileConstants.ENABLE_BLACK_MAGIC_OPTION);
         if (blackMagicAllowedStr == null) {
             return false;
         }
@@ -253,18 +253,18 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedOptions() {
         return Set.of(
-                AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION,
-                AnnotationProcessorConstants.SOURCES_OPTION,
-                AnnotationProcessorConstants.CLASSPATH_OPTION,
-                AnnotationProcessorConstants.CONFIG_OPTION,
-                AnnotationProcessorConstants.ENABLE_BLACK_MAGIC_OPTION
+                CompileConstants.RESOURCE_LOCATIONS_OPTION,
+                CompileConstants.SOURCES_OPTION,
+                CompileConstants.CLASSPATH_OPTION,
+                CompileConstants.CONFIG_OPTION,
+                CompileConstants.ENABLE_BLACK_MAGIC_OPTION
         );
     }
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return Set.of(
-                AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME,
+                CompileConstants.NF_MOD_ANNOTATION_CLASS_NAME,
                 ModPackage.class.getName()
         );
     }

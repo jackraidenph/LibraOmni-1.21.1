@@ -2,7 +2,7 @@ package dev.jackraidenph.libraomni.experimental;
 
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +57,7 @@ public class BlackMagicUtil {
 
         StandardJavaFileManager std = compiler.getStandardFileManager(null, null, null);
         try {
-            String classPathOption = processingEnvironment.getOptions().get(AnnotationProcessorConstants.CLASSPATH_OPTION);
+            String classPathOption = processingEnvironment.getOptions().get(CompileConstants.CLASSPATH_OPTION);
             if (classPathOption == null) {
                 throw new IllegalStateException();
             }
@@ -65,7 +65,7 @@ public class BlackMagicUtil {
 
             std.setLocation(StandardLocation.CLASS_PATH, Arrays.stream(classpath).map(File::new).collect(Collectors.toList()));
 
-            String sourcesOption = processingEnvironment.getOptions().get(AnnotationProcessorConstants.SOURCES_OPTION);
+            String sourcesOption = processingEnvironment.getOptions().get(CompileConstants.SOURCES_OPTION);
             if (sourcesOption == null) {
                 throw new IllegalStateException();
             }

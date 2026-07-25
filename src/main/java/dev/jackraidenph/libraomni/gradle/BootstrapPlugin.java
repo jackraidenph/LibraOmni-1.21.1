@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.gradle;
 
-import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import net.neoforged.moddevgradle.dsl.ModDevExtension;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
@@ -76,12 +76,12 @@ public class BootstrapPlugin implements Plugin<Project> {
                 .collect(Collectors.toSet());
 
         String resourceDirsArg = resourceDirs.toString().replaceAll("[\\[\\]\\s]", "");
-        javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION + '=' + resourceDirsArg);
+        javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.RESOURCE_LOCATIONS_OPTION + '=' + resourceDirsArg);
 
         /// Exclude merged resources from processResources and copy over after compileJava
 
         ProcessResources processResources = (ProcessResources) tasks.getByName(PROCESS_RESOURCES);
-        processResources.exclude(AnnotationProcessorConstants.PROCESSED_RESOURCES);
+        processResources.exclude(CompileConstants.PROCESSED_RESOURCES);
 
         javaCompile.doLast("copyResources", task -> fs.copy(copy -> {
                     File destination = ((JavaCompile) task).getDestinationDirectory().get().getAsFile();
@@ -93,7 +93,7 @@ public class BootstrapPlugin implements Plugin<Project> {
                                     file.exclude();
                                 }
                             })
-                            .filesNotMatching(AnnotationProcessorConstants.PROCESSED_RESOURCES, FileCopyDetails::exclude);
+                            .filesNotMatching(CompileConstants.PROCESSED_RESOURCES, FileCopyDetails::exclude);
                     copy.setIncludeEmptyDirs(false);
                 })
         );
@@ -110,10 +110,10 @@ public class BootstrapPlugin implements Plugin<Project> {
 
             SourceSet main = sourceSets.getByName("main");
 
-            javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.CONFIG_OPTION + '=' + extension.annotationProcessorConfiguration);
-            javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.ENABLE_BLACK_MAGIC_OPTION + '=' + extension.blackMagicEnabled);
-            javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.CLASSPATH_OPTION + '=' + main.getCompileClasspath().getAsPath());
-            javaCompile.getOptions().getCompilerArgs().add("-A" + AnnotationProcessorConstants.SOURCES_OPTION + '=' + main.getJava().getAsPath());
+            javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.CONFIG_OPTION + '=' + extension.annotationProcessorConfiguration);
+            javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.ENABLE_BLACK_MAGIC_OPTION + '=' + extension.blackMagicEnabled);
+            javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.CLASSPATH_OPTION + '=' + main.getCompileClasspath().getAsPath());
+            javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.SOURCES_OPTION + '=' + main.getJava().getAsPath());
         });
 
         NamedDomainObjectProvider<SourceSet> libraOmniSourceSetProvider = javaExt.getSourceSets().register("libraOmniAnnotationProcessor");

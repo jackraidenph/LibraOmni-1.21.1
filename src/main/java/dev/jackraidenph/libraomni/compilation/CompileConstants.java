@@ -7,7 +7,7 @@ import dev.jackraidenph.libraomni.annotation.meta.Validated;
 import java.lang.annotation.*;
 import java.util.*;
 
-public abstract class AnnotationProcessorConstants {
+public abstract class CompileConstants {
 
     //A special-case set of meta-annotations that must not be considered transitively
     public static final Set<Class<? extends Annotation>> UNFOLD_UNSUPPORTED = Set.of(

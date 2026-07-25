@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
-import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.JsonMergeConflictPolicy;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 
@@ -50,7 +50,7 @@ public final class ResourceConfig {
     }
 
     private void gatherResourceDirs(ProcessingEnvironment processingEnv) {
-        String resourcesPaths = processingEnv.getOptions().get(AnnotationProcessorConstants.RESOURCE_LOCATIONS_OPTION);
+        String resourcesPaths = processingEnv.getOptions().get(CompileConstants.RESOURCE_LOCATIONS_OPTION);
         if (resourcesPaths != null) {
             for (String str : resourcesPaths.split(";")) {
                 RESOURCE_SET_DIRS.add(Path.of(str));
@@ -59,7 +59,7 @@ public final class ResourceConfig {
     }
 
     private void gatherConfig(ProcessingEnvironment processingEnv) {
-        String config = processingEnv.getOptions().get(AnnotationProcessorConstants.CONFIG_OPTION);
+        String config = processingEnv.getOptions().get(CompileConstants.CONFIG_OPTION);
         Map<String, String> userConfig = parseConfigString(config);
         if (!userConfig.isEmpty()) {
             CONFIG.putAll(parseOptionsMapToConfig(userConfig));

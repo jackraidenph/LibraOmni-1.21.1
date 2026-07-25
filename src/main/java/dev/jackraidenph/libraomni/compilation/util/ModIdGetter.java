@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.annotation.datagen.WithName;
 import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.util.StringUtil;
-import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.compilation.CompileConstants;
 
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import org.jspecify.annotations.NonNull;
@@ -92,7 +92,7 @@ public class ModIdGetter implements ObjectOriginGetter {
                     if (modId == null) {
                         return;
                     }
-                    if (modAnnotationType.getQualifiedName().contentEquals(AnnotationProcessorConstants.NF_MOD_ANNOTATION_CLASS_NAME)) {
+                    if (modAnnotationType.getQualifiedName().contentEquals(CompileConstants.NF_MOD_ANNOTATION_CLASS_NAME)) {
                         String className = ((TypeElement) e).getQualifiedName().toString();
                         modClasses.computeIfAbsent(modId, i -> new ArrayList<>()).add(className);
                     }

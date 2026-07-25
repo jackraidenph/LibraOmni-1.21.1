@@ -3,7 +3,7 @@ package dev.jackraidenph.libraomni.data.proxy.runtime;
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.util.TransformerUtil;
-import dev.jackraidenph.libraomni.compilation.AnnotationProcessorConstants;
+import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
 import dev.jackraidenph.libraomni.data.proxy.UnfoldingCache;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -44,7 +44,7 @@ public class AnnotatedElementCache implements UnfoldingCache<Annotation> {
 
         for (Class<? extends Annotation> clazz : unfoldInfo.value()) {
             //Deny unfolding into special service annotationts
-            if (AnnotationProcessorConstants.UNFOLD_UNSUPPORTED.contains(clazz)) {
+            if (CompileConstants.UNFOLD_UNSUPPORTED.contains(clazz)) {
                 throw new IllegalArgumentException("Annotation type [%s] does not support unfolding into".formatted(clazz.getName()));
             }
 
