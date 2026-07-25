@@ -1,11 +1,33 @@
 package dev.jackraidenph.libraomni.gradle;
 
-import java.util.Map;
+import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.ConflictPolicy;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 
-public class LibraOmniExtension {
+public abstract class LibraOmniExtension {
 
     public static String NAME = "libraOmni";
 
-    public Map<String, String> annotationProcessorConfiguration = Map.of();
-    public boolean blackMagicEnabled = false;
+    public LibraOmniExtension() {
+        getBlackMagicEnabled().convention(false);
+        getCacheDisabled().convention(false);
+    }
+
+    public abstract Property<Boolean> getBlackMagicEnabled();
+
+    public void enableBlackMagic() {
+        this.getBlackMagicEnabled().set(true);
+    }
+
+    public abstract Property<Boolean> getCacheDisabled();
+
+    public void disableCache() {
+        getCacheDisabled().set(true);
+    }
+
+    public abstract MapProperty<String, ConflictPolicy> getConflictPolicies();
+
+    public void conflictPolicy(String pattern, ConflictPolicy policy) {
+        getConflictPolicies().put(pattern, policy);
+    }
 }

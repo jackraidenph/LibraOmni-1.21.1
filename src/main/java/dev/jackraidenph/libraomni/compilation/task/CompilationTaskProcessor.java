@@ -258,7 +258,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
                 CompileConstants.SOURCES_OPTION,
                 CompileConstants.CLASSPATH_OPTION,
                 CompileConstants.CONFIG_OPTION,
-                CompileConstants.ENABLE_BLACK_MAGIC_OPTION
+                CompileConstants.ENABLE_BLACK_MAGIC_OPTION,
+                CompileConstants.DISABLE_CACHE_OPTION
         );
     }
 

@@ -102,8 +102,9 @@ public class BootstrapPlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = javaExt.getSourceSets();
         SourceSet main = sourceSets.getByName("main");
 
-        addAPCompilerArg(javaCompile, CompileConstants.CONFIG_OPTION, libraOmniExt.annotationProcessorConfiguration);
-        addAPCompilerArg(javaCompile, CompileConstants.ENABLE_BLACK_MAGIC_OPTION, libraOmniExt.blackMagicEnabled);
+        addAPCompilerArg(javaCompile, CompileConstants.CONFIG_OPTION, libraOmniExt.getConflictPolicies().get());
+        addAPCompilerArg(javaCompile, CompileConstants.ENABLE_BLACK_MAGIC_OPTION, libraOmniExt.getBlackMagicEnabled().get());
+        addAPCompilerArg(javaCompile, CompileConstants.DISABLE_CACHE_OPTION, libraOmniExt.getCacheDisabled().get());
         addAPCompilerArg(javaCompile, CompileConstants.CLASSPATH_OPTION, main.getCompileClasspath().getAsPath());
         addAPCompilerArg(javaCompile, CompileConstants.SOURCES_OPTION, main.getJava().getAsPath());
 

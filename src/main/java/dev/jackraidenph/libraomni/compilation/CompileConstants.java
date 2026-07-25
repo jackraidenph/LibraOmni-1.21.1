@@ -28,4 +28,5 @@ public abstract class CompileConstants {
     public static final String SOURCES_OPTION = "libraomni.sources";
     public static final String CONFIG_OPTION = "libraomni.config";
     public static final String ENABLE_BLACK_MAGIC_OPTION = "libraomni.blackmagic";
+    public static final String DISABLE_CACHE_OPTION = "libraomni.disablecache";
 }
