@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
-public final class AnnotationProcessorConfig {
+public final class ResourceConfig {
 
     private static final Map<String, String> DEFAULT_CONFIG_OPTIONS = Map.of(
             "**.json", JsonMergeConflictPolicy.PREFER_NEW.name(),

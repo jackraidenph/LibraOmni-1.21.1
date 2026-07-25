@@ -29,7 +29,7 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
     private final List<CompilationTask> tasks = new ArrayList<>();
     private final ModIdGetter modIdGetter = new ModIdGetter();
-    private final AnnotationProcessorConfig config = new AnnotationProcessorConfig();
+    private final ResourceConfig config = new ResourceConfig();
     private final ProcessingCache cache = new ProcessingCache();
     private final Set<String> dirtyTasks = new HashSet<>();
 

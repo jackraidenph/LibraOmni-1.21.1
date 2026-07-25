@@ -8,7 +8,7 @@ public class ProcessingContext {
 
     private ModIdGetter modIdGetter;
     private ResourceManager resourceManager;
-    private AnnotationProcessorConfig config;
+    private ResourceConfig config;
     private RoundEnvironment roundEnvironment;
     private ProcessingEnvironment processingEnvironment;
     private final int round;
@@ -16,7 +16,7 @@ public class ProcessingContext {
     public ProcessingContext(
             @Nullable ModIdGetter modIdGetter,
             @Nullable ResourceManager resourceManager,
-            @Nullable AnnotationProcessorConfig config,
+            @Nullable ResourceConfig config,
             @Nullable RoundEnvironment roundEnvironment,
             @Nullable ProcessingEnvironment processingEnvironment,
             int round
@@ -45,11 +45,11 @@ public class ProcessingContext {
         this.resourceManager = resourceManager;
     }
 
-    public AnnotationProcessorConfig config() {
+    public ResourceConfig config() {
         return config;
     }
 
-    public void setConfig(AnnotationProcessorConfig config) {
+    public void setConfig(ResourceConfig config) {
         this.config = config;
     }
 
