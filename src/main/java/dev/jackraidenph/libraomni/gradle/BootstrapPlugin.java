@@ -1,11 +1,11 @@
 package dev.jackraidenph.libraomni.gradle;
 
+import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import net.neoforged.moddevgradle.dsl.ModDevExtension;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCopyDetails;
@@ -13,21 +13,26 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BootstrapPlugin implements Plugin<Project> {
 
-    private static final String COMPILE_JAVA = "compileJava";
-    private static final String PROCESS_RESOURCES = "processResources";
+    private static final String COMPILE_JAVA_TASK = "compileJava";
+    private static final String PROCESS_RESOURCES_TASK = "processResources";
+    private static final String LIBRAOMNI_SOURCESET = LibraOmni.MOD_ID;
+    private static final List<String> REQUIRED_MODULES = List.of(
+            "jdk.compiler/com.sun.tools.javac.code",
+            "jdk.compiler/com.sun.tools.javac.util",
+            "java.base/java.lang"
+    );
 
     private final FileSystemOperations fs;
 
@@ -38,51 +43,35 @@ public class BootstrapPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-
-        /// Gather resource directories to AP argument
-        TaskContainer tasks = project.getTasks();
         ExtensionContainer extensions = project.getExtensions();
 
-        JavaPluginExtension javaExt;
-        try {
-            javaExt = extensions.getByType(JavaPluginExtension.class);
-        } catch (UnknownDomainObjectException e) {
-            throw new IllegalStateException("Java extension is not found, probably, LibraOmni plugin is defined before Java plugin, change this");
+        extensions.create(LibraOmniExtension.NAME, LibraOmniExtension.class);
+
+        JavaCompile javaCompile = taskByNameChecked(project, COMPILE_JAVA_TASK);
+        javaCompile.getOptions().setFork(true);
+
+        CompileOptions compileOptions = javaCompile.getOptions();
+        addExportsToAllUnnamed(compileOptions.getCompilerArgs(), REQUIRED_MODULES);
+        List<String> jvmArgs = compileOptions.getForkOptions().getJvmArgs();
+        if (jvmArgs != null) {
+            addExportsToAllUnnamed(jvmArgs, REQUIRED_MODULES);
         }
 
-
-        JavaCompile javaCompile = (JavaCompile) tasks.getByName(COMPILE_JAVA);
-
-        javaCompile.getOptions().getCompilerArgs().addAll(List.of(
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-        ));
-
-        javaCompile.getOptions().setFork(true);
-        Optional.ofNullable(javaCompile.getOptions().getForkOptions().getJvmArgs()).ifPresent(args -> args.addAll(List.of(
-                "--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-                "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-                "--add-opens=java.base/java.lang=ALL-UNNAMED"
-        )));
-
-        String compileTaskName = javaCompile.getName();
-
+        JavaPluginExtension javaExt = extensionByTypeChecked(project, JavaPluginExtension.class);
         SourceSetContainer sourceSets = javaExt.getSourceSets();
 
         Set<File> resourceDirs = sourceSets
                 .stream()
-                .filter(s -> s.getCompileJavaTaskName().equals(compileTaskName))
+                .filter(s -> s.getCompileJavaTaskName().equals(COMPILE_JAVA_TASK))
                 .flatMap(s -> s.getResources().getSrcDirs().stream())
                 .collect(Collectors.toSet());
 
         String resourceDirsArg = resourceDirs.toString().replaceAll("[\\[\\]\\s]", "");
-        javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.RESOURCE_LOCATIONS_OPTION + '=' + resourceDirsArg);
+        addAPCompilerArg(javaCompile, CompileConstants.RESOURCE_LOCATIONS_OPTION, resourceDirsArg);
 
-        /// Exclude merged resources from processResources and copy over after compileJava
-
-        ProcessResources processResources = (ProcessResources) tasks.getByName(PROCESS_RESOURCES);
+        ProcessResources processResources = taskByNameChecked(project, PROCESS_RESOURCES_TASK);
+        //TODO: WRITE PROCESSED RESOURCES AND READ THEM HERE
         processResources.exclude(CompileConstants.PROCESSED_RESOURCES);
-
         javaCompile.doLast("copyResources", task -> fs.copy(copy -> {
                     File destination = ((JavaCompile) task).getDestinationDirectory().get().getAsFile();
                     copy
@@ -97,35 +86,10 @@ public class BootstrapPlugin implements Plugin<Project> {
                     copy.setIncludeEmptyDirs(false);
                 })
         );
+        //---
 
-        /// Add configuration extension
-
-        extensions.create("libraOmni", LibraOmniExtension.class);
-
-        project.afterEvaluate(proj -> {
-            LibraOmniExtension extension = getExtension(proj);
-            if (extension == null) {
-                return;
-            }
-
-            SourceSet main = sourceSets.getByName("main");
-
-            javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.CONFIG_OPTION + '=' + extension.annotationProcessorConfiguration);
-            javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.ENABLE_BLACK_MAGIC_OPTION + '=' + extension.blackMagicEnabled);
-            javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.CLASSPATH_OPTION + '=' + main.getCompileClasspath().getAsPath());
-            javaCompile.getOptions().getCompilerArgs().add("-A" + CompileConstants.SOURCES_OPTION + '=' + main.getJava().getAsPath());
-        });
-
-        NamedDomainObjectProvider<SourceSet> libraOmniSourceSetProvider = javaExt.getSourceSets().register("libraOmniAnnotationProcessor");
+        NamedDomainObjectProvider<SourceSet> libraOmniSourceSetProvider = javaExt.getSourceSets().register(LIBRAOMNI_SOURCESET);
         SourceSet libraOmniSourceSet = libraOmniSourceSetProvider.get();
-
-        try {
-            if (extensions.getByName("neoForge") instanceof ModDevExtension modDevExtension) {
-                project.afterEvaluate(p -> modDevExtension.addModdingDependenciesTo(libraOmniSourceSet));
-            }
-        } catch (UnknownDomainObjectException e) {
-            throw new IllegalStateException("NeoForge extension is not found, probably, LibraOmni plugin is defined before NeoForge's ModDev, change this");
-        }
 
         ConfigurationContainer configurations = project.getConfigurations();
 
@@ -134,14 +98,60 @@ public class BootstrapPlugin implements Plugin<Project> {
 
         apConfig.extendsFrom(sourceSetCompileClassPath);
         apConfig.exclude(Map.of("group", "net.fabricmc"));
+
+        project.afterEvaluate(BootstrapPlugin::doAfterEvaluate);
     }
 
-    private LibraOmniExtension getExtension(Project project) {
-        return project.getExtensions().getByName("libraOmni") instanceof LibraOmniExtension libraOmniExtension ? libraOmniExtension : null;
+
+    private static void doAfterEvaluate(Project project) {
+        JavaPluginExtension javaExt = extensionByTypeChecked(project, JavaPluginExtension.class);
+        LibraOmniExtension libraOmniExt = extensionByTypeChecked(project, LibraOmniExtension.class);
+        JavaCompile javaCompile = taskByNameChecked(project, COMPILE_JAVA_TASK);
+
+        SourceSetContainer sourceSets = javaExt.getSourceSets();
+        SourceSet main = sourceSets.getByName("main");
+
+        addAPCompilerArg(javaCompile, CompileConstants.CONFIG_OPTION, libraOmniExt.annotationProcessorConfiguration);
+        addAPCompilerArg(javaCompile, CompileConstants.ENABLE_BLACK_MAGIC_OPTION, libraOmniExt.blackMagicEnabled);
+        addAPCompilerArg(javaCompile, CompileConstants.CLASSPATH_OPTION, main.getCompileClasspath().getAsPath());
+        addAPCompilerArg(javaCompile, CompileConstants.SOURCES_OPTION, main.getJava().getAsPath());
+
+        ModDevExtension modDevExt = extensionByTypeChecked(project, ModDevExtension.class);
+
+        SourceSet libraOmniSourceSet = sourceSets.getByName(LIBRAOMNI_SOURCESET);
+        modDevExt.addModdingDependenciesTo(libraOmniSourceSet);
     }
 
-    public static class LibraOmniExtension {
-        public Map<String, String> annotationProcessorConfiguration = Map.of();
-        public boolean blackMagicEnabled = false;
+    private static <T> @Nonnull T extensionByTypeChecked(Project project, Class<T> clazz) {
+        T ext = project.getExtensions().findByType(clazz);
+        if (ext == null) {
+            throw new IllegalStateException("[%s] is not found, probably, LibraOmni plugin is defined too early".formatted(clazz.getSimpleName()));
+        }
+        return ext;
+    }
+
+    private static <T> @Nonnull T taskByNameChecked(Project project, String name) {
+        try {
+            //noinspection unchecked
+            T task = (T) project.getTasks().findByName(name);
+            if (task == null) {
+                throw new IllegalStateException("[%s] is not found, probably, LibraOmni plugin is defined too early".formatted(name));
+            }
+            return task;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("Task with name [%s] has inappropriate type", e);
+        }
+    }
+
+    private static void addAPCompilerArg(JavaCompile javaCompile, String key, Object value) {
+        javaCompile.getOptions().getCompilerArgs().add("-A" + key + '=' + value);
+    }
+
+    private static void addExportsToAllUnnamed(List<String> addTo, Collection<String> modules) {
+        List<String> options = new ArrayList<>();
+        for (String m : modules) {
+            options.add("--add-exports=" + m + "=ALL-UNNAMED");
+        }
+        addTo.addAll(options);
     }
 }
