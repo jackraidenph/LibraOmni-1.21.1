@@ -10,7 +10,6 @@ import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,7 +45,7 @@ public class CacheUtil {
             value = TransformerUtil.tryTransform(value, replacementInfo, targetMethod);
 
             Class<?> target = replacementInfo.in();
-            replacements.computeIfAbsent(target, v -> new HashMap<>()).put(replacementInfo.attribute(), value);
+            replacements.computeIfAbsent(target, v -> new LinkedHashMap<>()).put(replacementInfo.attribute(), value);
         }
 
         return replacements;
@@ -87,7 +86,7 @@ public class CacheUtil {
             unwrapped = new AnnotationValueWrapper(newValue, unwrapped);
 
             TypeElement element = ElementUtil.mirrorToElement(target);
-            var map = replacements.computeIfAbsent(ElementUtil.Javac.binaryName(element), v -> new HashMap<>());
+            var map = replacements.computeIfAbsent(ElementUtil.Javac.binaryName(element), v -> new LinkedHashMap<>());
             map.put(targetAttributeElement, unwrapped);
         }
 
