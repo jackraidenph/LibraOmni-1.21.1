@@ -91,12 +91,18 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             messager.printNote("Finishing");
         }
 
-        RoundCache oldCache = RoundCache.readFromTempDir(round);
-        RoundCache newCache = cache.cacheRoundElements(context, tasks);
+        boolean cacheEnabled = cacheEnabled(processingEnv);
+
+        RoundCache oldCache = null;
+        RoundCache newCache = null;
+        if (cacheEnabled) {
+            oldCache = RoundCache.readFromTempDir(round);
+            newCache = cache.cacheRoundElements(context, tasks);
+        }
 
         for (CompilationTask compilationTask : this.tasks) {
 
-            if (isTaskUpToDate(compilationTask, oldCache, newCache, context)) {
+            if (cacheEnabled && isTaskUpToDate(compilationTask, oldCache, newCache, context)) {
                 continue;
             }
 
@@ -108,8 +114,10 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
             timed(() -> tryExecuteTask(compilationTask, context), "%s [%s]".formatted(op, simpleTaskName), messager);
         }
 
-        newCache.setBuilt(true);
-        newCache.saveToTempDir(round);
+        if (cacheEnabled) {
+            newCache.setBuilt(true);
+            newCache.saveToTempDir(round);
+        }
 
         if (processignOver) {
             BlackMagicUtil.restoreLog4j();
@@ -120,6 +128,11 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
         this.round++;
         return false;
+    }
+
+    private static boolean cacheEnabled(ProcessingEnvironment processingEnvironment) {
+        String val = processingEnvironment.getOptions().get(CompileConstants.DISABLE_CACHE_OPTION);
+        return !Boolean.parseBoolean(val);
     }
 
     private boolean tryExecuteTask(CompilationTask task, ProcessingContext context) {
