@@ -59,7 +59,7 @@ public class CacheUtil {
 
         for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : annotationValues.entrySet()) {
             ExecutableElement attribute = e.getKey();
-            AnnotationValue unwrapped = e.getValue();
+            AnnotationValue wrappedValue = e.getValue();
 
             Replaces replacementInfo = attribute.getAnnotation(Replaces.class);
             if (replacementInfo == null) {
@@ -77,17 +77,17 @@ public class CacheUtil {
                 throw new IllegalArgumentException("Attribute [%s] doesn't exist in annotation [%s]".formatted(replacementInfo.attribute(), target));
             }
 
-            Object oldValue = unwrapped.getValue();
+            Object oldValue = wrappedValue.getValue();
             if (oldValue instanceof String str) {
                 oldValue = TransformerUtil.replacePlaceholders(origin, str);
             }
 
             Object newValue = TransformerUtil.tryTransform(oldValue, replacementInfo, targetAttributeElement);
-            unwrapped = new AnnotationValueWrapper(newValue, unwrapped);
+            wrappedValue = new AnnotationValueWrapper(newValue, wrappedValue);
 
             TypeElement element = ElementUtil.mirrorToElement(target);
             var map = replacements.computeIfAbsent(ElementUtil.Javac.binaryName(element), v -> new LinkedHashMap<>());
-            map.put(targetAttributeElement, unwrapped);
+            map.put(targetAttributeElement, wrappedValue);
         }
 
         return replacements;
