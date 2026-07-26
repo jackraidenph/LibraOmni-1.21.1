@@ -1,29 +1,65 @@
 package dev.jackraidenph.libraomni.data.proxy.compile;
 
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RoundEnvironmentWrapper implements RoundEnvironment {
 
-    private final Set<Element> proxiedRootElements = new HashSet<>();
+    private final Set<Element> proxiedRootElements = new LinkedHashSet<>();
+    private final SequencedSet<Element> allProxiedElements = new LinkedHashSet<>();
+    private final Map<String, Set<Element>> elementsByAnnotationName = new LinkedHashMap<>();
+
     private final Elements elementUtils;
-    private final Map<String, Set<? extends Element>> scannedElementsCacheByAnnotation = new HashMap<>();
     private final RoundEnvironment wrapped;
 
     public RoundEnvironmentWrapper(RoundEnvironment original, ProcessingEnvironment processingEnvironment) {
         this.wrapped = original;
         this.elementUtils = processingEnvironment.getElementUtils();
-        for (Element e : original.getRootElements()) {
-            Element proxy = (Element) ProxyFactory.makeAnnotatedConstructProxy(e);
-            proxiedRootElements.add(proxy);
+        cacheElements();
+    }
+
+    private void cacheElements() {
+        for (Element e : wrapped.getRootElements()) {
+            proxiedRootElements.add((Element) ProxyFactory.makeAnnotatedConstructProxy(e));
+            addElementAndRecurse(e);
         }
+    }
+
+    private void addElementAndRecurse(Element e) {
+        Element proxy = (Element) ProxyFactory.makeAnnotatedConstructProxy(e);
+
+        allProxiedElements.add(proxy);
+
+        for (AnnotationMirror mirror : proxy.getAnnotationMirrors()) {
+            TypeElement typeElement = AnnotationMirrorUtil.toTypeElement(mirror);
+            String annotationName = typeElement.getQualifiedName().toString();
+            elementsByAnnotationName.computeIfAbsent(annotationName, k -> new LinkedHashSet<>()).add(proxy);
+        }
+
+        for (Element enclosed : proxy.getEnclosedElements()) {
+            addElementAndRecurse(enclosed);
+        }
+    }
+
+    public Set<Element> getAllElements() {
+        return Collections.unmodifiableSequencedSet(allProxiedElements);
+    }
+
+    public Set<TypeElement> getAllAnnotationTypes() {
+        return elementsByAnnotationName.keySet().stream()
+                .map(elementUtils::getTypeElement)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -44,21 +80,7 @@ public class RoundEnvironmentWrapper implements RoundEnvironment {
     @Override
     public Set<? extends Element> getElementsAnnotatedWith(TypeElement annotationTypeElement) {
         String annotationName = annotationTypeElement.getQualifiedName().toString();
-
-        if (!scannedElementsCacheByAnnotation.containsKey(annotationName)) {
-            RecursiveAnnotationScanner scanner = new RecursiveAnnotationScanner();
-            for (Element e : getRootElements()) {
-                scanner.scan(e, annotationTypeElement);
-            }
-            scannedElementsCacheByAnnotation.put(annotationName, scanner.getElements());
-        }
-
-        Set<? extends Element> elements = scannedElementsCacheByAnnotation.get(annotationName);
-        if (elements == null) {
-            throw new IllegalStateException("Elements cache is null");
-        }
-
-        return elements;
+        return elementsByAnnotationName.getOrDefault(annotationName, Set.of());
     }
 
     @Override
@@ -67,7 +89,6 @@ public class RoundEnvironmentWrapper implements RoundEnvironment {
         if (element == null) {
             return Set.of();
         }
-
         return getElementsAnnotatedWith(element);
     }
 

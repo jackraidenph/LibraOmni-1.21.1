@@ -10,6 +10,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.util.Pair;
 import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
+import dev.jackraidenph.libraomni.data.proxy.compile.RoundEnvironmentWrapper;
 import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 
 import javax.annotation.Nonnull;
@@ -25,6 +26,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.sun.tools.javac.code.TypeTag.CLASS;
 
@@ -39,11 +41,12 @@ public final class ElementUtil {
 
     private static final String OBJECT_STR = Object.class.getName();
 
-    /**
-     * Is not cached and is expensive
-     */
-    public static List<Element> getAllElements(RoundEnvironment roundEnvironment) {
-        List<Element> elements = new ArrayList<>();
+    public static Set<Element> getAllElements(RoundEnvironment roundEnvironment) {
+        if (roundEnvironment instanceof RoundEnvironmentWrapper wrapper) {
+            return wrapper.getAllElements();
+        }
+
+        Set<Element> elements = new LinkedHashSet<>();
         for (Element e : roundEnvironment.getRootElements()) {
             addElementAndRecurse(e, elements);
         }
@@ -64,14 +67,16 @@ public final class ElementUtil {
         }
     }
 
-    /**
-     * Is not cached and is expensive
-     */
-    public static List<TypeElement> getAllAnnotationTypes(RoundEnvironment roundEnvironment) {
+    public static Set<TypeElement> getAllAnnotationTypes(RoundEnvironment roundEnvironment) {
+        if (roundEnvironment instanceof RoundEnvironmentWrapper wrapper) {
+            return wrapper.getAllAnnotationTypes();
+        }
+
         return getAllElements(roundEnvironment).stream()
-                .filter(e -> e.getKind().equals(ElementKind.ANNOTATION_TYPE))
-                .map(e -> (TypeElement) e)
-                .toList();
+                .map(Element::getAnnotationMirrors)
+                .flatMap(Collection::stream)
+                .map(AnnotationMirrorUtil::toTypeElement)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public static String stringIdentity(Element e) {
