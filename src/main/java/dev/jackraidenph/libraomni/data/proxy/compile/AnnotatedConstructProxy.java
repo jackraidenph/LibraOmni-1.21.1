@@ -19,7 +19,7 @@ public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstr
 
     @Override
     @InterceptorFor("getAnnotationsByType")
-    public  <A extends Annotation> A[] getAnnotationsByType(Class<A> clazz) {
+    public <A extends Annotation> A[] getAnnotationsByType(Class<A> clazz) {
         return cache.getAnnotationsByType(clazz);
     }
 
@@ -33,5 +33,17 @@ public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstr
     @InterceptorFor("getAnnotationMirrors")
     public List<? extends AnnotationMirror> getAnnotationMirrors() {
         return cache.getAnnotationMirrors();
+    }
+
+    @Override
+    @InterceptorFor("hashCode")
+    public int hashCode() {
+        return this.proxiedObject.hashCode();
+    }
+
+    @Override
+    @InterceptorFor("equals")
+    public boolean equals(Object object) {
+        return object instanceof AnnotatedConstruct && object.hashCode() == this.hashCode();
     }
 }
