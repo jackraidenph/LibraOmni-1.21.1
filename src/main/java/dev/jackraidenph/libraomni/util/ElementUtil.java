@@ -56,12 +56,6 @@ public final class ElementUtil {
 
     private static void addElementAndRecurse(Element e, Collection<Element> toAddTo) {
         toAddTo.add(e);
-
-        for (AnnotationMirror mirror : e.getAnnotationMirrors()) {
-            TypeElement typeElement = AnnotationMirrorUtil.toTypeElement(mirror);
-            toAddTo.add(typeElement);
-        }
-
         for (Element enclosed : e.getEnclosedElements()) {
             addElementAndRecurse(enclosed, toAddTo);
         }
