@@ -6,7 +6,9 @@ import javax.tools.JavaFileManager.Location;
 import javax.tools.StandardLocation;
 import java.io.*;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public record ResourceIdentifier(String directory, String nameRoot, String extension) {
 

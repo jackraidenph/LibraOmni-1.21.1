@@ -1,10 +1,10 @@
 package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
-import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.AbstractInterceptorProxy;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

@@ -1,11 +1,13 @@
 package dev.jackraidenph.libraomni;
 
 import com.mojang.logging.LogUtils;
-import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.compilation.task.CompilationTaskProcessor;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.experimental.ForwardingLoggerWrapper;
-import dev.jackraidenph.libraomni.runtime.*;
+import dev.jackraidenph.libraomni.runtime.ModContextManager;
+import dev.jackraidenph.libraomni.runtime.RuntimeTaskProcessor;
+import dev.jackraidenph.libraomni.runtime.StaticInit;
+import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;

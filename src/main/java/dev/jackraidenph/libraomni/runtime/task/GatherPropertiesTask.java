@@ -1,11 +1,11 @@
 package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.annotation.runtime.PropertiesSupplier;
-import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import dev.jackraidenph.libraomni.runtime.extension.PropertiesPool;
+import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 

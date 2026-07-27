@@ -4,9 +4,9 @@ import dev.jackraidenph.libraomni.annotation.meta.InterceptorFor;
 import dev.jackraidenph.libraomni.data.proxy.AbstractObjectProxy;
 
 import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.List;
 
 public class AnnotatedConstructProxy extends AbstractObjectProxy<AnnotatedConstruct> implements AnnotatedConstruct {
 

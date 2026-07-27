@@ -1,10 +1,10 @@
 package dev.jackraidenph.libraomni.util;
 
 import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
-import dev.jackraidenph.libraomni.util.ColorUtil.InterpolationMode;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
+import dev.jackraidenph.libraomni.util.ColorUtil.InterpolationMode;
 
 import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
@@ -13,7 +13,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 

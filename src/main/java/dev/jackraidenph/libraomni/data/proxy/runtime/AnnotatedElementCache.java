@@ -1,11 +1,11 @@
 package dev.jackraidenph.libraomni.data.proxy.runtime;
 
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
-import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.util.TransformerUtil;
 import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
 import dev.jackraidenph.libraomni.data.proxy.UnfoldingCache;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.TransformerUtil;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.NotNull;
 

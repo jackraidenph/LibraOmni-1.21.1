@@ -1,8 +1,11 @@
 package dev.jackraidenph.libraomni.experimental;
 
 import javax.annotation.Nullable;
-import javax.tools.*;
+import javax.tools.FileObject;
+import javax.tools.ForwardingJavaFileManager;
+import javax.tools.JavaFileObject;
 import javax.tools.JavaFileObject.Kind;
+import javax.tools.StandardJavaFileManager;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;

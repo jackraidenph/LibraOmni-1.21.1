@@ -1,20 +1,21 @@
 package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.annotation.runtime.*;
-import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
+import dev.jackraidenph.libraomni.annotation.runtime.Registered;
 import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.extension.PropertiesPool;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
+import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
 import java.util.Set;
 
 public class RegisterObjectsTask extends SequentialRuntimeTask {

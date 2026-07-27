@@ -6,7 +6,9 @@ import dev.jackraidenph.libraomni.annotation.info.Internal;
 import dev.jackraidenph.libraomni.annotation.validation.ValidatedBlockAnnotation;
 import dev.jackraidenph.libraomni.annotation.value.StringPair;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Target;
 
 @Internal
 @GeneratesFiles

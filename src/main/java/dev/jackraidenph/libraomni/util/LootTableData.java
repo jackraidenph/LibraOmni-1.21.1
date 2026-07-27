@@ -1,11 +1,16 @@
 package dev.jackraidenph.libraomni.util;
 
-import com.google.gson.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.SerializedName;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class LootTableData {
     @SerializedName("type")

@@ -4,7 +4,7 @@ import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 
 import java.lang.annotation.*;
-import java.util.*;
+import java.util.Set;
 
 public abstract class CompileConstants {
 

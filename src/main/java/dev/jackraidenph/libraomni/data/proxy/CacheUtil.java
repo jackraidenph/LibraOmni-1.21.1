@@ -1,11 +1,17 @@
 package dev.jackraidenph.libraomni.data.proxy;
 
 import dev.jackraidenph.libraomni.annotation.meta.Replaces;
-import dev.jackraidenph.libraomni.util.*;
 import dev.jackraidenph.libraomni.data.proxy.compile.AnnotationValueWrapper;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
+import dev.jackraidenph.libraomni.util.ElementUtil;
+import dev.jackraidenph.libraomni.util.TransformerUtil;
+import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 
 import javax.lang.model.AnnotatedConstruct;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;

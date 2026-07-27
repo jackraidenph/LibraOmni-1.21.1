@@ -1,10 +1,10 @@
 package dev.jackraidenph.libraomni.runtime;
 
 import dev.jackraidenph.libraomni.LibraOmni;
-import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
-import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
-import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
+import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
+import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.exception.DuplicateTaskException;
 import dev.jackraidenph.libraomni.math.graph.HashDirectedGraph;
 import dev.jackraidenph.libraomni.math.graph.IndexedGraph;

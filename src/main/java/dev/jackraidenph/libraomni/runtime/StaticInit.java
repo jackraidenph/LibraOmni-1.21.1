@@ -1,9 +1,9 @@
 package dev.jackraidenph.libraomni.runtime;
 
+import dev.jackraidenph.libraomni.runtime.extension.AutoCreativeModeTabs;
 import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.extension.PropertiesPool;
 import dev.jackraidenph.libraomni.runtime.task.*;
-import dev.jackraidenph.libraomni.runtime.extension.AutoCreativeModeTabs;
 
 public class StaticInit {
 

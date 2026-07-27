@@ -15,7 +15,10 @@ import net.neoforged.neoforgespi.language.IConfigurable;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class FakeModContainer extends ModContainer {
 

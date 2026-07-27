@@ -1,12 +1,12 @@
 package dev.jackraidenph.libraomni.runtime.task;
 
 import dev.jackraidenph.libraomni.annotation.runtime.InCreativeTab;
-import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
-import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
 import dev.jackraidenph.libraomni.runtime.LifecycleSetup.LifecycleStage;
 import dev.jackraidenph.libraomni.runtime.ModContext;
 import dev.jackraidenph.libraomni.runtime.extension.AutoCreativeModeTabs;
+import dev.jackraidenph.libraomni.runtime.extension.AutoRegisters;
+import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.registries.DeferredHolder;
 

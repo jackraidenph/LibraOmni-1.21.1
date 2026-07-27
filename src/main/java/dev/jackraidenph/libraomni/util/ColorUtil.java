@@ -3,7 +3,8 @@ package dev.jackraidenph.libraomni.util;
 import org.jetbrains.annotations.Range;
 
 import java.awt.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 /**

@@ -1,12 +1,11 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
 import dev.jackraidenph.libraomni.annotation.datagen.WithName;
+import dev.jackraidenph.libraomni.compilation.CompileConstants;
+import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.util.StringUtil;
-import dev.jackraidenph.libraomni.compilation.CompileConstants;
-
-import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
 import org.jspecify.annotations.NonNull;
 
 import javax.annotation.Nullable;

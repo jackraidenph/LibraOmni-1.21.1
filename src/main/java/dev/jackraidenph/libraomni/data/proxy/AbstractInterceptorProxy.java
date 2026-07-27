@@ -6,7 +6,10 @@ import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractInterceptorProxy implements InvocationHandler {
     private final Map<String, List<Method>> interceptors;

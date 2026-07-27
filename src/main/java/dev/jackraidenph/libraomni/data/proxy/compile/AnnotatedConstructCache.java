@@ -1,12 +1,12 @@
 package dev.jackraidenph.libraomni.data.proxy.compile;
 
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
+import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
+import dev.jackraidenph.libraomni.data.proxy.UnfoldingCache;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.util.TransformerUtil;
-import dev.jackraidenph.libraomni.data.proxy.CacheUtil;
-import dev.jackraidenph.libraomni.data.proxy.UnfoldingCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

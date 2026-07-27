@@ -9,7 +9,7 @@ import dev.jackraidenph.libraomni.data.proxy.runtime.SyntheticAnnotation;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.AnnotatedConstruct;
-import java.lang.annotation.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Proxy;
 import java.util.Map;
