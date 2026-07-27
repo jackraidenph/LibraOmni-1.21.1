@@ -1,5 +1,8 @@
-package dev.jackraidenph.libraomni.annotation.meta;
+package dev.jackraidenph.libraomni.annotation.validation;
 
+import java.lang.annotation.Documented;
+
+@Documented
 public @interface ValidatedExpression {
 
     Type type();

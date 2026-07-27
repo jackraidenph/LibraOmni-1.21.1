@@ -7,10 +7,10 @@ import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
+@GeneratesFiles
 
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 
-@GeneratesFiles
 @UnfoldsInto(value = ArbitraryItemModelData.class, retainSelf = false)
 public @interface BlockItemModel {
 

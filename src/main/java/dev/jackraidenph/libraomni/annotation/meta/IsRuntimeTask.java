@@ -1,6 +1,7 @@
 package dev.jackraidenph.libraomni.annotation.meta;
 
 
+import dev.jackraidenph.libraomni.annotation.validation.Validated;
 import dev.jackraidenph.libraomni.compilation.validation.TypesValidator;
 
 import java.lang.annotation.ElementType;

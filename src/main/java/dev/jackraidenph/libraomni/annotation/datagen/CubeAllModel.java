@@ -11,10 +11,10 @@ import java.lang.annotation.Target;
 import java.util.Map;
 import java.util.function.Function;
 
+@GeneratesFiles
 
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 
-@GeneratesFiles
 @UnfoldsInto(value = ArbitraryBlockModelData.class, retainSelf = false)
 public @interface CubeAllModel {
 

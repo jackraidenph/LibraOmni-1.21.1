@@ -2,9 +2,9 @@ package dev.jackraidenph.libraomni.annotation.datagen;
 
 
 import dev.jackraidenph.libraomni.annotation.info.GeneratesFiles;
-import dev.jackraidenph.libraomni.annotation.meta.Validated;
-import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
-import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression.Type;
+import dev.jackraidenph.libraomni.annotation.validation.Validated;
+import dev.jackraidenph.libraomni.annotation.validation.ValidatedExpression;
+import dev.jackraidenph.libraomni.annotation.validation.ValidatedExpression.Type;
 import dev.jackraidenph.libraomni.compilation.validation.HolderTypesValidator;
 import dev.jackraidenph.libraomni.compilation.validation.TypesValidator;
 
