@@ -2,10 +2,12 @@ package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.compilation.util.ModIdGetter;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
+import dev.jackraidenph.libraomni.util.ElementUtil;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A compilation task that can process elements one-by-one
@@ -14,7 +16,9 @@ public abstract class SequentialCompilationTask implements CompilationTask {
 
     @Override
     public void processRound(ProcessingContext processingContext) {
-        Set<? extends Element> elements = processingContext.roundEnvironment().getElementsAnnotatedWithAny(supportedAnnotations());
+        Set<? extends Element> elements = ElementUtil.getAllElements(processingContext.roundEnvironment()).stream()
+                .filter(e -> e.getAnnotationMirrors().stream().anyMatch(this::isMirrorSupported))
+                .collect(Collectors.toSet());
         processElements(elements, processingContext);
     }
 

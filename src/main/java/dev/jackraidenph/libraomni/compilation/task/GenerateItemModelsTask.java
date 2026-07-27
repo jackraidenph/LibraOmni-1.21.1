@@ -1,12 +1,15 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.value.StringPair;
 import dev.jackraidenph.libraomni.annotation.datagen.ArbitraryItemModelData;
-import dev.jackraidenph.libraomni.compilation.util.*;
+import dev.jackraidenph.libraomni.annotation.value.StringPair;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 class GenerateItemModelsTask extends SequentialCompilationTask {
 
@@ -54,7 +57,7 @@ class GenerateItemModelsTask extends SequentialCompilationTask {
     }
 
     @Override
-    public final Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(ArbitraryItemModelData.class);
+    public boolean isMirrorSupported(AnnotationMirror mirror) {
+        return AnnotationMirrorUtil.compareWithClass(mirror, ArbitraryItemModelData.class);
     }
 }

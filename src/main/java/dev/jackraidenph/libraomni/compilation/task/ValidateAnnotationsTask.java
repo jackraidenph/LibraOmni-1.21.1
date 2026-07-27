@@ -3,18 +3,21 @@ package dev.jackraidenph.libraomni.compilation.task;
 import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
 import dev.jackraidenph.libraomni.annotation.validation.Validated;
 import dev.jackraidenph.libraomni.annotation.validation.ValidatedExpression;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
+import dev.jackraidenph.libraomni.compilation.validation.Validator;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
-import dev.jackraidenph.libraomni.compilation.validation.Validator;
-import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
@@ -51,6 +54,12 @@ final class ValidateAnnotationsTask implements CompilationTask {
         }
 
         messager.printNote("---ANNOTATIONS VALIDATED SUCCESSFULLY---");
+    }
+
+    @Override
+    public boolean isMirrorSupported(AnnotationMirror mirror) {
+        TypeElement proxy = (TypeElement) ProxyFactory.makeAnnotatedConstructProxy(AnnotationMirrorUtil.toTypeElement(mirror));
+        return proxy.getAnnotation(Validated.class) != null || proxy.getAnnotation(ValidatedExpression.class) != null;
     }
 
     private static void validateElementsAgainstAnnotation(

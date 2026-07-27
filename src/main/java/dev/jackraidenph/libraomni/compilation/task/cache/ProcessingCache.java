@@ -3,7 +3,6 @@ package dev.jackraidenph.libraomni.compilation.task.cache;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.compilation.task.CompilationTask;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
-import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.ElementUtil;
 
 import javax.annotation.Nonnull;
@@ -12,7 +11,9 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ProcessingCache {
 
@@ -35,7 +36,7 @@ public class ProcessingCache {
 
     private void cacheElement(RoundCache cache, CompilationTask task, Element element) {
         for (AnnotationMirror m : element.getAnnotationMirrors()) {
-            if (AnnotationMirrorUtil.taskSupportsAnnotationMirror(task, m)) {
+            if (task.isMirrorSupported(m)) {
                 cache.add(task, element, m);
             }
         }

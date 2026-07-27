@@ -1,8 +1,8 @@
 package dev.jackraidenph.libraomni.compilation.validation;
 
-import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.AnnotationMirror;

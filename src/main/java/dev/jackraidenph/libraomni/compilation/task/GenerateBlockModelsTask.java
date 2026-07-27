@@ -1,15 +1,17 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.value.StringPair;
 import dev.jackraidenph.libraomni.annotation.datagen.ArbitraryBlockModelData;
-import dev.jackraidenph.libraomni.util.StringUtil;
+import dev.jackraidenph.libraomni.annotation.value.StringPair;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
+import dev.jackraidenph.libraomni.util.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 class GenerateBlockModelsTask extends SequentialCompilationTask {
 
@@ -45,7 +47,7 @@ class GenerateBlockModelsTask extends SequentialCompilationTask {
     }
 
     @Override
-    public final Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(ArbitraryBlockModelData.class);
+    public boolean isMirrorSupported(AnnotationMirror mirror) {
+        return AnnotationMirrorUtil.compareWithClass(mirror, ArbitraryBlockModelData.class);
     }
 }

@@ -1,12 +1,13 @@
 package dev.jackraidenph.libraomni.compilation.validation;
 
-import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
+import dev.jackraidenph.libraomni.util.ElementUtil;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import java.util.List;
 

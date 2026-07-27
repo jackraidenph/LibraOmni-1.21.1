@@ -1,19 +1,21 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.Drops;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.LootTableData;
 import dev.jackraidenph.libraomni.util.LootTableData.CompositeEntry;
 import dev.jackraidenph.libraomni.util.LootTableData.EntryData;
 import dev.jackraidenph.libraomni.util.LootTableData.PoolData;
 import dev.jackraidenph.libraomni.util.LootTableData.SingletonEntry;
 import dev.jackraidenph.libraomni.util.StringUtil;
-import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
-import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
-import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public class GenerateDropsTask extends SequentialCompilationTask {
     @Override
@@ -128,7 +130,7 @@ public class GenerateDropsTask extends SequentialCompilationTask {
     }
 
     @Override
-    public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(Drops.class);
+    public boolean isMirrorSupported(AnnotationMirror mirror) {
+        return AnnotationMirrorUtil.compareWithClass(mirror, Drops.class);
     }
 }

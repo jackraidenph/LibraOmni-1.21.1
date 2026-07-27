@@ -1,13 +1,16 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.BlockStateModel;
+import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.StringUtil;
-import dev.jackraidenph.libraomni.compilation.util.*;
 import net.minecraft.resources.ResourceLocation;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.Map;
 
 class GenerateBlockStatesTask extends SequentialCompilationTask {
     @Override
@@ -50,7 +53,7 @@ class GenerateBlockStatesTask extends SequentialCompilationTask {
     }
 
     @Override
-    public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(BlockStateModel.class);
+    public boolean isMirrorSupported(AnnotationMirror mirror) {
+        return AnnotationMirrorUtil.compareWithClass(mirror, BlockStateModel.class);
     }
 }

@@ -1,15 +1,17 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.TextureWithPalete;
+import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier.ResourceBuilder;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.ImageHelper;
 import dev.jackraidenph.libraomni.util.StringUtil;
 import dev.jackraidenph.libraomni.util.StringUtil.NamespaceDirectoryFile;
-import dev.jackraidenph.libraomni.compilation.util.*;
-import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier.ResourceBuilder;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import java.lang.annotation.Annotation;
-import java.util.Set;
 
 public class GeneratePalettedTextureTask extends SequentialCompilationTask {
     @Override
@@ -42,7 +44,7 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
     }
 
     @Override
-    public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(TextureWithPalete.class);
+    public boolean isMirrorSupported(AnnotationMirror mirror) {
+        return AnnotationMirrorUtil.compareWithClass(mirror, TextureWithPalete.class);
     }
 }

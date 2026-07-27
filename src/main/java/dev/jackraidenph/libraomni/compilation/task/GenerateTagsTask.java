@@ -1,12 +1,19 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.datagen.InTags;
+import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
+import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.compilation.util.ResourceManager;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.StringUtil;
-import dev.jackraidenph.libraomni.compilation.util.*;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class GenerateTagsTask extends SequentialCompilationTask {
@@ -58,7 +65,7 @@ public class GenerateTagsTask extends SequentialCompilationTask {
     }
 
     @Override
-    public Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of(InTags.class);
+    public boolean isMirrorSupported(AnnotationMirror mirror) {
+        return AnnotationMirrorUtil.compareWithClass(mirror, InTags.class);
     }
 }

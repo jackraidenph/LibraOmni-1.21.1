@@ -4,8 +4,10 @@ import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.ConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
-import dev.jackraidenph.libraomni.data.ProjectMetadata;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
+import dev.jackraidenph.libraomni.data.ProjectMetadata;
+import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
+import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -15,7 +17,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementScanner14;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 final class CreateMetadataTask implements CompilationTask {
 
@@ -54,6 +57,12 @@ final class CreateMetadataTask implements CompilationTask {
         }
 
         saveMetadataFile(processingContext);
+    }
+
+    @Override
+    public boolean isMirrorSupported(AnnotationMirror mirror) {
+        TypeElement proxy = (TypeElement) ProxyFactory.makeAnnotatedConstructProxy(AnnotationMirrorUtil.toTypeElement(mirror));
+        return proxy.getAnnotation(NeedsRuntimeProcessing.class) != null;
     }
 
     private void saveMetadataFile(ProcessingContext processingContext) {

@@ -1,14 +1,12 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
+import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.data.proxy.compile.SyntheticAnnotationMirror;
 import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import java.lang.annotation.Annotation;
-import java.util.Set;
 
 public interface CompilationTask {
 
@@ -40,10 +38,7 @@ public interface CompilationTask {
 
     }
 
-    //Every captured annotation is processed if empty
-    default Set<Class<? extends Annotation>> supportedAnnotations() {
-        return Set.of();
-    }
+    boolean isMirrorSupported(AnnotationMirror mirror);
 
     default boolean requiresBlackMagicEnabled() {
         return false;
