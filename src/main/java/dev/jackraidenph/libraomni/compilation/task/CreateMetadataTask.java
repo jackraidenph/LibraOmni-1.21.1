@@ -1,7 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
-import dev.jackraidenph.libraomni.annotation.meta.IsRuntimeTask;
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.ConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
@@ -52,18 +51,6 @@ final class CreateMetadataTask implements CompilationTask {
                     e,
                     processingContext.processingEnvironment().getElementUtils()
             );
-        }
-
-        //Process user-defined runtime tasks
-        for (Element e : roundEnvironment.getElementsAnnotatedWith(IsRuntimeTask.class)) {
-            String name = ((TypeElement) e).getQualifiedName().toString();
-            String modId = processingContext.modIdGetter().modIdByElement(e);
-            if (modId == null) {
-                messager.printWarning("Got runtime task [" + name + "], but failed to compute the owning mod");
-                continue;
-            }
-
-            projectMetadata.getOrCreateModMetadata(modId).addRuntimeTask(name);
         }
 
         saveMetadataFile(processingContext);

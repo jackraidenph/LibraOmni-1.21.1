@@ -1,13 +1,9 @@
 package dev.jackraidenph.libraomni.runtime;
 
-import com.google.common.collect.Streams;
 import dev.jackraidenph.libraomni.LibraOmni;
 import dev.jackraidenph.libraomni.data.proxy.runtime.ProxiedAnnotatedElement;
 import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
-import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
-import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
-import dev.jackraidenph.libraomni.data.ModMetadata;
 import dev.jackraidenph.libraomni.data.ModMetadataReader;
 import dev.jackraidenph.libraomni.exception.DuplicateTaskException;
 import dev.jackraidenph.libraomni.math.graph.HashDirectedGraph;
@@ -77,27 +73,6 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
         event.enqueueWork(() -> this.processLifecycleStage(LifecycleStage.CLIENT));
     }
 
-    private Map<Class<? extends RuntimeTask>, RuntimeTask> getModTasks(String modId) {
-        Map<Class<? extends RuntimeTask>, RuntimeTask> tasks = new HashMap<>();
-        ModMetadata modMetadata = modMetadataReader.getModMetadata(modId);
-        for (String taskName : modMetadata.getTasks()) {
-            Class<? extends RuntimeTask> clazz = SafeReflectionUtil.forNameSubclass(taskName, RuntimeTask.class);
-            if (clazz == null) {
-                LibraOmni.LOGGER.error("Failed to get task class for name [{}]", taskName);
-                continue;
-            }
-            RuntimeTask runtimeTask = UnsafeReflectionUtil.tryConstruct(clazz);
-
-            if (tasks.containsKey(clazz)) {
-                throw new DuplicateTaskException(runtimeTask);
-            }
-
-            tasks.put(clazz, runtimeTask);
-        }
-
-        return tasks;
-    }
-
     private Set<ProxiedAnnotatedElement> elementsAnnotatedWith(String modId, Set<Class<? extends Annotation>> annotations) {
         if (annotations.isEmpty()) {
             return Set.of();
@@ -159,10 +134,7 @@ public class RuntimeTaskProcessor implements LifecycleSetup {
     private void processLifecycleStage(LifecycleStage stage) {
         long startStage = System.currentTimeMillis();
         for (ModContext modContext : modContextManager.contexts()) {
-            Map<Class<? extends RuntimeTask>, RuntimeTask> tasksForMod = Streams.concat(
-                            nativeTasks.entrySet().stream(),
-                            getModTasks(modContext.modId()).entrySet().stream()
-                    )
+            Map<Class<? extends RuntimeTask>, RuntimeTask> tasksForMod =  nativeTasks.entrySet().stream()
                     .filter(t -> t.getValue().getExecutionStage().equals(stage))
                     .collect(Collectors.toUnmodifiableMap(Entry::getKey, Entry::getValue));
 
