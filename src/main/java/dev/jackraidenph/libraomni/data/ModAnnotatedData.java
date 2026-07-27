@@ -12,7 +12,9 @@ import java.util.Set;
 public class ModAnnotatedData {
 
     private final Set<AnnotatedReflectionData<?>> annotatedReflectionData = new HashSet<>();
-    private final Set<AnnotatedElement> dataCache = new HashSet<>();
+
+    private transient final Set<AnnotatedElement> dataCache = new HashSet<>();
+    private transient boolean cacheDirty = true;
 
     public void addElement(Element element, Elements elementUtils) {
         AnnotatedReflectionData<?> dataObject =
@@ -30,8 +32,6 @@ public class ModAnnotatedData {
         this.annotatedReflectionData.add(dataObject);
         cacheDirty = true;
     }
-
-    private boolean cacheDirty = true;
 
     public Set<AnnotatedElement> getElements() {
         if (cacheDirty) {
