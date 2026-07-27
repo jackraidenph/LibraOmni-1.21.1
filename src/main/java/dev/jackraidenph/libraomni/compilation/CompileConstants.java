@@ -2,7 +2,6 @@ package dev.jackraidenph.libraomni.compilation;
 
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
 import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
-import dev.jackraidenph.libraomni.annotation.meta.Validated;
 
 import java.lang.annotation.*;
 import java.util.*;
@@ -17,8 +16,7 @@ public abstract class CompileConstants {
             Inherited.class,
             Repeatable.class,
             Documented.class,
-            NeedsRuntimeProcessing.class,
-            Validated.class
+            NeedsRuntimeProcessing.class
     );
 
     public static final String NF_MOD_ANNOTATION_CLASS_NAME = "net.neoforged.fml.common.Mod";
