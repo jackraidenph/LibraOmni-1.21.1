@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @GeneratesFiles
 
 @Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
-public @interface TextureWithPalete {
+public @interface TextureWithPalette {
     /**
      * @return An existing texture used for generating a new one
      */

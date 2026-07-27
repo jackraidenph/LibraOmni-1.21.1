@@ -1,6 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
-import dev.jackraidenph.libraomni.annotation.datagen.TextureWithPalete;
+import dev.jackraidenph.libraomni.annotation.datagen.TextureWithPalette;
 import dev.jackraidenph.libraomni.compilation.util.InMemoryResource;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
@@ -16,7 +16,7 @@ import javax.lang.model.element.Element;
 public class GeneratePalettedTextureTask extends SequentialCompilationTask {
     @Override
     void processElement(String modId, String elementId, Element element, ProcessingContext processingContext) {
-        TextureWithPalete annotation = element.getAnnotation(TextureWithPalete.class);
+        TextureWithPalette annotation = element.getAnnotation(TextureWithPalette.class);
         if (annotation == null) {
             throw new IllegalStateException();
         }
@@ -45,6 +45,6 @@ public class GeneratePalettedTextureTask extends SequentialCompilationTask {
 
     @Override
     public boolean isMirrorSupported(AnnotationMirror mirror) {
-        return AnnotationMirrorUtil.compareWithClass(mirror, TextureWithPalete.class);
+        return AnnotationMirrorUtil.compareWithClass(mirror, TextureWithPalette.class);
     }
 }
