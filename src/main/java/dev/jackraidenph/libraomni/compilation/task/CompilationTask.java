@@ -7,6 +7,7 @@ import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import java.util.Collection;
 
 public interface CompilationTask {
 
@@ -23,11 +24,22 @@ public interface CompilationTask {
     default boolean shouldExecute(ProcessingContext context) {
         boolean finish = context.roundEnvironment().processingOver();
 
-        return UnsafeReflectionUtil.isIntefaceMethodOverriden(
+        boolean implemented = UnsafeReflectionUtil.isIntefaceMethodOverriden(
                 this.getClass(),
                 finish ? "finish" : "processRound",
                 ProcessingContext.class
         );
+
+        if (!implemented) {
+            return false;
+        }
+
+        boolean anythingToProcess = ElementUtil.getAllElements(context.roundEnvironment()).stream()
+                .map(Element::getAnnotationMirrors)
+                .flatMap(Collection::stream)
+                .anyMatch(this::isMirrorSupported);
+
+        return finish || anythingToProcess;
     }
 
     default void processRound(ProcessingContext processingContext) {
