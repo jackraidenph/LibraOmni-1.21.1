@@ -39,10 +39,6 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
         }
     }
 
-    private boolean containsNonDefaultMethods() {
-        return Arrays.stream(annotationType().getDeclaredMethods()).map(Method::getDefaultValue).anyMatch(Objects::isNull);
-    }
-
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) {
         if (hasInterceptorsFor(method)) {
@@ -51,11 +47,15 @@ public class SyntheticAnnotation<T extends Annotation> extends AbstractIntercept
 
         String name = method.getName();
         Object val = attributes.get(name);
-        if (val != null) {
-            return val;
+        if (val == null) {
+            return method.getDefaultValue();
         }
 
-        return method.getDefaultValue();
+        if (val instanceof RuntimeException e) {
+            throw e;
+        }
+
+        return val;
     }
 
     @InterceptorFor("annotationType")
