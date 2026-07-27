@@ -1,8 +1,9 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.IncompatibleWith;
-import dev.jackraidenph.libraomni.annotation.meta.Validated;
-import dev.jackraidenph.libraomni.annotation.meta.ValidatedExpression;
+import dev.jackraidenph.libraomni.annotation.validation.Validated;
+import dev.jackraidenph.libraomni.annotation.validation.ValidatedExpression;
+import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
 import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
@@ -30,7 +31,10 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
         messager.printNote("---VALIDATING ANNOTATIONS---");
 
-        Collection<TypeElement> annotations = ElementUtil.getAllAnnotationTypes(processingContext.roundEnvironment());
+        Collection<TypeElement> annotations = ElementUtil.getAllAnnotationTypes(processingContext.roundEnvironment()).stream()
+                .map(ProxyFactory::makeAnnotatedConstructProxy)
+                .map(c -> (TypeElement) c)
+                .toList();
 
         Set<TypeElement> requiringIncompatibleCheck = getRequiringIncompatibleCheck(annotations);
         for (TypeElement typeElement : requiringIncompatibleCheck) {
@@ -81,12 +85,12 @@ final class ValidateAnnotationsTask implements CompilationTask {
     }
 
     private static void checkIncompatiblePresence(Element element, TypeElement annotation, Types types) {
-        IncompatibleWith incompatibleWith = annotation.getAnnotation(IncompatibleWith.class);
-        if (incompatibleWith == null) {
+        IncompatibleWith incompatibleWithInfo = annotation.getAnnotation(IncompatibleWith.class);
+        if (incompatibleWithInfo == null) {
             return;
         }
 
-        List<? extends TypeMirror> incompatibleList = ElementUtil.mirrorClassArray(incompatibleWith::value);
+        List<? extends TypeMirror> incompatibleList = ElementUtil.mirrorClassArray(incompatibleWithInfo::value);
 
         element.getAnnotationMirrors()
                 .stream().map(AnnotationMirrorUtil::toTypeElement)
@@ -186,10 +190,6 @@ final class ValidateAnnotationsTask implements CompilationTask {
                                  List<String> args,
                                  ProcessingContext processingContext
     ) {
-        if (validatedElement.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
-            return;
-        }
-
         try {
             validator.test(validatedElement, validatedAnnotation, args, processingContext);
         } catch (AnnotationValidationException validationException) {

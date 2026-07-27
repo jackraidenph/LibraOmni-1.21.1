@@ -29,7 +29,7 @@ public class AnnotationsPresentValidator implements Validator {
             actuallyPresent.add(mirrorName);
         }
 
-        if (!annotationsToBePresent.containsAll(actuallyPresent)) {
+        if (!actuallyPresent.containsAll(annotationsToBePresent)) {
             throw new AnnotationValidationException("Annotations of type %s must be present on [%s]".formatted(args, validatedElement));
         }
     }
