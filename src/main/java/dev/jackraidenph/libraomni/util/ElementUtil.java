@@ -136,6 +136,11 @@ public final class ElementUtil {
             clazz = clazz.getComponentType();
         }
 
+        if (Class.class == clazz) {
+            List<TypeMirror> typeMirrors = sunList.map(o -> (Attribute) o).map(attr -> attr.type);
+            return new MirroredTypesException(typeMirrors);
+        }
+
         Object arr = Array.newInstance(clazz, sunList.size());
         for (int i = 0; i < sunList.size(); i++) {
             Array.set(arr, i, attributeToObject((Attribute) sunList.get(i)));
@@ -146,9 +151,10 @@ public final class ElementUtil {
     public static Object attributeToObject(Attribute attribute) {
         return switch (attribute) {
             case Attribute.Constant constant -> constant.getValue();
-            case Attribute.Class clazz -> fromTypeMirror(clazz.getValue());
+            case Attribute.Class clazz -> new MirroredTypeException(clazz.classType);
             case Attribute.Compound compound -> compoundToAnnotation(compound);
             case Attribute.Enum enoom -> varSymbolToEnum(enoom.value);
+            //As far as I see, no need to handle MirroredTypesException, because Attribute.Array never contains unresolved type references - but sun.#List does
             case Attribute.Array arr -> attributeArrayToArray(arr);
             case Attribute.UnresolvedClass unresolved ->
                     UnsafeReflectionUtil.tryConstruct(fromTypeMirror(unresolved.type), fromTypeMirror(unresolved.classType));
