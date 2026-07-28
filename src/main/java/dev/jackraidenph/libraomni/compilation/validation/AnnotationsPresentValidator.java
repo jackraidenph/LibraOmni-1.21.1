@@ -3,6 +3,7 @@ package dev.jackraidenph.libraomni.compilation.validation;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.exception.AnnotationValidationException;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
+import dev.jackraidenph.libraomni.util.ElementUtil;
 import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -23,7 +24,7 @@ public class AnnotationsPresentValidator implements Validator {
         Set<String> actuallyPresent = new HashSet<>(args.size());
 
         Elements elements = processingContext.processingEnvironment().getElementUtils();
-        for (AnnotationMirror mirror : validatedElement.getAnnotationMirrors()) {
+        for (AnnotationMirror mirror : ElementUtil.Javac.getAllAnnotationMirrors(validatedElement)) {
             TypeElement typeElement = AnnotationMirrorUtil.toTypeElement(mirror);
             String mirrorName = elements.getBinaryName(typeElement).toString();
             actuallyPresent.add(mirrorName);

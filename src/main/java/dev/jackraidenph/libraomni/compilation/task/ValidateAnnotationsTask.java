@@ -101,7 +101,7 @@ final class ValidateAnnotationsTask implements CompilationTask {
 
         List<? extends TypeMirror> incompatibleList = ElementUtil.mirrorClassArray(incompatibleWithInfo::value);
 
-        element.getAnnotationMirrors()
+        ElementUtil.Javac.getAllAnnotationMirrors(element)
                 .stream().map(AnnotationMirrorUtil::toTypeElement)
                 .map(TypeElement::asType)
                 .filter(typeToCheck -> containsTypeMirror(typeToCheck, incompatibleList, types))

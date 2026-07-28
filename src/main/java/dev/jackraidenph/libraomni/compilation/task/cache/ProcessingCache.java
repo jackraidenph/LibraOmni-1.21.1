@@ -35,7 +35,7 @@ public class ProcessingCache {
     }
 
     private void cacheElement(RoundCache cache, CompilationTask task, Element element) {
-        for (AnnotationMirror m : element.getAnnotationMirrors()) {
+        for (AnnotationMirror m : ElementUtil.Javac.getAllAnnotationMirrors(element)) {
             if (task.isMirrorSupported(m)) {
                 cache.add(task, element, m);
             }

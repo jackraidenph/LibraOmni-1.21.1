@@ -9,12 +9,8 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.ElementFilter;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Repeatable;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Supplier;
 
 /**
  * A utility class with hellper methods to work with and ONLY with AnnotationMirrors
@@ -64,8 +60,8 @@ public final class AnnotationMirrorUtil {
                 .orElse(null);
     }
 
-    public static AnnotationMirror findAnnotationMirror(Supplier<List<? extends AnnotationMirror>> mirrors, String qualifiedName) {
-        return mirrors.get().stream()
+    public static AnnotationMirror findAnnotationMirror(Collection<? extends AnnotationMirror> mirrors, String qualifiedName) {
+        return mirrors.stream()
                 .filter(mirror -> ((TypeElement) mirror.getAnnotationType().asElement()).getQualifiedName().contentEquals(qualifiedName))
                 .findFirst()
                 .orElse(null);
@@ -95,7 +91,7 @@ public final class AnnotationMirrorUtil {
         }
 
         TypeElement type = AnnotationMirrorUtil.toTypeElement(inContainerMirror);
-        AnnotationMirror repeatableMirror = AnnotationMirrorUtil.findAnnotationMirror(type::getAnnotationMirrors, Repeatable.class.getName());
+        AnnotationMirror repeatableMirror = AnnotationMirrorUtil.findAnnotationMirror(ElementUtil.Javac.getAllAnnotationMirrors(type), Repeatable.class.getName());
         if (repeatableMirror == null) {
             return false;
         }
