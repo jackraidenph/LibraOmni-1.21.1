@@ -30,7 +30,7 @@ public final class AnnotationMirrorUtil {
         String binaryName = ElementUtil.Javac.binaryName(type);
         Class<? extends Annotation> clazz = SafeReflectionUtil.forNameSubclass(binaryName, Annotation.class);
 
-        if (clazz == null || ElementUtil.isUnfoldUnsupported(type)) {
+        if (clazz == null) {
             return null;
         }
 
