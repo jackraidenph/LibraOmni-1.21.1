@@ -457,8 +457,11 @@ public final class ElementUtil {
         }
 
         //STATIC REIMPL of JavacElements#getAllAnnotationMirrors
-        public static List<Compound> getAllAnnotationMirrors(Element e) {
-            Symbol sym = (Symbol) e;
+        public static List<? extends AnnotationMirror> getAllAnnotationMirrors(Element e) {
+            if (!(e instanceof Symbol sym)) {
+                return e.getAnnotationMirrors();
+            }
+
             List<Compound> annos = new LinkedList<>(sym.getAnnotationMirrors());
             while (sym.getKind() == ElementKind.CLASS) {
                 Type sup = ((ClassSymbol) sym).getSuperclass();
