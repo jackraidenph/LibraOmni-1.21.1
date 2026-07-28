@@ -79,6 +79,8 @@ public final class CompilationTaskProcessor extends AbstractProcessor {
 
         discoverMods(roundEnvironment);
 
+        MOD_ID_GETTER.setProcessingEnvironment(processingEnv);
+
         RoundEnvironment proxyEnvironment = ProxyFactory.makeRuntimeEnvironmentProxy(roundEnvironment, processingEnv);
 
         ProcessingContext context = new ProcessingContext(modIdGetter, null, config, proxyEnvironment, processingEnv, round);

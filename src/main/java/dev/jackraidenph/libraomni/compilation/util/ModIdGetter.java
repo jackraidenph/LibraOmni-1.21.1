@@ -1,5 +1,6 @@
 package dev.jackraidenph.libraomni.compilation.util;
 
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import dev.jackraidenph.libraomni.annotation.datagen.WithName;
 import dev.jackraidenph.libraomni.compilation.CompileConstants;
 import dev.jackraidenph.libraomni.exception.AlreadyInitializedException;
@@ -7,18 +8,28 @@ import dev.jackraidenph.libraomni.util.ElementUtil;
 import dev.jackraidenph.libraomni.util.ObjectOriginGetter;
 import dev.jackraidenph.libraomni.util.SafeReflectionUtil;
 import dev.jackraidenph.libraomni.util.StringUtil;
+import net.minecraft.core.Holder;
 import org.jspecify.annotations.NonNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import java.util.*;
 import java.util.Map.Entry;
 
 public class ModIdGetter implements ObjectOriginGetter {
     private final NavigableMap<String, String> packageToModId = new TreeMap<>();
     private final Map<String, List<String>> modClasses = new HashMap<>();
+    private ProcessingEnvironment processingEnvironment = null;
+
+    public void setProcessingEnvironment(ProcessingEnvironment processingEnvironment) {
+        this.processingEnvironment = processingEnvironment;
+    }
 
     public List<String> getModClasses(String modId) {
         return modClasses.getOrDefault(modId, List.of());
@@ -37,6 +48,25 @@ public class ModIdGetter implements ObjectOriginGetter {
         WithName nameInfo = element.getAnnotation(WithName.class);
         if (nameInfo != null) {
             return nameInfo.value();
+        }
+
+        if (processingEnvironment == null) {
+            return StringUtil.snakeCase(element.getSimpleName().toString());
+        }
+
+        Elements elements = processingEnvironment.getElementUtils();
+        Types types = processingEnvironment.getTypeUtils();
+        TypeElement holderType = elements.getTypeElement(Holder.class.getName());
+        TypeMirror holderErased = types.erasure(holderType.asType());
+        if (element.getKind().equals(ElementKind.FIELD)
+                && element instanceof VarSymbol varSymbol
+                && types.isAssignable(varSymbol.type, holderErased)
+        ) {
+            processingEnvironment.getMessager().printWarning("""
+                    Tried to get object name from a field [%s] that is not annotated with %s, \
+                    if it's a holder field, please check that the field name corresponds to the registration name
+                    """.formatted(element, "@" + WithName.class.getSimpleName())
+            );
         }
 
         return StringUtil.snakeCase(element.getSimpleName().toString());
