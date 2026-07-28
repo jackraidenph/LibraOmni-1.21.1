@@ -25,6 +25,7 @@ import java.lang.annotation.Inherited;
 import java.lang.reflect.Array;
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -67,10 +68,26 @@ public final class ElementUtil {
         }
 
         return getAllElements(roundEnvironment).stream()
-                .map(Element::getAnnotationMirrors)
+                .map(ElementUtil.Javac::getAllAnnotationMirrors)
                 .flatMap(Collection::stream)
                 .map(AnnotationMirrorUtil::toTypeElement)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    public static Set<? extends Element> filterAllElements(RoundEnvironment roundEnvironment, Predicate<AnnotationMirror> predicate) {
+        return filterElements(getAllElements(roundEnvironment), predicate);
+    }
+
+    public static Set<? extends Element> filterElements(Collection<? extends Element> elements, Predicate<AnnotationMirror> predicate) {
+        return elements.stream().filter(e -> testElement(e, predicate)).collect(Collectors.toSet());
+    }
+
+    public static boolean testElement(Element element, Predicate<AnnotationMirror> predicate) {
+        return testAnnotationMirrors(Javac.getAllAnnotationMirrors(element), predicate);
+    }
+
+    public static boolean testAnnotationMirrors(Collection<? extends AnnotationMirror> mirrors, Predicate<AnnotationMirror> predicate) {
+        return mirrors.stream().anyMatch(predicate);
     }
 
     public static String stringIdentity(Element e) {
