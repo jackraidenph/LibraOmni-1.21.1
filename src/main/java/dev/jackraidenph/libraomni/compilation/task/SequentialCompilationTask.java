@@ -6,7 +6,6 @@ import dev.jackraidenph.libraomni.util.ElementUtil;
 
 import javax.lang.model.element.Element;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A compilation task that processes elements one-by-one
@@ -15,9 +14,7 @@ public abstract class SequentialCompilationTask implements CompilationTask {
 
     @Override
     public void processRound(ProcessingContext processingContext) {
-        Set<? extends Element> elements = ElementUtil.getAllElements(processingContext.roundEnvironment()).stream()
-                .filter(e -> e.getAnnotationMirrors().stream().anyMatch(this::isMirrorSupported))
-                .collect(Collectors.toSet());
+        Set<? extends Element> elements = ElementUtil.filterAllElements(processingContext.roundEnvironment(), this::isMirrorSupported);
         processElements(elements, processingContext);
     }
 

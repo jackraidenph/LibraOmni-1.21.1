@@ -7,7 +7,6 @@ import dev.jackraidenph.libraomni.util.UnsafeReflectionUtil;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import java.util.Collection;
 
 public interface CompilationTask {
 
@@ -34,11 +33,7 @@ public interface CompilationTask {
             return false;
         }
 
-        boolean anythingToProcess = ElementUtil.getAllElements(context.roundEnvironment()).stream()
-                .map(Element::getAnnotationMirrors)
-                .flatMap(Collection::stream)
-                .anyMatch(this::isMirrorSupported);
-
+        boolean anythingToProcess = !ElementUtil.filterAllElements(context.roundEnvironment(),this::isMirrorSupported).isEmpty();
         return finish || anythingToProcess;
     }
 
