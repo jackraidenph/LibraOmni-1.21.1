@@ -1,23 +1,19 @@
 package dev.jackraidenph.libraomni.compilation.task;
 
 import dev.jackraidenph.libraomni.annotation.meta.NeedsRuntimeProcessing;
-import dev.jackraidenph.libraomni.annotation.meta.UnfoldsInto;
 import dev.jackraidenph.libraomni.compilation.util.JsonMergeHelper.ConflictPolicy;
 import dev.jackraidenph.libraomni.compilation.util.ProcessingContext;
 import dev.jackraidenph.libraomni.compilation.util.ResourceIdentifier;
 import dev.jackraidenph.libraomni.data.ProjectMetadata;
-import dev.jackraidenph.libraomni.data.proxy.ProxyFactory;
 import dev.jackraidenph.libraomni.util.AnnotationMirrorUtil;
+import dev.jackraidenph.libraomni.util.ElementUtil;
 
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.AnnotatedConstruct;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.ElementScanner14;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 final class CreateMetadataTask implements CompilationTask {
@@ -28,23 +24,29 @@ final class CreateMetadataTask implements CompilationTask {
     public void processRound(ProcessingContext processingContext) {
         RoundEnvironment roundEnvironment = processingContext.roundEnvironment();
 
-        //Find annotations to use for processing runtime data
-        RuntimeAnnotatedElementsScanner scanner = new RuntimeAnnotatedElementsScanner();
-        for (Element e : roundEnvironment.getRootElements()) {
-            scanner.scan(e);
+        Messager messager = processingContext.processingEnvironment().getMessager();
+        Set<TypeElement> runtimeAnnotations = new LinkedHashSet<>();
+        Set<Element> annotated = new LinkedHashSet<>();
+
+        for (Element e : ElementUtil.getAllElements(roundEnvironment)) {
+            boolean needsRuntimeProcessing = false;
+            for (AnnotationMirror m : ElementUtil.Javac.getAllAnnotationMirrors(e)) {
+                if (isMirrorSupported(m)) {
+                    TypeElement type = AnnotationMirrorUtil.toTypeElement(m);
+                    runtimeAnnotations.add(type);
+                    needsRuntimeProcessing = true;
+                }
+            }
+            if (needsRuntimeProcessing) {
+                annotated.add(e);
+            }
         }
 
-        Messager messager = processingContext.processingEnvironment().getMessager();
-        Set<TypeElement> runtimeAnnotations = scanner.annotations;
         if (!runtimeAnnotations.isEmpty()) {
             messager.printNote("Found runtime annotations " + runtimeAnnotations);
         }
 
-        for (Element e : scanner.elements) {
-            if (e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
-                continue;
-            }
-
+        for (Element e : annotated) {
             String modId = processingContext.modIdGetter().modIdByElement(e);
             if (modId == null) {
                 continue;
@@ -61,8 +63,7 @@ final class CreateMetadataTask implements CompilationTask {
 
     @Override
     public boolean isMirrorSupported(AnnotationMirror mirror) {
-        TypeElement proxy = (TypeElement) ProxyFactory.makeAnnotatedConstructProxy(AnnotationMirrorUtil.toTypeElement(mirror));
-        return proxy.getAnnotation(NeedsRuntimeProcessing.class) != null;
+        return AnnotationMirrorUtil.toTypeElement(mirror).getAnnotation(NeedsRuntimeProcessing.class) != null;
     }
 
     private void saveMetadataFile(ProcessingContext processingContext) {
@@ -76,48 +77,5 @@ final class CreateMetadataTask implements CompilationTask {
                 ConflictPolicy.MERGE_KEYS_PREFER_NEW,
                 this.className()
         );
-    }
-
-    private static class RuntimeAnnotatedElementsScanner extends ElementScanner14<Set<Element>, Void> {
-
-        private final Set<Element> elements = new HashSet<>();
-        private final Set<TypeElement> annotations = new HashSet<>();
-
-        @Override
-        public Set<Element> scan(Element e, Void nothing) {
-            e.accept(this, null);
-            if (e.getAnnotationMirrors().isEmpty()) {
-                return elements;
-            }
-            for (AnnotationMirror mirror : e.getAnnotationMirrors()) {
-                TypeElement typeElement = (TypeElement) mirror.getAnnotationType().asElement();
-                if (needsRuntimeProcessing(typeElement)) {
-                    if (!e.getKind().equals(ElementKind.ANNOTATION_TYPE)) {
-                        elements.add(e);
-                    }
-                    annotations.add(typeElement);
-                }
-            }
-
-
-            return elements;
-        }
-
-        private static boolean needsRuntimeProcessing(AnnotatedConstruct annotated) {
-            if (annotated.getAnnotation(NeedsRuntimeProcessing.class) != null) {
-                return true;
-            }
-
-            if (annotated.getAnnotation(UnfoldsInto.class) == null) {
-                return false;
-            }
-
-            for (AnnotationMirror annotationMirror : annotated.getAnnotationMirrors()) {
-                if (needsRuntimeProcessing(annotationMirror.getAnnotationType().asElement())) {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }
